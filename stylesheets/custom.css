@@ -810,6 +810,7 @@ html.dark-mode .rdb-taskboard-card[style] {
   border-radius: var(--rm-r-sm) !important;
 }
 .rdb-overdue .rdb-compact { border-color: var(--rm-red) !important; }
+.rdb-compact-header .rdb-container { background-color: var(--rm-surface-2) !important; }
 .rdb-compact-progress { background-color: var(--rm-border) !important; }
 .rdb-compact-header .rdb-property { color: var(--rm-muted) !important; }
 html.dark-mode .rdb-compact { background: var(--rm-surface) !important; }
