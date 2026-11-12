@@ -57,11 +57,17 @@ div.flash svg.icon-svg,
 }
 
 /* ── Sidebar — denser link padding ───────────────────────────
-   Same selector as upstream plus the <li>, so it wins without
-   !important (custom.css is imported before the main sheet). */
+   Upstream sets 7px 8px on these links (also on .selected). The
+   selector below wins on specificity; the direct wrapper link
+   needs !important because custom.css is imported before the
+   main sheet and both have the same specificity. */
 #sidebar ul:not(.wiki ul) li > a:not(.icon-only) {
   padding-block: var(--sp-1);
   padding-inline: var(--sp-1);
+}
+#sidebar > #sidebar-wrapper > a:not(.icon-only) {
+  padding-block: var(--sp-1) !important;
+  padding-inline: var(--sp-1) !important;
 }
 
 /* ── Div-based progress bars (plugins) ────────────────────── */
