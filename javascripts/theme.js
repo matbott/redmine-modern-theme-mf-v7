@@ -980,6 +980,26 @@
       plus: '<path d="M12 5v14M5 12h14"/>'
     };
 
+    // Shared helpers for the operational stats (chips, stalled, settings).
+    var pad2 = function (n) { return (n < 10 ? '0' : '') + n; };
+    var isoDay = function (d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); };
+    var daysAgo = function (n) { return isoDay(new Date(Date.now() - n * 864e5)); };
+    var queryUrl = function (filters) {
+      var parts = ['set_filter=1'];
+      filters.forEach(function (f) {
+        parts.push('f%5B%5D=' + encodeURIComponent(f[0]));
+        parts.push('op%5B' + encodeURIComponent(f[0]) + '%5D=' + encodeURIComponent(f[1]));
+        if (f[2] != null) parts.push('v%5B' + encodeURIComponent(f[0]) + '%5D%5B%5D=' + encodeURIComponent(f[2]));
+      });
+      return proj + '/issues?' + parts.join('&');
+    };
+    var setOpValue = function (id, value) {
+      var $chip = $('#vz-op-' + id);
+      if (!$chip.length) return;
+      $chip.find('b').text(value == null ? '\u2014' : value);
+      $chip.toggleClass('is-zero', value === 0);
+    };
+
     var open = 0, closed = 0, total = 0;
     var members = $('.members.box a.user').length;
     var hasIssues = $('table.issue-report').length > 0;
@@ -1292,39 +1312,24 @@
     safe('operacion', function () {
       if (!hasIssues) return;
 
-      var pad = function (n) { return (n < 10 ? '0' : '') + n; };
-      var iso = function (d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
-      var today = iso(new Date());
-      var weekAgo = iso(new Date(Date.now() - 7 * 864e5));
-
-      // Redmine query URL from (field, operator, value) triples.
-      function furl(filters) {
-        var parts = ['set_filter=1'];
-        filters.forEach(function (f) {
-          parts.push('f%5B%5D=' + encodeURIComponent(f[0]));
-          parts.push('op%5B' + encodeURIComponent(f[0]) + '%5D=' + encodeURIComponent(f[1]));
-          if (f[2] != null) {
-            parts.push('v%5B' + encodeURIComponent(f[0]) + '%5D%5B%5D=' + encodeURIComponent(f[2]));
-          }
-        });
-        return proj + '/issues?' + parts.join('&');
-      }
+      var today = daysAgo(0);
+      var weekAgo = daysAgo(7);
 
       var ops = [
         { id: 'unassigned', label: 'sin asignar',
-          href: furl([['status_id', 'o'], ['assigned_to_id', '!*']]),
+          href: queryUrl([['status_id', 'o'], ['assigned_to_id', '!*']]),
           count: 'status_id=o&assigned_to_id=%21*' },
         { id: 'overdue', label: 'vencidas', danger: true,
-          href: furl([['status_id', 'o'], ['due_date', '<', today]]),
+          href: queryUrl([['status_id', 'o'], ['due_date', '<', today]]),
           count: 'status_id=o&due_date=%3C=' + today },
         { id: 'nodue', label: 'sin fecha',
-          href: furl([['status_id', 'o'], ['due_date', '!*']]),
+          href: queryUrl([['status_id', 'o'], ['due_date', '!*']]),
           count: 'status_id=o&due_date=%21*' },
         { id: 'new', label: 'nuevas 7 d',
-          href: furl([['created_on', '>=', weekAgo]]),
+          href: queryUrl([['created_on', '>=', weekAgo]]),
           count: 'created_on=%3E=' + weekAgo },
         { id: 'closed', label: 'cerradas 7 d',
-          href: furl([['status_id', 'c'], ['updated_on', '>=', weekAgo]]),
+          href: queryUrl([['status_id', 'c'], ['updated_on', '>=', weekAgo]]),
           count: 'status_id=c&updated_on=%3E=' + weekAgo },
         { id: 'mttr', label: 'cierre prom.', href: proj + '/issues/report', avg: true }
       ];
@@ -1339,13 +1344,6 @@
       if (!$kpis.length) return;
       $kpis.after(chips);
 
-      function setOp(id, value) {
-        var $chip = $('#vz-op-' + id);
-        if (!$chip.length) return;
-        $chip.find('b').text(value == null ? '\u2014' : value);
-        if (value === 0) $chip.addClass('is-zero');
-      }
-
       function count(qs) {
         return fetch('/issues.json?project_id=' + encodeURIComponent(ident) + '&limit=1&' + qs,
                      { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
@@ -1356,8 +1354,8 @@
       ops.forEach(function (op) {
         if (op.avg) return;
         count(op.count)
-          .then(function (n) { setOp(op.id, n); })
-          .catch(function (e) { console.error('Vistazo moderno [' + op.id + ']:', e); setOp(op.id, null); });
+          .then(function (n) { setOpValue(op.id, n); })
+          .catch(function (e) { console.error('Vistazo moderno [' + op.id + ']:', e); setOpValue(op.id, null); });
       });
 
       // Tiempo medio de cierre sobre las últimas 30 cerradas.
@@ -1368,11 +1366,132 @@
           var days = (d.issues || []).filter(function (i) { return i.closed_on; }).map(function (i) {
             return (new Date(i.closed_on) - new Date(i.created_on)) / 864e5;
           });
-          if (!days.length) { setOp('mttr', null); return; }
+
+          if (!days.length) { setOpValue('mttr', null); return; }
           var avg = days.reduce(function (s, x) { return s + x; }, 0) / days.length;
-          setOp('mttr', Number(avg.toFixed(1)).toLocaleString('es-UY') + ' d');
+          setOpValue('mttr', Number(avg.toFixed(1)).toLocaleString('es-UY') + ' d');
         })
-        .catch(function (e) { console.error('Vistazo moderno [mttr]:', e); setOp('mttr', null); });
+        .catch(function (e) { console.error('Vistazo moderno [mttr]:', e); setOpValue('mttr', null); });
+    });
+
+    /* ---------- 8) Estadísticas: visibilidad por proyecto (este navegador) ---------- */
+    safe('estadisticas', function () {
+      if (!hasIssues) return;
+      var $ops = $('.vz-ops').first();
+      var $actions = $('.vz-hero .vz-actions').first();
+      if (!$ops.length || !$actions.length) return;
+
+      var KEY = 'rm-vz-stats:' + ident;
+      var DEF = {
+        kpis: true, donut: true, unassigned: true, overdue: true, nodue: true,
+        'new': true, closed: true, mttr: true, stalled: true, stalledDays: 7
+      };
+      var saved = {};
+      try { saved = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { saved = {}; }
+      var conf = {};
+      Object.keys(DEF).forEach(function (k) {
+        conf[k] = saved.hasOwnProperty(k) ? saved[k] : DEF[k];
+      });
+      conf.stalledDays = parseInt(conf.stalledDays, 10);
+      if (!(conf.stalledDays >= 1 && conf.stalledDays <= 120)) conf.stalledDays = DEF.stalledDays;
+
+      function save() {
+        try { localStorage.setItem(KEY, JSON.stringify(conf)); } catch (e) {}
+      }
+
+      // Estancadas: abiertas sin actualizar desde hace más de N días.
+      $ops.append('<a class="vz-op is-warn" id="vz-op-stalled" href="#"><b>\u2014</b><span>estancadas</span></a>');
+      var stalledFor = null;
+      function loadStalled() {
+        var date = daysAgo(conf.stalledDays);
+        $('#vz-op-stalled').attr('href', queryUrl([['status_id', 'o'], ['updated_on', '<=', date]]));
+        if (stalledFor === date) return;
+        stalledFor = date;
+        setOpValue('stalled', null);
+        fetch('/issues.json?project_id=' + encodeURIComponent(ident) + '&limit=1&status_id=o&updated_on=%3C=' + date,
+              { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
+          .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+          .then(function (d) { setOpValue('stalled', d.total_count); })
+          .catch(function (e) { console.error('Vistazo moderno [stalled]:', e); stalledFor = null; setOpValue('stalled', null); });
+      }
+
+      function apply() {
+        $('.vz-kpis').toggleClass('is-hidden', !conf.kpis);
+        $('#vz-chart').toggleClass('is-hidden', !conf.donut);
+        var any = false;
+        ['unassigned', 'overdue', 'nodue', 'new', 'closed', 'mttr', 'stalled'].forEach(function (id) {
+          var show = !!conf[id];
+          $('#vz-op-' + id).toggleClass('is-hidden', !show);
+          if (show) any = true;
+        });
+        $ops.toggleClass('is-hidden', !any);
+      }
+
+      var rows = [
+        ['kpis', 'KPI básicas'],
+        ['donut', 'Dona por tipo / asignado'],
+        ['unassigned', 'Sin asignar'],
+        ['overdue', 'Vencidas'],
+        ['nodue', 'Sin fecha límite'],
+        ['new', 'Nuevas (7 días)'],
+        ['closed', 'Cerradas (7 días)'],
+        ['mttr', 'Cierre promedio'],
+        ['stalled', 'Estancadas']
+      ].map(function (r) {
+        return '<label><input type="checkbox" data-stat="' + r[0] + '"' + (conf[r[0]] ? ' checked' : '') + '> ' + r[1] + '</label>';
+      }).join('');
+
+      var days = [3, 7, 15, 30, 60].map(function (d) {
+        return '<option value="' + d + '"' + (conf.stalledDays === d ? ' selected' : '') + '>' + d + ' días</option>';
+      }).join('');
+
+      var widget =
+        '<div class="vz-stats">' +
+          '<button type="button" class="vz-btn vz-stats-btn" aria-expanded="false" aria-controls="vz-stats-panel">' +
+            svg('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>') +
+            'Estadísticas' +
+          '</button>' +
+          '<div class="vz-stats-panel" id="vz-stats-panel" hidden>' +
+            '<h4>Mostrar en el vistazo</h4>' +
+            rows +
+            '<div class="vz-stats-row"><span>Estancadas hace más de</span>' +
+              '<select id="vz-stats-days" aria-label="Días para estancadas">' + days + '</select></div>' +
+            '<p class="vz-stats-hint">Se guarda en este navegador para este proyecto.</p>' +
+          '</div>' +
+        '</div>';
+
+      $actions.append(widget);
+
+      var $panel = $('#vz-stats-panel');
+      var $btn = $actions.find('.vz-stats-btn');
+      function close() { $panel.prop('hidden', true); $btn.attr('aria-expanded', 'false'); }
+
+      $btn.on('click', function (e) {
+        e.stopPropagation();
+        var show = $panel.prop('hidden');
+        $panel.prop('hidden', !show);
+        $btn.attr('aria-expanded', show ? 'true' : 'false');
+      });
+      $(document).on('click', function (e) {
+        if (!$panel.prop('hidden') && !$(e.target).closest('.vz-stats').length) close();
+      });
+      $(document).on('keydown', function (e) { if (e.key === 'Escape') close(); });
+
+      $panel.on('change', 'input[data-stat]', function () {
+        var key = this.getAttribute('data-stat');
+        conf[key] = this.checked;
+        save();
+        apply();
+        if (key === 'stalled' && this.checked) loadStalled();
+      });
+      $panel.on('change', '#vz-stats-days', function () {
+        conf.stalledDays = parseInt(this.value, 10) || DEF.stalledDays;
+        save();
+        if (conf.stalled) loadStalled();
+      });
+
+      if (conf.stalled) loadStalled();
+      apply();
     });
   }
 

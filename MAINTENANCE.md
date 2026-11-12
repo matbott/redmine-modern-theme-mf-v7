@@ -173,10 +173,17 @@ El theme se elige en **Administración → Configuración → Mostrar → Tema �
     asignado desde `/projects/<id>/issues/report/assigned_to` (una request, cacheada).
     Colores en el array `PALETTE` (`--rm-*`).
   - Chips: un `total_count` por indicador vía `/issues.json?...&limit=1` (sin asignar,
-    vencidas, sin fecha, nuevas/cerradas 7 d) y el cierre promedio sobre las últimas 30
-    cerradas. Los links usan el formato de query de Redmine
+    vencidas, sin fecha, nuevas/cerradas 7 d, estancadas) y el cierre promedio sobre las
+    últimas 30 cerradas. Los links usan el formato de query de Redmine
     (`f[]=campo&op[campo]=operador&v[campo][]=valor`); si un filtro deja de existir, el
     chip muestra “—”.
+  - Estancadas: abiertas con `updated_on <= hoy - N` (N configurable: 3/7/15/30/60).
+  - **Visibilidad por proyecto**: botón *Estadísticas* en el hero. Cada indicador
+    (KPI básicas, dona, cada chip, estancadas) se puede prender/apagar; se guarda en
+    `localStorage['rm-vz-stats:<ident>']`, o sea **por proyecto y por navegador**. No
+    requiere server ni afecta a otros usuarios. Para un default distinto, editar `DEF`
+    en el bloque 8 de `theme.js`; para un valor compartido habría que moverlo a un
+    plugin/custom field.
   - Tamaño de la dona: `.vz-donut` en `custom.css`.
 - **Taskboard**: sección *Taskboard / board* y *Taskboard compact*.
 - **Plugins**: sección *Plugin compatibility*; usar `html.dark-mode` cuando el plugin pisa

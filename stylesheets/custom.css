@@ -406,7 +406,38 @@ table.issue-report td.vz-prog { white-space: nowrap; }
 .vz-op b { color: var(--rm-fg); font-size: .95rem; font-variant-numeric: tabular-nums; }
 .vz-op:hover { border-color: var(--rm-accent); color: var(--rm-fg); background: color-mix(in srgb, var(--rm-accent) 8%, transparent); }
 .vz-op.is-danger b { color: var(--rm-red); }
+.vz-op.is-warn b { color: var(--rm-yellow); }
 .vz-op.is-zero b { color: var(--rm-muted); }
+
+/* ---------- Selector de estadísticas (por proyecto, por navegador) ---------- */
+.vz-stats { position: relative; display: flex; }
+.vz-stats-panel {
+  position: absolute; inset-block-start: calc(100% + 6px); inset-inline-end: 0; z-index: 40;
+  inline-size: 236px; max-inline-size: calc(100vw - 32px); padding: 12px 14px;
+  background: var(--rm-surface); border: 1px solid var(--rm-border); border-radius: var(--rm-r);
+  box-shadow: var(--rm-shadow-lg); text-align: start;
+}
+.vz-stats-panel[hidden] { display: none !important; }
+.vz-stats-panel h4 {
+  margin: 0 0 8px; font-size: .72rem; font-weight: 600; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--rm-muted);
+}
+.vz-stats-panel label {
+  display: flex; align-items: center; gap: 8px; padding: 2px 0;
+  font-size: .85rem; color: var(--rm-fg); cursor: pointer;
+}
+.vz-stats-panel input[type=checkbox] { accent-color: var(--rm-accent); margin: 0; }
+.vz-stats-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  margin-block-start: 8px; padding-block-start: 8px; border-block-start: 1px solid var(--rm-border);
+  font-size: .8rem; color: var(--rm-muted);
+}
+.vz-stats-row select {
+  padding: 3px 6px; border: 1px solid var(--rm-border); border-radius: var(--rm-r-sm);
+  background: var(--rm-surface-2); color: var(--rm-fg); font: inherit;
+}
+.vz-stats-hint { margin: 8px 0 0; font-size: .72rem; line-height: 1.4; color: var(--rm-muted); }
+.is-hidden { display: none !important; }
 
 /* ---------- Skeletons ---------- */
 .vz-sk {

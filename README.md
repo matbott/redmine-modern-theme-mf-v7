@@ -123,8 +123,11 @@ map, token translations and how to update from upstream.
 - **Admin index** — icon cards in a responsive grid.
 - **Project overview hero** (“Vistazo moderno”) — hero, KPI cards, issue/members/activity
   summary, a donut chart of open issues (toggle: by tracker / by assignee) and an
-  operational strip (unassigned, overdue, no due date, new/closed last 7 days, average
-  closing time). All read from the active palette, so they follow dark mode and schemes.
+  operational strip (unassigned, overdue, no due date, new/closed last 7 days, stalled,
+  average closing time). A **Statistics** button in the hero lets each project toggle
+  every indicator on/off (per browser, stored in `localStorage`), and sets the stalled
+  threshold (3–60 days). All read from the active palette, so they follow dark mode and
+  schemes.
 - **Plugin compatibility** — RedmineUP Agile, Redmineflux Testcase, Vault, Pins, View
   Customize code blocks.
 - **Taskboard / board** (`#rdb*`, `.rdb-*`) — cards, headers, footers, dropdowns and the
