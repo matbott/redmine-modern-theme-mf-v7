@@ -15,13 +15,12 @@
    at the Redmine 7 theme's tokens so the ported code stays
    readable and keeps following every colour scheme. */
 :root {
-  --sp-1: .25rem; --sp-2: .5rem;  --sp-3: .75rem; --sp-4: 1rem;
-  --sp-5: 1.25rem; --sp-6: 1.5rem; --sp-8: 2rem;
-  --text-xs: .75rem; --text-sm: .875rem; --text-base: 1rem;
+  --sp-2: .5rem;  --sp-3: .75rem; --sp-4: 1rem;
+  --text-xs: .75rem; --text-sm: .875rem;
   --r: var(--rm-r); --r-md: var(--rm-r-md);
   --shadow-xs: var(--rm-shadow-xs); --shadow-sm: var(--rm-shadow-sm);
   --shadow-md: var(--rm-shadow-md);
-  --t-fast: var(--rm-t); --t-slow: 300ms ease;
+  --t-fast: var(--rm-t);
 }
 
 /* ── Issue list — selected rows ──────────────────────────────
@@ -32,48 +31,21 @@ table.list tbody tr:has(input[type="checkbox"]:checked) {
   background: var(--rm-accent-soft);
 }
 
-/* ── Activity — day separator ────────────────────────────────
-   Core leaves the <dt> rule flush against the entries; make it a
-   full-width divider that follows the palette (--oc-gray-7 is
-   re-derived from the theme tokens by core 7). */
-div#activity dt {
-  padding-block-start: 10px;
-  border-block-start: 1px solid var(--oc-gray-7);
-  width: 100%;
-  box-sizing: border-box;
-  display: flex;
-  align-items: flex-end;
+/* ── My account — sidebar width control ──────────────────────
+   theme.js restores the per-browser width setting (180–360px,
+   stored as --rm-sidebar-w) and adds the slider inside the
+   "Sidebar position" fieldset upstream injects. */
+#rm-layout .rm-width-block { margin-block-start: var(--sp-4); }
+#rm-layout .rm-width-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--sp-3); margin-block-end: var(--sp-2);
 }
-
-/* ── Flash messages — icon margin ────────────────────────────
-   Core assumes its own padding-left and offsets the icon with
-   margin-inline: -26px 4px, which lands outside this theme's
-   flash box. */
-div.flash svg.icon-svg,
-#errorExplanation svg.icon-svg,
-.conflict svg.icon-svg {
-  margin-inline: 0;
-  flex-shrink: 0;
+#rm-layout .rm-width-label { font-size: var(--text-sm); font-weight: 600; color: var(--rm-fg); }
+#rm-layout .rm-width-value { font-size: var(--text-sm); font-variant-numeric: tabular-nums; color: var(--rm-muted); }
+#rm-layout .rm-width-range {
+  display: block; inline-size: 100%; block-size: 24px;
+  margin: 0; padding: 0; accent-color: var(--rm-accent); cursor: pointer;
 }
-
-/* ── Sidebar — denser link padding ───────────────────────────
-   Upstream sets 7px 8px on these links (also on .selected). The
-   selector below wins on specificity; the direct wrapper link
-   needs !important because custom.css is imported before the
-   main sheet and both have the same specificity. */
-#sidebar ul:not(.wiki ul) li > a:not(.icon-only) {
-  padding-block: var(--sp-1);
-  padding-inline: var(--sp-1);
-}
-#sidebar > #sidebar-wrapper > a:not(.icon-only) {
-  padding-block: var(--sp-1) !important;
-  padding-inline: var(--sp-1) !important;
-}
-
-/* ── Div-based progress bars (plugins) ────────────────────── */
-.progress-bar { height: 8px; border-radius: 999px; overflow: hidden; }
-.progress-bar-done { background: var(--rm-accent); border-radius: 999px; transition: width var(--t-slow); }
-.progress-bar-todo { background: var(--rm-border); }
 
 /* ── RedmineUP Checklists — new-item field ───────────────────
    The plugin asks for 40%, which the form's narrow inputs turn
@@ -825,6 +797,22 @@ html.dark-mode .rdb-card[style],
 html.dark-mode .rdb-taskboard-card[style] {
   background: var(--rm-surface) !important;
 }
+
+/* ── Taskboard — compact issue list ────────────────────────
+   The plugin ships a pale yellow (#ffd) card with a grey border
+   and grey progress track; use the theme surfaces instead and
+   keep the red border that flags overdue issues. */
+.rdb-compact {
+  position: relative !important;
+  margin-bottom: 2px !important;
+  border: 1px solid var(--rm-border) !important;
+  background: var(--rm-surface-2) !important;
+  border-radius: var(--rm-r-sm) !important;
+}
+.rdb-overdue .rdb-compact { border-color: var(--rm-red) !important; }
+.rdb-compact-progress { background-color: var(--rm-border) !important; }
+.rdb-compact-header .rdb-property { color: var(--rm-muted) !important; }
+html.dark-mode .rdb-compact { background: var(--rm-surface) !important; }
 
 /* ── Pins toolbar (plugin) — token-based dark styling ── */
 .pins-toolbar {

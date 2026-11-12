@@ -111,21 +111,21 @@ audits WCAG contrast, `seed.rb` fills a local development database.
 ## Local customisations
 
 Everything below lives in `stylesheets/custom.css` (imported right after `schemes.css`),
-except the project hero script at the end of `javascripts/theme.js`:
+except the two script blocks at the end of `javascripts/theme.js`
+(sidebar width and the project hero). See [MAINTENANCE.md](MAINTENANCE.md) for the full
+map, token translations and how to update from upstream.
 
 - **Selected issue rows** — `tr:has(input[type=checkbox]:checked)`, so the row paints as
   soon as its checkbox is ticked (core only marks it on submit).
-- **Activity day separator** — full-width `div#activity dt` rule using `--oc-gray-7`.
-- **Flash message icons** — cancels core's `margin-inline: -26px` offset.
-- **Sidebar link padding** — denser (`--sp-1`) than upstream's default.
-- **Div-based progress bars** and the **RedmineUP Checklists** item field.
+- **Sidebar width** — per-browser slider on **My account** (180–360 px), stored as
+  `--rm-sidebar-w` and applied before first paint.
+- **RedmineUP Checklists** — the new-item field takes the row.
 - **Admin index** — icon cards in a responsive grid.
 - **Project overview hero** (“Vistazo moderno”) — hero, KPI cards, issue/members/activity
   summary; accent read from the active palette, so it follows dark mode and schemes.
-- **Plugin compatibility** — RedmineUP Agile, Redmineflux Testcase, Vault, plus the
-  Checklists/Pins touches above.
-- **Taskboard / board** (`#rdb*`, `.rdb-*`) — cards, headers, footers and dropdowns on
-  the theme tokens; answers the plugin's inline colours where needed.
+- **Plugin compatibility** — RedmineUP Agile, Redmineflux Testcase, Vault, Pins.
+- **Taskboard / board** (`#rdb*`, `.rdb-*`) — cards, headers, footers, dropdowns and the
+  compact list on the theme tokens; answers the plugin's inline colours where needed.
 
 ## Author
 

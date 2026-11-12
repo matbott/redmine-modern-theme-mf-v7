@@ -1160,3 +1160,85 @@
 
   $(init);
 })();
+
+/* ============================================================
+   LOCAL CUSTOMISATIONS — sidebar width
+   Upstream sizes the sidebar from --rm-sidebar-w (240px). This
+   block restores the per-browser width setting (180–360px) on
+   My account; the stored value is applied before first paint.
+   ============================================================ */
+(function () {
+  var root = document.documentElement;
+  var KEY = 'rm-sidebar-width';
+  var MIN = 180, MAX = 360;
+
+  function storedWidth() {
+    try {
+      var w = parseInt(localStorage.getItem(KEY), 10);
+      return w >= MIN && w <= MAX ? w : 0;
+    } catch (e) { return 0; }
+  }
+
+  // Before the body is parsed: no flash at the default width.
+  var saved = storedWidth();
+  if (saved) root.style.setProperty('--rm-sidebar-w', saved + 'px');
+
+  function initWidthSetting() {
+    if (!document.body.classList.contains('controller-my') ||
+        !document.body.classList.contains('action-account')) return;
+    var layout = document.getElementById('rm-layout');
+    if (!layout || layout.querySelector('.rm-width-block')) return;
+
+    var computed = parseInt(getComputedStyle(root).getPropertyValue('--rm-sidebar-w'), 10);
+    var current = Math.max(MIN, Math.min(MAX, computed || 240));
+
+    var block = document.createElement('div');
+    block.className = 'rm-width-block';
+
+    var head = document.createElement('div');
+    head.className = 'rm-width-head';
+    var label = document.createElement('label');
+    label.className = 'rm-width-label';
+    label.setAttribute('for', 'rm-width-range');
+    label.textContent = 'Sidebar width';
+    var value = document.createElement('span');
+    value.className = 'rm-width-value';
+    value.textContent = current + 'px';
+    head.appendChild(label);
+    head.appendChild(value);
+
+    var range = document.createElement('input');
+    range.type = 'range';
+    range.id = 'rm-width-range';
+    range.className = 'rm-width-range';
+    range.min = String(MIN);
+    range.max = String(MAX);
+    range.step = '10';
+    range.value = String(current);
+    range.setAttribute('aria-label', 'Sidebar width');
+    range.addEventListener('input', function () {
+      var w = parseInt(range.value, 10);
+      value.textContent = w + 'px';
+      root.style.setProperty('--rm-sidebar-w', w + 'px');
+      try { localStorage.setItem(KEY, String(w)); } catch (e) {}
+    });
+
+    var hint = document.createElement('p');
+    hint.className = 'rm-scheme-hint';
+    hint.textContent = 'Between 180 and 360 px. Saved in this browser only.';
+
+    block.appendChild(head);
+    block.appendChild(range);
+    block.appendChild(hint);
+
+    var sideRow = layout.querySelector('.rm-side-options');
+    if (sideRow && sideRow.parentNode === layout) layout.insertBefore(block, sideRow.nextSibling);
+    else layout.appendChild(block);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initWidthSetting);
+  } else {
+    initWidthSetting();
+  }
+})();
