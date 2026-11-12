@@ -15,6 +15,7 @@
 @layer force, core;
 @import url(/application.css) layer(core);
 @import url(schemes.css);
+@import url(custom.css);
 
 /* ── 0. FONT ─ self-hosted Inter, no CDN (GDPR). ───────────── */
 /* cyrillic-ext */

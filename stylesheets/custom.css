@@ -1,0 +1,834 @@
+/* ============================================================
+   LOCAL CUSTOMISATIONS — redmine-modern-theme-mf-v7
+   Additions kept out of the upstream files so this branch stays
+   easy to rebase on acosonic/redmine-modern-theme (redmine-7).
+
+   Everything here is unlayered and uses the theme's tokens
+   (--rm-*), so it follows light mode, dark mode and all colour
+   schemes. Rules that have to answer plugin CSS or inline
+   styles keep !important on purpose.
+   ============================================================ */
+
+/* ── Local scale aliases ──────────────────────────────────────
+   The plugin/board/hero rules below were written against the
+   older theme's spacing, radius and shadow names. Point them
+   at the Redmine 7 theme's tokens so the ported code stays
+   readable and keeps following every colour scheme. */
+:root {
+  --sp-1: .25rem; --sp-2: .5rem;  --sp-3: .75rem; --sp-4: 1rem;
+  --sp-5: 1.25rem; --sp-6: 1.5rem; --sp-8: 2rem;
+  --text-xs: .75rem; --text-sm: .875rem; --text-base: 1rem;
+  --r: var(--rm-r); --r-md: var(--rm-r-md);
+  --shadow-xs: var(--rm-shadow-xs); --shadow-sm: var(--rm-shadow-sm);
+  --shadow-md: var(--rm-shadow-md);
+  --t-fast: var(--rm-t); --t-slow: 300ms ease;
+}
+
+/* ── Issue list — selected rows ──────────────────────────────
+   Redmine only marks a row when the whole selection form is
+   submitted; paint it as soon as its checkbox is checked. */
+table.list tbody tr.selected,
+table.list tbody tr:has(input[type="checkbox"]:checked) {
+  background: var(--rm-accent-soft);
+}
+
+/* ── Activity — day separator ────────────────────────────────
+   Core leaves the <dt> rule flush against the entries; make it a
+   full-width divider that follows the palette (--oc-gray-7 is
+   re-derived from the theme tokens by core 7). */
+div#activity dt {
+  padding-block-start: 10px;
+  border-block-start: 1px solid var(--oc-gray-7);
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-end;
+}
+
+/* ── Flash messages — icon margin ────────────────────────────
+   Core assumes its own padding-left and offsets the icon with
+   margin-inline: -26px 4px, which lands outside this theme's
+   flash box. */
+div.flash svg.icon-svg,
+#errorExplanation svg.icon-svg,
+.conflict svg.icon-svg {
+  margin-inline: 0;
+  flex-shrink: 0;
+}
+
+/* ── Sidebar — denser link padding ───────────────────────────
+   Same selector as upstream plus the <li>, so it wins without
+   !important (custom.css is imported before the main sheet). */
+#sidebar ul:not(.wiki ul) li > a:not(.icon-only) {
+  padding-block: var(--sp-1);
+  padding-inline: var(--sp-1);
+}
+
+/* ── Div-based progress bars (plugins) ────────────────────── */
+.progress-bar { height: 8px; border-radius: 999px; overflow: hidden; }
+.progress-bar-done { background: var(--rm-accent); border-radius: 999px; transition: width var(--t-slow); }
+.progress-bar-todo { background: var(--rm-border); }
+
+/* ── RedmineUP Checklists — new-item field ───────────────────
+   The plugin asks for 40%, which the form's narrow inputs turn
+   into ~170px; a checklist item deserves the row. */
+.tabular span.checklist-edit-box input,
+span.checklist-edit-box input[type=text] { width: min(640px, 100%) !important; max-width: 100% !important; }
+
+/* ── Admin index — icon cards in a responsive grid ─────── */
+#admin-index #admin-menu ul {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important;
+  gap: var(--sp-3) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+#admin-index #admin-menu li {
+  display: flex !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  list-style: none !important;
+}
+#admin-index #admin-menu a {
+  flex: 1 1 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: var(--sp-2) !important;
+  height: auto !important;
+  min-height: 96px !important;
+  padding: var(--sp-3) !important;
+  background: var(--rm-surface) !important;
+  border: 1px solid var(--rm-border) !important;
+  border-radius: var(--r-md) !important;
+  box-shadow: var(--shadow-xs) !important;
+  color: var(--rm-fg) !important;
+  font-size: var(--text-sm) !important;
+  font-weight: 500 !important;
+  line-height: 1.35 !important;
+  text-align: center !important;
+  text-decoration: none !important;
+  transition: border-color var(--t-fast), box-shadow var(--t-fast),
+              transform var(--t-fast), background var(--t-fast) !important;
+}
+#admin-index #admin-menu a:hover {
+  border-color: var(--rm-accent) !important;
+  box-shadow: var(--shadow-sm) !important;
+  transform: translateY(-1px) !important;
+}
+#admin-index #admin-menu a:focus-visible {
+  outline: 2px solid var(--rm-ring) !important;
+  outline-offset: 2px !important;
+}
+/* Icon tile — the SVG is the only child that needs a background box */
+#admin-index #admin-menu a .icon-svg {
+  flex: 0 0 auto !important;
+  width: 20px !important;
+  height: 20px !important;
+  padding: 10px !important;
+  box-sizing: content-box !important;
+  border-radius: var(--r) !important;
+  background: var(--rm-accent-soft) !important;
+  stroke: var(--rm-accent) !important;
+  transition: background var(--t-fast), stroke var(--t-fast) !important;
+}
+#admin-index #admin-menu a:hover .icon-svg {
+  background: var(--rm-accent) !important;
+  stroke: var(--rm-on-accent) !important;
+}
+#admin-index #admin-menu a .icon-label {
+  display: block !important;
+  min-width: 0 !important;
+  overflow-wrap: anywhere !important;
+}
+
+/* ── Project overview — hero + KPI cards (Vistazo moderno) ──
+   Injected by the "project hero" block at the end of theme.js.
+   --vz-accent is set by that script from the active palette. */
+body.controller-projects.action-show {
+  --vz-accent: var(--rm-accent, var(--rm-fg));
+  --vz-on-accent: #fff;
+}
+
+
+/* El h2 original se reemplaza por el hero */
+body.controller-projects.action-show #content > h2 { display: none; }
+
+/* Si quedaba algo en la barra original, que no flote sobre el hero */
+body.controller-projects.action-show #content > .contextual {
+  float: none; display: flex; justify-content: flex-end; gap: 8px; margin: 0 0 10px;
+}
+
+/* ---------- Hero ---------- */
+#content .vz-hero {
+  position: relative; z-index: 5; box-sizing: border-box; clear: both;
+  margin: 0 0 18px; padding: 26px 28px; border-radius: 16px;
+  background-color: transparent !important;
+  background-image: linear-gradient(90deg,
+    color-mix(in srgb, var(--vz-accent) 24%, transparent) 0%,
+    color-mix(in srgb, var(--vz-accent) 9%, transparent) 55%,
+    transparent 100%) !important;
+  border: 1px solid color-mix(in srgb, var(--rm-fg) 18%, transparent) !important;
+  border-left: 3px solid var(--vz-accent) !important;
+}
+.vz-hero-top {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 18px;
+}
+.vz-hero-main { min-width: 0; flex: 1 1 320px; }
+#content .vz-hero h1 {
+  margin: 0; padding: 0; border: 0; font-size: 1.9rem; font-weight: 700;
+  letter-spacing: -.02em; line-height: 1.15;
+  color: var(--rm-fg) !important;
+}
+
+/* Fila de acciones: botones + marcador + menu */
+.vz-actions { display: flex; flex-wrap: wrap; align-items: stretch; gap: 10px; }
+.vz-actions:empty { display: none; }
+
+#content .vz-btn,
+#content .vz-actions a.bookmark,
+#content .vz-actions .drdn-trigger {
+  display: inline-flex !important; align-items: center; justify-content: center; gap: 8px;
+  box-sizing: border-box; min-height: 40px; padding: 9px 16px !important;
+  border-radius: 10px !important;
+  font-size: .88rem; font-weight: 600; line-height: 1.2;
+  text-decoration: none !important; cursor: pointer;
+  color: var(--rm-fg) !important;
+  background: color-mix(in srgb, var(--rm-fg) 8%, transparent) !important;
+  background-image: none !important;
+  border: 1px solid color-mix(in srgb, var(--rm-fg) 22%, transparent) !important;
+  transition: transform .15s, border-color .15s, background .15s;
+}
+#content .vz-btn:hover,
+#content .vz-actions a.bookmark:hover,
+#content .vz-actions .drdn-trigger:hover {
+  transform: translateY(-1px); border-color: var(--vz-accent) !important;
+}
+#content .vz-btn.is-primary {
+  color: var(--vz-on-accent) !important; background: var(--vz-accent) !important;
+  border-color: var(--vz-accent) !important;
+}
+#content .vz-btn.is-primary:hover { filter: brightness(1.08); }
+.vz-btn svg, .vz-actions a.bookmark svg, .vz-actions .drdn-trigger svg { flex: none; width: 18px; height: 18px; }
+
+/* Marcador */
+#content .vz-actions a.bookmark .icon-label { display: inline !important; }
+#content .vz-actions a.bookmark.icon-bookmark-on {
+  color: var(--vz-accent) !important;
+  border-color: color-mix(in srgb, var(--vz-accent) 55%, transparent) !important;
+  background: color-mix(in srgb, var(--vz-accent) 14%, transparent) !important;
+}
+
+/* Menu de tres puntos */
+.vz-actions .drdn { position: relative; display: flex; }
+#content .vz-actions .drdn-trigger { width: 40px; padding: 0 !important; }
+.vz-actions .drdn-trigger .icon-only { display: inline-flex; align-items: center; justify-content: center; }
+.vz-actions .drdn-trigger .icon-label { display: none !important; }
+.vz-actions .drdn-content { left: auto !important; right: 0 !important; z-index: 50; }
+
+/* ---------- KPIs ---------- */
+.vz-kpis {
+  display: grid; gap: 14px; margin: 0 0 18px;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+.vz-kpi {
+  display: flex !important; align-items: center; gap: 14px; padding: 16px 18px;
+  text-decoration: none !important;
+  background: color-mix(in srgb, var(--rm-fg) 7%, var(--rm-bg)) !important;
+  border: 1px solid color-mix(in srgb, var(--rm-fg) 22%, transparent) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,.25) !important;
+  transition: transform .15s, border-color .15s, box-shadow .15s;
+}
+.vz-kpi:hover {
+  transform: translateY(-2px); border-color: var(--vz-accent) !important;
+  box-shadow: 0 6px 18px rgba(0,0,0,.2) !important;
+}
+.vz-ico {
+  flex: none; width: 42px; height: 42px; border-radius: 10px; display: grid; place-items: center;
+  color: var(--vz-accent);
+  background: color-mix(in srgb, var(--vz-accent) 16%, transparent);
+}
+.vz-txt { display: block; min-width: 0; }
+.vz-kpi small {
+  display: block; color: var(--rm-muted); font-size: .72rem;
+  text-transform: uppercase; letter-spacing: .06em;
+}
+.vz-kpi b {
+  display: block; margin-top: 6px; font-size: 1.8rem; line-height: 1; font-weight: 700;
+  color: var(--rm-fg); font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Grilla y cards ---------- */
+body.controller-projects.action-show .splitcontent {
+  display: grid; gap: 16px; align-items: start;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+}
+body.controller-projects.action-show .splitcontentleft,
+body.controller-projects.action-show .splitcontentright {
+  float: none; width: auto; margin: 0; padding: 0;
+}
+@media (max-width: 900px) {
+  body.controller-projects.action-show .splitcontent { grid-template-columns: 1fr; }
+  #content .vz-hero { padding: 20px; }
+}
+body.controller-projects.action-show .splitcontent .box {
+  background: color-mix(in srgb, var(--rm-fg) 5%, var(--rm-bg)) !important;
+  border: 1px solid color-mix(in srgb, var(--rm-fg) 20%, transparent) !important;
+  border-radius: 12px !important; padding: 16px 18px; margin: 0 0 16px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.12);
+  transition: border-color .2s, box-shadow .2s;
+}
+body.controller-projects.action-show .splitcontent .box:hover {
+  border-color: color-mix(in srgb, var(--vz-accent) 55%, transparent) !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,.18);
+}
+body.controller-projects.action-show .splitcontent .box h3 {
+  display: flex; align-items: center; gap: 8px; margin: 0 0 12px; padding: 0; border: 0;
+  font-size: .8rem; text-transform: uppercase; letter-spacing: .06em; color: var(--rm-muted);
+}
+body.controller-projects.action-show .splitcontent .box h3.vz-h3-gap { margin-top: 18px; }
+body.controller-projects.action-show .splitcontent .box > p:last-child {
+  margin: 14px 0 0; font-size: .85rem; color: var(--rm-muted);
+}
+
+/* ---------- Tabla de incidencias ---------- */
+table.issue-report { width: 100%; border: 0; border-collapse: separate; border-spacing: 0; }
+table.issue-report th {
+  background: transparent; border: 0; padding: 8px; text-align: right;
+  border-bottom: 1px solid color-mix(in srgb, var(--rm-fg) 18%, transparent);
+  color: var(--rm-muted); font-size: .72rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .05em;
+}
+table.issue-report th:first-child { text-align: left; }
+table.issue-report td {
+  background: transparent; border: 0; padding: 11px 8px; text-align: right;
+  border-bottom: 1px solid color-mix(in srgb, var(--rm-fg) 14%, transparent);
+  transition: background .12s;
+}
+table.issue-report td.name { text-align: left; }
+table.issue-report tbody tr:last-child td { border-bottom: 0; }
+table.issue-report tbody tr:hover td { background: color-mix(in srgb, var(--vz-accent) 10%, transparent); }
+table.issue-report td.total a { font-weight: 700; }
+table.issue-report td, table.issue-report th { font-variant-numeric: tabular-nums; }
+table.issue-report td.vz-prog { white-space: nowrap; }
+.vz-prog-in { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
+.vz-prog-in .vz-bar { flex: none; width: 64px; }
+.vz-prog-in a, .vz-prog-in > span:last-child { min-width: 34px; text-align: right; }
+
+/* Barra de progreso (compartida) */
+.vz-bar {
+  height: 6px; border-radius: 99px; overflow: hidden;
+  background: color-mix(in srgb, var(--rm-fg) 18%, transparent);
+}
+.vz-bar span { display: block; height: 100%; border-radius: 99px; background: var(--vz-accent); }
+
+/* ---------- Tiempo ---------- */
+.spent_time.box ul { list-style: none; margin: 0; padding: 0; }
+.spent_time.box li {
+  padding: 8px 0; border-bottom: 1px solid color-mix(in srgb, var(--rm-fg) 14%, transparent);
+}
+.spent_time.box li:last-child { border-bottom: 0; }
+
+/* ---------- Miembros ---------- */
+.members.box p { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0; }
+.members.box .label { color: var(--rm-muted); font-weight: 600; }
+.members.box a.user {
+  padding: 4px 12px; border-radius: 99px; text-decoration: none; font-size: .85rem;
+  color: var(--rm-fg);
+  background: color-mix(in srgb, var(--rm-fg) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--rm-fg) 20%, transparent);
+  transition: all .15s;
+}
+.members.box a.user:hover { border-color: var(--vz-accent); color: var(--vz-accent); }
+
+/* ---------- Atencion (vencidas / por vencer) ---------- */
+.vz-list { list-style: none; margin: 0; padding: 0; }
+.vz-list li {
+  display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; padding: 10px 0 10px 12px;
+  border-bottom: 1px solid color-mix(in srgb, var(--rm-fg) 14%, transparent);
+  border-left: 3px solid transparent;
+}
+.vz-list li:last-child { border-bottom: 0; }
+.vz-list li.is-late { border-left-color: #ef4444; }
+.vz-list li.is-soon { border-left-color: #f59e0b; }
+.vz-list li a {
+  grid-column: 1; font-weight: 600; text-decoration: none;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.vz-list li span { grid-column: 1; font-size: .78rem; color: var(--rm-muted); }
+.vz-list li em {
+  grid-column: 2; grid-row: 1 / span 2; align-self: center; font-style: normal;
+  font-size: .75rem; font-weight: 600; padding: 3px 9px; border-radius: 99px;
+  background: color-mix(in srgb, var(--rm-fg) 10%, transparent);
+}
+.vz-list li.is-late em { background: rgba(239,68,68,.18); color: #ef4444; }
+.vz-list li.is-soon em { background: rgba(245,158,11,.18); color: #f59e0b; }
+.vz-empty { margin: 0; color: var(--rm-muted); font-size: .88rem; }
+
+/* ---------- Carga por persona ---------- */
+.vz-user { display: grid; grid-template-columns: 130px 1fr 28px; align-items: center; gap: 10px; padding: 6px 0; font-size: .88rem; }
+.vz-user > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vz-user b { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ---------- Actividad reciente (timeline) ---------- */
+.vz-act { list-style: none; margin: 0; padding: 0 0 0 14px; position: relative; }
+.vz-act::before {
+  content: ""; position: absolute; left: 4px; top: 8px; bottom: 8px; width: 2px; border-radius: 2px;
+  background: color-mix(in srgb, var(--rm-fg) 16%, transparent);
+}
+.vz-act li { position: relative; padding: 8px 0 8px 14px; }
+.vz-act li::before {
+  content: ""; position: absolute; left: -14px; top: 15px; width: 10px; height: 10px; border-radius: 50%;
+  background: var(--vz-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--vz-accent) 20%, transparent);
+}
+.vz-act a {
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  font-weight: 600; font-size: .9rem; text-decoration: none;
+}
+.vz-act small { display: block; margin-top: 2px; color: var(--rm-muted); font-size: .75rem; }
+
+/* ---------- Skeletons ---------- */
+.vz-sk {
+  height: 12px; margin: 14px 0; border-radius: 6px;
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--rm-fg) 8%, transparent) 25%,
+    color-mix(in srgb, var(--rm-fg) 18%, transparent) 50%,
+    color-mix(in srgb, var(--rm-fg) 8%, transparent) 75%);
+  background-size: 200% 100%; animation: vz-sh 1.3s linear infinite;
+}
+.vz-sk.w60 { width: 60%; } .vz-sk.w80 { width: 80%; }
+@keyframes vz-sh { to { background-position: -200% 0; } }
+
+/* ---------- Animaciones ---------- */
+@keyframes vz-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.vz-hero, .vz-kpi, body.controller-projects.action-show .splitcontent .box { animation: vz-in .35s ease both; }
+.vz-kpi:nth-child(2) { animation-delay: .04s; } .vz-kpi:nth-child(3) { animation-delay: .08s; }
+.vz-kpi:nth-child(4) { animation-delay: .12s; } .vz-kpi:nth-child(5) { animation-delay: .16s; }
+.vz-kpi:focus-visible, .vz-btn:focus-visible, .vz-actions a.bookmark:focus-visible, .vz-actions .drdn-trigger:focus-visible,
+.vz-list a:focus-visible, .vz-act a:focus-visible {
+  outline: 2px solid var(--vz-accent); outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .vz-hero, .vz-kpi, body.controller-projects.action-show .splitcontent .box, .vz-sk { animation: none; transition: none; }
+}
+
+
+/* ── Plugin compatibility (dark mode) ─────────────────────── */
+/* Plugins hardcode light backgrounds that the dark palette then puts light text on.
+   Selectors are deliberately more specific than the plugin's (and !important only
+   where the plugin uses it), so a plugin's own inline colour coding still wins.
+   Checked against redmine.inctime.com, 2026-10-29. */
+
+/* RedmineUP Agile — cards #ffffdd, planning columns #f6f7f8/#eee, WIP limits.
+   Colour-coded cards (.bk-*) keep their meaning as a left stripe. */
+html.dark-mode .issue-card { background-color: var(--rm-surface-2); border-color: var(--rm-border); color: var(--rm-fg); }
+html.dark-mode .issues-board td.issue-status-col.closed .issue-card,
+html.dark-mode .planning-board .closed-issue { background-color: var(--rm-surface); opacity: .8; }
+html.dark-mode .planning-board .closed-issue p.name a,
+html.dark-mode .planning-board .closed-issue p.issue-id { color: var(--rm-muted) !important; }
+html.dark-mode .issue-card p.project,
+html.dark-mode .assignable-user.draggable-active { background-color: var(--rm-surface); border-color: var(--rm-border); }
+html.dark-mode .issue-card[class*="bk-"] { border-left-width: 4px; }
+html.dark-mode .issue-card.bk-red        { border-left-color: var(--rm-red); }
+html.dark-mode .issue-card.bk-green,
+html.dark-mode .issue-card.bk-lightgreen { border-left-color: var(--rm-green); }
+html.dark-mode .issue-card.bk-blue       { border-left-color: var(--rm-blue); }
+html.dark-mode .issue-card.bk-turquoise  { border-left-color: var(--rm-accent); }
+html.dark-mode .issue-card.bk-yellow,
+html.dark-mode .issue-card.bk-orange     { border-left-color: var(--rm-yellow); }
+html.dark-mode .issue-card.bk-purple     { border-left-color: var(--rm-border-2); }
+html.dark-mode .issue-card.bk-gray       { border-left-color: var(--rm-muted); }
+html.dark-mode table.issues-board td.issue-status-col.closed,
+html.dark-mode table.issues-board tbody td.under_wp_limit,
+html.dark-mode table.issues-board tbody td.over_wp_limit { background-color: transparent; }
+html.dark-mode table.issues-board thead th.under_wp_limit { background-color: color-mix(in srgb, var(--rm-green) 18%, var(--rm-surface)); }
+html.dark-mode table.issues-board thead th.over_wp_limit  { background-color: color-mix(in srgb, var(--rm-red) 18%, var(--rm-surface)); }
+html.dark-mode .issues-board .backlog-column-header,
+html.dark-mode .issues-board .issue-backlog-col { background: var(--rm-surface); }
+html.dark-mode .planning-board .column-content { background-color: var(--rm-surface); border-color: var(--rm-border); }
+html.dark-mode .planning-board .column-header { background-color: var(--rm-surface-2); border-bottom-color: var(--rm-border); }
+html.dark-mode .planning-board .column-header .version-name,
+html.dark-mode .planning-board .column-header .version-estimate { color: var(--rm-muted); }
+html.dark-mode.agile-board-fullscreen div.agile-board { background: var(--rm-bg); }
+
+/* Redmineflux Testcase Management — #eaf7ff !important sidebar on ~25 controllers,
+   white activity panel and filters. Its chart (#testcase_graph_id) is left white on
+   purpose: the canvas draws dark axis labels that would vanish on a dark card. */
+html.dark-mode body:is([class*="controller-test"], [class*="controller-run"], .controller-requirements,
+  .controller-traceability_rtms, .controller-issue_testcase) #sidebar {
+  background: var(--rm-surface) !important; box-shadow: none !important;
+}
+html.dark-mode #main #sidebar_right,
+html.dark-mode #main .activity_item,
+html.dark-mode #main .parent_calendar { background-color: var(--rm-surface); color: var(--rm-fg); border-color: var(--rm-border); }
+html.dark-mode #main #reset_filters_button { background-color: var(--rm-surface-2); color: var(--rm-fg); border: 1px solid var(--rm-border); }
+html.dark-mode #main .activity_detail_date { color: var(--rm-muted); }
+html.dark-mode #main .activity_date_heading { background-color: var(--rm-surface-2); }
+html.dark-mode #main .sidebar_right_header h5 span,
+html.dark-mode #main .activity_date_heading .date_title { color: var(--rm-fg); }
+
+/* Vault (Passwords) — search row: Find and Clear are two forms inside a flex h2 with
+   no gap, the field is 24px next to 36px buttons, and Clear looked as primary as Find */
+.controller-keys #content .keys-search-title { gap: var(--sp-2) !important; flex-wrap: wrap !important; }
+.controller-keys #content .keys-search-form { display: flex !important; align-items: center !important; gap: var(--sp-2) !important; }
+.controller-keys #content .keys-search-title input#query { height: 36px !important; }
+.controller-keys #content .keys-search-title form.button_to input[type=submit] {
+  background: var(--rm-surface) !important;
+  color: var(--rm-fg) !important;
+  border-color: var(--rm-border-2) !important;
+}
+.controller-keys #content .keys-search-title form.button_to input[type=submit]:hover { background: var(--rm-surface-2) !important; }
+
+/* Vault — popular tags: the plugin's 3-column layout squeezes each tag into ~56px of
+   sidebar and the theme's #sidebar link style (muted text, 8px padding) clipped the
+   label. Pills instead; white text on the user-chosen colour, as the plugin intends,
+   dark text on its default bisque (no inline colour). */
+#tags-list:has(li.vault-tag) { column-count: auto !important; }
+#tags-list ul:has(> li.vault-tag) { display: flex !important; flex-wrap: wrap !important; gap: 6px !important; margin: 0 !important; padding: 0 !important; }
+#tags-list li.vault-tag { margin: 0 !important; padding: 0 !important; overflow: visible !important; border-radius: 999px !important; }
+#sidebar #tags-list li.vault-tag a.vault-tag-link {
+  display: inline-block !important;
+  padding: 2px 10px !important;
+  font-size: var(--text-xs) !important;
+  font-weight: 600 !important;
+  color: white !important;
+  background: transparent !important;
+  border-radius: inherit !important;
+}
+#sidebar #tags-list li.vault-tag:not([style*="background"]) a.vault-tag-link { color: var(--rm-fg) !important; }
+#sidebar #tags-list li.vault-tag a.vault-tag-link:hover { text-decoration: underline !important; }
+
+/* ── Taskboard / board plugin (rdb-*) ──────────────────────
+   #rdb, #rdb-wrapper, #rdb-board, #rdb-taskboard.
+   The plugin paints inline colours from JS, so the rules below
+   intentionally answer those with !important. */
+
+/* ── Contenedor wrapper: neutro (sin card) ── */
+#rdb-wrapper {
+  clear: both !important;
+}
+
+/* ── Contenedores principales (la board real es la card) ── */
+#rdb,
+#rdb-board,
+#rdb-taskboard {
+  clear: both !important;
+  padding: 8px 0 2px !important;
+  background: var(--rm-surface) !important;
+}
+
+/* ── Submenús / dropdowns que abren los cards ── */
+#rdb-board .drdn-content,
+#rdb-taskboard .drdn-content,
+#rdb .drdn-content,
+#context-menu {
+  background: var(--rm-surface) !important;
+  border: 1px solid var(--rm-border) !important;
+  border-radius: var(--r-md) !important;
+  box-shadow: var(--shadow-md) !important;
+  color: var(--rm-fg) !important;
+}
+#rdb-board .drdn-items > *,
+#rdb-taskboard .drdn-items > *,
+#rdb .drdn-items > *,
+#context-menu .drdn-items > *,
+#context-menu li {
+  background: transparent !important;
+  border-color: var(--rm-border) !important;
+  color: var(--rm-fg) !important;
+}
+#rdb-board .drdn-items > a,
+#rdb-taskboard .drdn-items > a,
+#rdb .drdn-items > a,
+#context-menu li a {
+  color: var(--rm-fg) !important;
+}
+#rdb-board .drdn-items > a:hover,
+#rdb-taskboard .drdn-items > a:hover,
+#rdb .drdn-items > a:hover,
+#context-menu li:hover {
+  background: var(--rm-accent-soft) !important;
+}
+
+/* ── Hijos: forzar bordes (quitar blanco de element.style) ── */
+#rdb *,
+#rdb-wrapper *,
+#rdb-board *,
+#rdb-taskboard * {
+  border-color: var(--rm-border) !important;
+  border-radius: 12px;
+}
+
+/* ── Header ── */
+#rdb-header,
+#rdb-wrapper .rdb-header,
+#rdb-taskboard .rdb-header,
+#rdb-taskboard > #rdb-header {
+  padding: 7px 30px 7px 11px !important;
+  background: var(--rm-surface-2) !important;
+  border-bottom: 1px solid var(--rm-border) !important;
+  border-radius: 8px 8px 0 0 !important;
+  border-color: var(--rm-border) !important;
+}
+
+/* ── Footer ── */
+#rdb-footer,
+#rdb-wrapper .rdb-footer,
+#rdb-taskboard .rdb-footer,
+#rdb-taskboard > #rdb-footer {
+  padding: 5px 30px 10px !important;
+  margin: 0 !important;
+  font-size: 0.9em !important;
+  background: var(--rm-surface-2) !important;
+  border-top: 1px solid var(--rm-border) !important;
+  border-radius: 0 0 8px 8px !important;
+  border-color: var(--rm-border) !important;
+  color: var(--rm-muted) !important;
+}
+
+/* ── Encabezados de grupo ── */
+.rdb-group-header,
+#rdb-wrapper .rdb-group-header,
+#rdb-taskboard .rdb-group-header,
+#rdb-board .rdb-group-header,
+#rdb .rdb-group-header {
+  overflow: hidden;
+  border: 1px solid var(--rm-border) !important;
+  border-radius: calc(var(--r) + 1px) !important;
+  margin: 0 -5px;
+  background: var(--rm-accent) !important;
+}
+.rdb-group-header a,
+#rdb-wrapper .rdb-group-header a,
+#rdb-taskboard .rdb-group-header a {
+  position: relative !important;
+  padding: 0 12px 0 20px !important;
+  cursor: pointer !important;
+  display: block !important;
+  background: var(--rm-surface-2) !important;
+  color: var(--rm-fg) !important;
+  border: 1px solid var(--rm-border) !important;
+  border-radius: var(--r) !important;
+  text-decoration: none !important;
+}
+
+.rdb-group-header a:hover,
+#rdb-wrapper .rdb-group-header a:hover,
+#rdb-taskboard .rdb-group-header a:hover {
+  background: var(--rm-accent-soft) !important;
+  color: var(--rm-accent) !important;
+}
+
+/* ── Enlaces dentro del board / taskboard ── */
+#rdb-board a,
+#rdb-taskboard a,
+#rdb-wrapper a {
+  color: var(--rm-accent) !important;
+  text-decoration: underline !important;
+}
+
+#rdb-board a:hover,
+#rdb-taskboard a:hover,
+#rdb-wrapper a:hover {
+  color: var(--rm-accent-hover) !important;
+}
+
+/* ── Sobrescribir estilos inline (element.style inyectado por JS) ──
+   Cada grupo usa los MISMOS valores que su regla normal, para que
+   el [style] no pise el fondo/hover correcto. */
+#rdb[style],
+#rdb-wrapper[style],
+#rdb-board[style],
+#rdb-taskboard[style] {
+  background: var(--rm-surface) !important;
+  border-color: var(--rm-border) !important;
+  color: var(--rm-fg) !important;
+}
+
+#rdb-header[style],
+#rdb-wrapper .rdb-header[style],
+#rdb-taskboard .rdb-header[style] {
+  background: var(--rm-surface-2) !important;
+  border-color: var(--rm-border) !important;
+  color: var(--rm-fg) !important;
+}
+
+#rdb-footer[style],
+#rdb-wrapper .rdb-footer[style],
+#rdb-taskboard .rdb-footer[style] {
+  background: var(--rm-surface-2) !important;
+  border-color: var(--rm-border) !important;
+  color: var(--rm-muted) !important;
+}
+
+.rdb-group-header a[style],
+#rdb-wrapper .rdb-group-header a[style],
+#rdb-taskboard .rdb-group-header a[style] {
+  background: var(--rm-surface-2) !important;
+  border-color: var(--rm-border) !important;
+  color: var(--rm-fg) !important;
+}
+
+.rdb-group-header a[style]:hover,
+#rdb-wrapper .rdb-group-header a[style]:hover,
+#rdb-taskboard .rdb-group-header a[style]:hover {
+  background: var(--rm-accent-soft) !important;
+  color: var(--rm-accent) !important;
+}
+
+/* ── Dark mode (solo lo que difiere del modo claro) ── */
+html.dark-mode #rdb,
+html.dark-mode #rdb-wrapper,
+html.dark-mode #rdb-board,
+html.dark-mode #rdb-taskboard {
+  background: var(--rm-bg) !important;
+}
+
+html.dark-mode #rdb-header,
+html.dark-mode #rdb-wrapper .rdb-header,
+html.dark-mode #rdb-taskboard .rdb-header,
+html.dark-mode #rdb-taskboard > #rdb-header,
+html.dark-mode #rdb-footer,
+html.dark-mode #rdb-wrapper .rdb-footer,
+html.dark-mode #rdb-taskboard .rdb-footer,
+html.dark-mode #rdb-taskboard > #rdb-footer {
+  background: var(--rm-surface) !important;
+}
+
+html.dark-mode .rdb-group-header a,
+html.dark-mode #rdb-wrapper .rdb-group-header a,
+html.dark-mode #rdb-taskboard .rdb-group-header a {
+  background: var(--rm-surface) !important;
+}
+
+html.dark-mode .rdb-group-header a:hover,
+html.dark-mode #rdb-wrapper .rdb-group-header a:hover,
+html.dark-mode #rdb-taskboard .rdb-group-header a:hover {
+  background: var(--rm-accent-soft) !important;
+  color: var(--rm-accent) !important;
+}
+
+/* Dark + estilos inline */
+html.dark-mode #rdb[style],
+html.dark-mode #rdb-wrapper[style],
+html.dark-mode #rdb-board[style],
+html.dark-mode #rdb-taskboard[style] {
+  background: var(--rm-bg) !important;
+}
+
+html.dark-mode #rdb-header[style],
+html.dark-mode #rdb-wrapper .rdb-header[style],
+html.dark-mode #rdb-taskboard .rdb-header[style],
+html.dark-mode #rdb-footer[style],
+html.dark-mode #rdb-wrapper .rdb-footer[style],
+html.dark-mode #rdb-taskboard .rdb-footer[style],
+html.dark-mode .rdb-group-header a[style],
+html.dark-mode #rdb-wrapper .rdb-group-header a[style],
+html.dark-mode #rdb-taskboard .rdb-group-header a[style] {
+  background: var(--rm-surface) !important;
+}
+
+html.dark-mode .rdb-group-header a[style]:hover,
+html.dark-mode #rdb-wrapper .rdb-group-header a[style]:hover,
+html.dark-mode #rdb-taskboard .rdb-group-header a[style]:hover {
+  background: var(--rm-accent-soft) !important;
+  color: var(--rm-accent) !important;
+}
+
+/* ── Taskboard cards (rdb-priority) ──────────────────────── */
+
+/* Grid de tarjetas del taskboard */
+.rdb-grid-card {
+  margin: 3px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0;
+}
+
+/* Progreso */
+.rdb-card-progress-bar, .rdb-compact-progress-bar {
+    background-color: var(--rm-accent) !important;
+    height: 5px !important;
+}
+
+/* Submenu del taskboard */
+.rdb-menu-active .rdb-container,
+.rdb-container.rdb-visible {
+  display: block;
+  visibility: visible;
+  left: -3px;
+  background-color: var(--rm-border) !important;
+}
+
+/* Tarjetas — clases posibles: .rdb-priority, .rdb-priority-4, etc. */
+.rdb-priority,
+[class*="rdb-priority-"],
+.rdb-card,
+.rdb-taskboard-card {
+  background: var(--rm-surface-2) !important;
+  border: 1px solid var(--rm-border) !important;
+  border-radius: 8px !important;
+  box-shadow: var(--shadow-sm) !important;
+  margin-bottom: calc(var(--sp-3) + 2px) !important;
+  color: var(--rm-fg) !important;
+  box-sizing: border-box !important;
+}
+
+/* Hover: se destaca un poco al pasar el mouse */
+.rdb-priority:hover,
+[class*="rdb-priority-"]:hover,
+.rdb-card:hover,
+.rdb-taskboard-card:hover {
+  background: var(--rm-surface) !important;
+  border-color: var(--rm-border-2) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+/* Dark mode — tarjetas más oscuras (el resto hereda del modo claro) */
+html.dark-mode .rdb-priority,
+html.dark-mode [class*="rdb-priority-"],
+html.dark-mode .rdb-card,
+html.dark-mode .rdb-taskboard-card {
+  background: var(--rm-surface) !important;
+}
+
+html.dark-mode .rdb-priority:hover,
+html.dark-mode [class*="rdb-priority-"]:hover,
+html.dark-mode .rdb-card:hover,
+html.dark-mode .rdb-taskboard-card:hover {
+  background: var(--rm-surface-2) !important;
+}
+
+/* Sobrescribir estilos inline (si el plugin pinta de fondo directamente) */
+.rdb-priority[style],
+[class*="rdb-priority-"][style],
+.rdb-card[style],
+.rdb-taskboard-card[style] {
+  background: var(--rm-surface-2) !important;
+  border-color: var(--rm-border) !important;
+  border-radius: 8px !important;
+  color: var(--rm-fg) !important;
+}
+
+html.dark-mode .rdb-priority[style],
+html.dark-mode [class*="rdb-priority-"][style],
+html.dark-mode .rdb-card[style],
+html.dark-mode .rdb-taskboard-card[style] {
+  background: var(--rm-surface) !important;
+}
+
+/* ── Pins toolbar (plugin) — token-based dark styling ── */
+.pins-toolbar {
+  margin-bottom: 1.5em;
+  padding: 15px;
+  background: linear-gradient(135deg, var(--rm-accent) 0%, var(--rm-bg) 100%) !important;
+  border: 1px solid var(--rm-border-2) !important;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}

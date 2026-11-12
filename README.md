@@ -1,17 +1,14 @@
-# Modern Redmine Theme — Redmine 7
+# Modern Redmine Theme — Redmine 7 (MF)
 
 A clean, modern UI theme for **Redmine 7** with dark mode, 27 colour schemes (plus any of
 ~1,250 Gogh palettes), a sidebar on the left or right, and design tokens.
 
-> This is the `redmine-7` branch, written from scratch for Redmine 7.
-> For Redmine 6 use the [`main`](https://github.com/acosonic/redmine-modern-theme/tree/main) branch.
-
-| Light | Dark |
-|---|---|
-| ![Issue list, light](screenshots/light-issues.png) | ![Issue list, dark](screenshots/dark-issues.png) |
-| ![Issue, light](screenshots/light-issue-detail.png) | ![Issue, dark](screenshots/dark-issue-detail.png) |
-
-More screenshots are in the [gallery](#screenshots) below.
+This is a personal fork of
+[`acosonic/redmine-modern-theme`](https://github.com/acosonic/redmine-modern-theme)
+(branch `redmine-7`), maintained separately from the Redmine 6-based theme used before.
+All local work lives in **`stylesheets/custom.css`** and one clearly marked block at the
+end of `javascripts/theme.js`, so the upstream files stay untouched and easy to rebase.
+See [Local customisations](#local-customisations).
 
 ## How it is built
 
@@ -32,9 +29,10 @@ Redmine 7 changed what a theme can lean on, and this branch is built around that
 ## Status
 
 Beta. The core pages are done and contrast-checked (WCAG AA) in light, dark and all 27
-schemes. Plugin-specific styling from the Redmine 6 theme has not been ported yet, and
-some less-used pages (repository browser, roadmap, wiki history, admin tables) have only
-had the general treatment. Reports and screenshots are welcome in the
+schemes. On this fork the plugins used on our instance (RedmineUP Agile, Redmineflux
+Testcase, Vault, Checklists, Pins, the taskboard) are styled too. Some less-used pages
+(repository browser, roadmap, wiki history, admin tables) have only the general treatment.
+Upstream reports and screenshots go to the
 [issues](https://github.com/acosonic/redmine-modern-theme/issues).
 
 ## Features
@@ -60,15 +58,28 @@ had the general treatment. Reports and screenshots are welcome in the
 
 ## Install
 
+Clone this fork into `themes/` under a **different folder name** than the Redmine 6 theme,
+so both stay available and Redmine lists them as separate themes:
+
 ```bash
 cd /path/to/redmine/themes
-git clone -b redmine-7 https://github.com/acosonic/redmine-modern-theme
+git clone https://github.com/matbott/redmine-modern-theme-mf-v7.git redmine-modern-theme-mf-v7
 ```
 
-Restart Redmine (in production it recompiles assets on boot), then choose
-**Administration → Settings → Display → Theme → Redmine modern theme**.
+Restart Redmine, then choose
+**Administration → Settings → Display → Theme → redmine-modern-theme-mf-v7**.
+The previous theme keeps working; switch back at any time.
 
-Updating: `git pull` in the theme folder and restart Redmine.
+Updating: `git pull` in the theme folder and restart Redmine. In production with
+precompiled assets, clear the cache and recompile first:
+
+```bash
+docker exec -it <container> /bin/bash -c '
+  cd /usr/src/redmine && rm -rf public/assets/* &&
+  RAILS_ENV=production bundle exec rake tmp:cache:clear &&
+  RAILS_ENV=production bundle exec rake assets:precompile'
+docker restart <container>
+```
 
 ## Requirements
 
@@ -93,54 +104,28 @@ derived from those.
 
 ## Development
 
-See [CLAUDE.md](CLAUDE.md) and [HANDOFF.md](HANDOFF.md). Tools live in `src/` (Redmine
-does not publish that folder): `gen-schemes.py` builds the scheme blocks from Gogh,
-`shot.mjs` takes screenshots and runs probes, `contrast.mjs` audits WCAG contrast,
-`seed.rb` fills a local development database.
+Tools live in `src/` (Redmine does not publish that folder): `gen-schemes.py` builds the
+scheme blocks from Gogh, `shot.mjs` takes screenshots and runs probes, `contrast.mjs`
+audits WCAG contrast, `seed.rb` fills a local development database.
 
-## Screenshots
+## Local customisations
 
-All taken on Redmine 7.0.3 with the theme's test data.
+Everything below lives in `stylesheets/custom.css` (imported right after `schemes.css`),
+except the project hero script at the end of `javascripts/theme.js`:
 
-**Light**
-
-| Projects | Edit issue |
-|---|---|
-| ![Projects](screenshots/light-projects.png) | ![Edit issue](screenshots/light-issue-edit.png) |
-
-| Calendar | My page |
-|---|---|
-| ![Calendar](screenshots/light-calendar.png) | ![My page](screenshots/light-my-page.png) |
-
-**Dark**
-
-| Projects | Project settings |
-|---|---|
-| ![Projects, dark](screenshots/dark-projects.png) | ![Project settings, dark](screenshots/dark-project-settings.png) |
-
-| Gantt | Scheme picker on My account |
-|---|---|
-| ![Gantt, dark](screenshots/dark-gantt.png) | ![Scheme picker](screenshots/dark-scheme-picker.png) |
-
-**Colour schemes**
-
-| Dracula | Nord |
-|---|---|
-| ![Dracula](screenshots/scheme-dracula.png) | ![Nord](screenshots/scheme-nord.png) |
-
-| Solarized Light | Gruvbox Light |
-|---|---|
-| ![Solarized Light](screenshots/scheme-solarized-light.png) | ![Gruvbox Light](screenshots/scheme-gruvbox-light.png) |
-
-The four schemes used last sit in the account menu:
-
-![Account menu with recent colour schemes](screenshots/light-account-menu.png)
-
-**Phone**
-
-| Issue | Issue list, dark | Menu, dark |
-|---|---|---|
-| ![Issue on a phone](screenshots/mobile-light-issue.png) | ![Issue list on a phone](screenshots/mobile-dark-issues.png) | ![Flyout menu on a phone](screenshots/mobile-dark-menu.png) |
+- **Selected issue rows** — `tr:has(input[type=checkbox]:checked)`, so the row paints as
+  soon as its checkbox is ticked (core only marks it on submit).
+- **Activity day separator** — full-width `div#activity dt` rule using `--oc-gray-7`.
+- **Flash message icons** — cancels core's `margin-inline: -26px` offset.
+- **Sidebar link padding** — denser (`--sp-1`) than upstream's default.
+- **Div-based progress bars** and the **RedmineUP Checklists** item field.
+- **Admin index** — icon cards in a responsive grid.
+- **Project overview hero** (“Vistazo moderno”) — hero, KPI cards, issue/members/activity
+  summary; accent read from the active palette, so it follows dark mode and schemes.
+- **Plugin compatibility** — RedmineUP Agile, Redmineflux Testcase, Vault, plus the
+  Checklists/Pins touches above.
+- **Taskboard / board** (`#rdb*`, `.rdb-*`) — cards, headers, footers and dropdowns on
+  the theme tokens; answers the plugin's inline colours where needed.
 
 ## Author
 
