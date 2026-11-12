@@ -1287,6 +1287,93 @@
       $chart.on('click', '.vz-chart-tab', function () { setMode($(this).data('mode')); });
       render(normalize(trackerItems()), 'Sin incidencias abiertas.');
     });
+
+    /* ---------- 7) Chips de operación (SLA / flujo) ---------- */
+    safe('operacion', function () {
+      if (!hasIssues) return;
+
+      var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+      var iso = function (d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
+      var today = iso(new Date());
+      var weekAgo = iso(new Date(Date.now() - 7 * 864e5));
+
+      // Redmine query URL from (field, operator, value) triples.
+      function furl(filters) {
+        var parts = ['set_filter=1'];
+        filters.forEach(function (f) {
+          parts.push('f%5B%5D=' + encodeURIComponent(f[0]));
+          parts.push('op%5B' + encodeURIComponent(f[0]) + '%5D=' + encodeURIComponent(f[1]));
+          if (f[2] != null) {
+            parts.push('v%5B' + encodeURIComponent(f[0]) + '%5D%5B%5D=' + encodeURIComponent(f[2]));
+          }
+        });
+        return proj + '/issues?' + parts.join('&');
+      }
+
+      var ops = [
+        { id: 'unassigned', label: 'sin asignar',
+          href: furl([['status_id', 'o'], ['assigned_to_id', '!*']]),
+          count: 'status_id=o&assigned_to_id=%21*' },
+        { id: 'overdue', label: 'vencidas', danger: true,
+          href: furl([['status_id', 'o'], ['due_date', '<', today]]),
+          count: 'status_id=o&due_date=%3C=' + today },
+        { id: 'nodue', label: 'sin fecha',
+          href: furl([['status_id', 'o'], ['due_date', '!*']]),
+          count: 'status_id=o&due_date=%21*' },
+        { id: 'new', label: 'nuevas 7 d',
+          href: furl([['created_on', '>=', weekAgo]]),
+          count: 'created_on=%3E=' + weekAgo },
+        { id: 'closed', label: 'cerradas 7 d',
+          href: furl([['status_id', 'c'], ['updated_on', '>=', weekAgo]]),
+          count: 'status_id=c&updated_on=%3E=' + weekAgo },
+        { id: 'mttr', label: 'cierre prom.', href: proj + '/issues/report', avg: true }
+      ];
+
+      var chips = '<div class="vz-ops" aria-label="Indicadores operativos">' +
+        ops.map(function (op) {
+          return '<a class="vz-op' + (op.danger ? ' is-danger' : '') + '" id="vz-op-' + op.id + '" href="' + op.href + '">' +
+            '<b>\u2014</b><span>' + op.label + '</span></a>';
+        }).join('') + '</div>';
+
+      var $kpis = $('.vz-kpis').first();
+      if (!$kpis.length) return;
+      $kpis.after(chips);
+
+      function setOp(id, value) {
+        var $chip = $('#vz-op-' + id);
+        if (!$chip.length) return;
+        $chip.find('b').text(value == null ? '\u2014' : value);
+        if (value === 0) $chip.addClass('is-zero');
+      }
+
+      function count(qs) {
+        return fetch('/issues.json?project_id=' + encodeURIComponent(ident) + '&limit=1&' + qs,
+                     { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
+          .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+          .then(function (d) { return typeof d.total_count === 'number' ? d.total_count : null; });
+      }
+
+      ops.forEach(function (op) {
+        if (op.avg) return;
+        count(op.count)
+          .then(function (n) { setOp(op.id, n); })
+          .catch(function (e) { console.error('Vistazo moderno [' + op.id + ']:', e); setOp(op.id, null); });
+      });
+
+      // Tiempo medio de cierre sobre las últimas 30 cerradas.
+      fetch('/issues.json?project_id=' + encodeURIComponent(ident) + '&status_id=c&limit=30&sort=closed_on:desc',
+            { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
+        .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+        .then(function (d) {
+          var days = (d.issues || []).filter(function (i) { return i.closed_on; }).map(function (i) {
+            return (new Date(i.closed_on) - new Date(i.created_on)) / 864e5;
+          });
+          if (!days.length) { setOp('mttr', null); return; }
+          var avg = days.reduce(function (s, x) { return s + x; }, 0) / days.length;
+          setOp('mttr', Number(avg.toFixed(1)).toLocaleString('es-UY') + ' d');
+        })
+        .catch(function (e) { console.error('Vistazo moderno [mttr]:', e); setOp('mttr', null); });
+    });
   }
 
   $(init);

@@ -380,19 +380,33 @@ table.issue-report td.vz-prog { white-space: nowrap; }
 .vz-chart-tab.is-active {
   background: var(--rm-accent); border-color: var(--rm-accent); color: var(--rm-on-accent);
 }
-.vz-donut-wrap { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
-.vz-donut { inline-size: 132px; block-size: 132px; flex: 0 0 auto; }
+.vz-donut-wrap { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
+.vz-donut { inline-size: 168px; block-size: 168px; flex: 0 0 auto; }
 .vz-donut-track { stroke: var(--rm-border); opacity: .45; }
 .vz-donut-seg { transition: opacity .15s; }
 .vz-donut-seg:hover { opacity: .75; }
-.vz-donut-total { fill: var(--rm-fg); font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
-.vz-donut-cap { fill: var(--rm-muted); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; }
+.vz-donut-total { fill: var(--rm-fg); font-size: 27px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.vz-donut-cap { fill: var(--rm-muted); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
 .vz-legend { flex: 1 1 150px; min-inline-size: 0; margin: 0; padding: 0; list-style: none; }
-.vz-legend li { display: flex; align-items: center; gap: 8px; padding: 3px 0; font-size: .82rem; }
+.vz-legend li { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: .84rem; }
 .vz-dot { inline-size: 9px; block-size: 9px; border-radius: 999px; flex: 0 0 auto; }
 .vz-leg-name { flex: 1 1 auto; min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--rm-fg); }
 .vz-leg-val { font-weight: 600; color: var(--rm-fg); font-variant-numeric: tabular-nums; }
 .vz-leg-pct { inline-size: 34px; text-align: end; color: var(--rm-muted); font-variant-numeric: tabular-nums; }
+
+/* ---------- Chips de operación (SLA / flujo) ---------- */
+.vz-ops { display: flex; flex-wrap: wrap; gap: 8px; margin: -2px 0 18px; }
+.vz-op {
+  display: inline-flex; align-items: baseline; gap: 6px;
+  padding: 5px 11px; border: 1px solid var(--rm-border); border-radius: 999px;
+  background: color-mix(in srgb, var(--rm-fg) 4%, transparent);
+  color: var(--rm-muted); font-size: .78rem; line-height: 1.6; text-decoration: none;
+  transition: border-color .15s, color .15s, background .15s;
+}
+.vz-op b { color: var(--rm-fg); font-size: .95rem; font-variant-numeric: tabular-nums; }
+.vz-op:hover { border-color: var(--rm-accent); color: var(--rm-fg); background: color-mix(in srgb, var(--rm-accent) 8%, transparent); }
+.vz-op.is-danger b { color: var(--rm-red); }
+.vz-op.is-zero b { color: var(--rm-muted); }
 
 /* ---------- Skeletons ---------- */
 .vz-sk {
