@@ -1000,6 +1000,48 @@
       $chip.toggleClass('is-zero', value === 0);
     };
 
+    // Per-project, per-browser Vistazo settings (panel in block 8).
+    var vzKey = 'rm-vz-stats:' + ident;
+    var vzDefault = {
+      kpis: true, donut: true, unassigned: true, overdue: true, nodue: true,
+      'new': true, closed: true, mttr: true, stalled: true, stalledDays: 7,
+      attnLate: true, attnSoon: true, attnStalled: true
+    };
+    var vzConf = (function () {
+      var saved = {};
+      try { saved = JSON.parse(localStorage.getItem(vzKey) || '{}') || {}; } catch (e) { saved = {}; }
+      var c = {};
+      Object.keys(vzDefault).forEach(function (k) {
+        c[k] = saved.hasOwnProperty(k) ? saved[k] : vzDefault[k];
+      });
+      c.stalledDays = parseInt(c.stalledDays, 10);
+      if (!(c.stalledDays >= 1 && c.stalledDays <= 120)) c.stalledDays = vzDefault.stalledDays;
+      return c;
+    })();
+    var vzSave = function () {
+      try { localStorage.setItem(vzKey, JSON.stringify(vzConf)); } catch (e) {}
+    };
+    var vzApply = function () {
+      $('.vz-kpis').first().toggleClass('is-hidden', !vzConf.kpis);
+      $('#vz-chart').toggleClass('is-hidden', !vzConf.donut);
+
+      var anyOp = false;
+      ['unassigned', 'overdue', 'nodue', 'new', 'closed', 'mttr', 'stalled'].forEach(function (id) {
+        var show = !!vzConf[id];
+        $('#vz-op-' + id).toggleClass('is-hidden', !show);
+        if (show) anyOp = true;
+      });
+      $('.vz-ops').first().toggleClass('is-hidden', !anyOp);
+
+      var anyAttn = false;
+      [['late', 'attnLate'], ['soon', 'attnSoon'], ['stalled', 'attnStalled']].forEach(function (pair) {
+        var show = !!vzConf[pair[1]];
+        $('#vz-attn-' + pair[0]).toggleClass('is-hidden', !show);
+        if (show) anyAttn = true;
+      });
+      $('#vz-attn').toggleClass('is-hidden', !anyAttn);
+    };
+
     var open = 0, closed = 0, total = 0;
     var members = $('.members.box a.user').length;
     var hasIssues = $('table.issue-report').length > 0;
@@ -1095,45 +1137,87 @@
         '<div class="box" id="vz-act"><h3>' + T_ACT + '</h3>' + sk + '</div>');
     });
 
-    /* ---------- 4) Atencion ---------- */
-    safe('atencion', function () {
+    /* ---------- 4) Atención (vencidas / por vencer / estancadas) ---------- */
+    var vzAttnToken = 0;
+    var vzRenderAttn = function () {
       if (!hasIssues) return;
+      var $box = $('#vz-attn');
+      if (!$box.length) return;
+
+      var token = ++vzAttnToken;
       var today = new Date(); today.setHours(0, 0, 0, 0);
       var DAY = 86400000;
 
-      fetch('/issues.json?project_id=' + encodeURIComponent(ident) + '&status_id=open&sort=due_date&limit=100',
-            { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
-        .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-        .then(function (d) {
-          var issues = d.issues || [], late = [], soon = [];
-          issues.forEach(function (i) {
-            if (!i.due_date) return;
-            var days = Math.round((new Date(i.due_date + 'T00:00:00') - today) / DAY);
-            if (days < 0) late.push({ i: i, days: days });
-            else if (days <= 7) soon.push({ i: i, days: days });
+      var get = function (qs) {
+        return fetch('/issues.json?project_id=' + encodeURIComponent(ident) + '&' + qs,
+                     { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
+          .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+      };
+
+      var row = function (item) {
+        var i = item.issue;
+        var who = i.assigned_to ? i.assigned_to.name : 'Sin asignar';
+        var prio = i.priority ? i.priority.name : '';
+        var note = item.days != null
+          ? (item.days < 0 ? 'hace ' + Math.abs(item.days) + ' d'
+            : item.days === 0 ? 'hoy' : 'en ' + item.days + ' d')
+          : 'hace ' + item.since + ' d';
+        return '<li class="' + item.cls + '">' +
+          '<a href="/issues/' + i.id + '">#' + i.id + ' ' + esc(i.subject) + '</a>' +
+          '<span>' + esc(who) + ' \u00b7 ' + esc(prio) + '</span>' +
+          '<em>' + note + '</em></li>';
+      };
+      var section = function (id, title, items, empty) {
+        var body = items.length
+          ? '<ul class="vz-list">' + items.slice(0, 4).map(row).join('') + '</ul>'
+          : '<p class="vz-empty">' + empty + '</p>';
+        return '<div class="vz-attn-sec" id="' + id + '"><h3>' + title + '</h3>' + body + '</div>';
+      };
+
+      var dueDays = function (i) {
+        return Math.round((new Date(i.due_date + 'T00:00:00') - today) / DAY);
+      };
+      var staleDays = function (i) {
+        var d = new Date((i.updated_on || '').slice(0, 10) + 'T00:00:00');
+        return Math.max(0, Math.round((today - d) / DAY));
+      };
+
+      $box.html('<h3>' + T_ATTN + '</h3>' + sk);
+
+      Promise.all([
+        get('status_id=o&due_date=%3C%3D' + daysAgo(1) + '&sort=due_date&limit=4'),
+        get('status_id=o&due_date=%3E%3C' + daysAgo(0) + '%7C' + daysAgo(-7) + '&sort=due_date&limit=4'),
+        vzConf.attnStalled
+          ? get('status_id=o&updated_on=%3C%3D' + daysAgo(vzConf.stalledDays) + '&sort=updated_on:asc&limit=4')
+          : Promise.resolve(null)
+      ])
+        .then(function (res) {
+          if (token !== vzAttnToken) return;
+          var late = (res[0].issues || []).map(function (i) {
+            return { issue: i, days: dueDays(i), cls: 'is-late' };
           });
+          var soon = (res[1].issues || []).map(function (i) {
+            return { issue: i, days: dueDays(i), cls: 'is-soon' };
+          });
+          var stalled = res[2] ? (res[2].issues || []).map(function (i) {
+            return { issue: i, since: staleDays(i), cls: 'is-stalled' };
+          }) : [];
 
-          var row = function (o, cls) {
-            var t = o.days < 0 ? 'hace ' + Math.abs(o.days) + ' d' : o.days === 0 ? 'hoy' : 'en ' + o.days + ' d';
-            var who = o.i.assigned_to ? o.i.assigned_to.name : 'Sin asignar';
-            var prio = o.i.priority ? o.i.priority.name : '';
-            return '<li class="' + cls + '"><a href="/issues/' + o.i.id + '">#' + o.i.id + ' ' + esc(o.i.subject) + '</a>' +
-              '<span>' + esc(who) + ' \u00b7 ' + esc(prio) + '</span><em>' + t + '</em></li>';
-          };
-          var list = function (arr, cls, empty) {
-            return arr.length
-              ? '<ul class="vz-list">' + arr.slice(0, 6).map(function (o) { return row(o, cls); }).join('') + '</ul>'
-              : '<p class="vz-empty">' + empty + '</p>';
-          };
-
-          $('#vz-attn').html(
-            '<h3>Vencidas (' + late.length + ')</h3>' + list(late, 'is-late', 'Nada vencido') +
-            '<h3 class="vz-h3-gap">Vencen en 7 d\u00edas (' + soon.length + ')</h3>' + list(soon, 'is-soon', 'Nada por vencer'));
+          $box.html(
+            section('vz-attn-late', 'Vencidas (' + (res[0].total_count || 0) + ')', late, 'Nada vencido') +
+            section('vz-attn-soon', 'Vencen en 7 d\u00edas (' + (res[1].total_count || 0) + ')', soon, 'Nada por vencer') +
+            section('vz-attn-stalled', 'Estancadas +' + vzConf.stalledDays + ' d (' + (res[2] ? (res[2].total_count || 0) : 0) + ')', stalled, 'Nada estancado')
+          );
+          vzApply();
         })
         .catch(function (e) {
           console.error('Vistazo moderno [issues.json]:', e);
-          $('#vz-attn').html('<h3>' + T_ATTN + '</h3><p class="vz-empty">No se pudo cargar.</p>');
+          $box.html('<h3>' + T_ATTN + '</h3><p class="vz-empty">No se pudo cargar.</p>');
         });
+    };
+
+    safe('atencion', function () {
+      vzRenderAttn();
     });
 
     /* ---------- 5) Actividad reciente ---------- */
@@ -1320,8 +1404,8 @@
           href: queryUrl([['status_id', 'o'], ['assigned_to_id', '!*']]),
           count: 'status_id=o&assigned_to_id=%21*' },
         { id: 'overdue', label: 'vencidas', danger: true,
-          href: queryUrl([['status_id', 'o'], ['due_date', '<', today]]),
-          count: 'status_id=o&due_date=%3C=' + today },
+          href: queryUrl([['status_id', 'o'], ['due_date', '<=', daysAgo(1)]]),
+          count: 'status_id=o&due_date=%3C%3D' + daysAgo(1) },
         { id: 'nodue', label: 'sin fecha',
           href: queryUrl([['status_id', 'o'], ['due_date', '!*']]),
           count: 'status_id=o&due_date=%21*' },
@@ -1381,29 +1465,11 @@
       var $actions = $('.vz-hero .vz-actions').first();
       if (!$ops.length || !$actions.length) return;
 
-      var KEY = 'rm-vz-stats:' + ident;
-      var DEF = {
-        kpis: true, donut: true, unassigned: true, overdue: true, nodue: true,
-        'new': true, closed: true, mttr: true, stalled: true, stalledDays: 7
-      };
-      var saved = {};
-      try { saved = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { saved = {}; }
-      var conf = {};
-      Object.keys(DEF).forEach(function (k) {
-        conf[k] = saved.hasOwnProperty(k) ? saved[k] : DEF[k];
-      });
-      conf.stalledDays = parseInt(conf.stalledDays, 10);
-      if (!(conf.stalledDays >= 1 && conf.stalledDays <= 120)) conf.stalledDays = DEF.stalledDays;
-
-      function save() {
-        try { localStorage.setItem(KEY, JSON.stringify(conf)); } catch (e) {}
-      }
-
       // Estancadas: abiertas sin actualizar desde hace más de N días.
       $ops.append('<a class="vz-op is-warn" id="vz-op-stalled" href="#"><b>\u2014</b><span>estancadas</span></a>');
       var stalledFor = null;
       function loadStalled() {
-        var date = daysAgo(conf.stalledDays);
+        var date = daysAgo(vzConf.stalledDays);
         $('#vz-op-stalled').attr('href', queryUrl([['status_id', 'o'], ['updated_on', '<=', date]]));
         if (stalledFor === date) return;
         stalledFor = date;
@@ -1415,34 +1481,28 @@
           .catch(function (e) { console.error('Vistazo moderno [stalled]:', e); stalledFor = null; setOpValue('stalled', null); });
       }
 
-      function apply() {
-        $('.vz-kpis').toggleClass('is-hidden', !conf.kpis);
-        $('#vz-chart').toggleClass('is-hidden', !conf.donut);
-        var any = false;
-        ['unassigned', 'overdue', 'nodue', 'new', 'closed', 'mttr', 'stalled'].forEach(function (id) {
-          var show = !!conf[id];
-          $('#vz-op-' + id).toggleClass('is-hidden', !show);
-          if (show) any = true;
-        });
-        $ops.toggleClass('is-hidden', !any);
-      }
-
-      var rows = [
+      var checkRow = function (key, label) {
+        return '<label><input type="checkbox" data-stat="' + key + '"' + (vzConf[key] ? ' checked' : '') + '> ' + label + '</label>';
+      };
+      var indicators = [
         ['kpis', 'KPI básicas'],
         ['donut', 'Dona por tipo / asignado'],
-        ['unassigned', 'Sin asignar'],
-        ['overdue', 'Vencidas'],
-        ['nodue', 'Sin fecha límite'],
-        ['new', 'Nuevas (7 días)'],
-        ['closed', 'Cerradas (7 días)'],
-        ['mttr', 'Cierre promedio'],
-        ['stalled', 'Estancadas']
-      ].map(function (r) {
-        return '<label><input type="checkbox" data-stat="' + r[0] + '"' + (conf[r[0]] ? ' checked' : '') + '> ' + r[1] + '</label>';
-      }).join('');
+        ['unassigned', 'Chip: sin asignar'],
+        ['overdue', 'Chip: vencidas'],
+        ['nodue', 'Chip: sin fecha límite'],
+        ['new', 'Chip: nuevas (7 días)'],
+        ['closed', 'Chip: cerradas (7 días)'],
+        ['mttr', 'Chip: cierre promedio'],
+        ['stalled', 'Chip: estancadas']
+      ].map(function (r) { return checkRow(r[0], r[1]); }).join('');
+      var attention = [
+        ['attnLate', 'Lista: vencidas (4)'],
+        ['attnSoon', 'Lista: por vencer (4)'],
+        ['attnStalled', 'Lista: estancadas (4)']
+      ].map(function (r) { return checkRow(r[0], r[1]); }).join('');
 
       var days = [3, 7, 15, 30, 60].map(function (d) {
-        return '<option value="' + d + '"' + (conf.stalledDays === d ? ' selected' : '') + '>' + d + ' días</option>';
+        return '<option value="' + d + '"' + (vzConf.stalledDays === d ? ' selected' : '') + '>' + d + ' días</option>';
       }).join('');
 
       var widget =
@@ -1452,8 +1512,10 @@
             'Estadísticas' +
           '</button>' +
           '<div class="vz-stats-panel" id="vz-stats-panel" hidden>' +
-            '<h4>Mostrar en el vistazo</h4>' +
-            rows +
+            '<h4>Indicadores</h4>' +
+            indicators +
+            '<h4 class="vz-stats-sub">Panel de atención</h4>' +
+            attention +
             '<div class="vz-stats-row"><span>Estancadas hace más de</span>' +
               '<select id="vz-stats-days" aria-label="Días para estancadas">' + days + '</select></div>' +
             '<p class="vz-stats-hint">Se guarda en este navegador para este proyecto.</p>' +
@@ -1479,20 +1541,23 @@
 
       $panel.on('change', 'input[data-stat]', function () {
         var key = this.getAttribute('data-stat');
-        conf[key] = this.checked;
-        save();
-        apply();
+        vzConf[key] = this.checked;
+        vzSave();
+        vzApply();
         if (key === 'stalled' && this.checked) loadStalled();
+        if (key === 'attnStalled') vzRenderAttn();
       });
       $panel.on('change', '#vz-stats-days', function () {
-        conf.stalledDays = parseInt(this.value, 10) || DEF.stalledDays;
-        save();
-        if (conf.stalled) loadStalled();
+        vzConf.stalledDays = parseInt(this.value, 10) || vzDefault.stalledDays;
+        vzSave();
+        if (vzConf.stalled) loadStalled();
+        vzRenderAttn();
       });
 
-      if (conf.stalled) loadStalled();
-      apply();
+      if (vzConf.stalled) loadStalled();
+      vzApply();
     });
+
   }
 
   $(init);

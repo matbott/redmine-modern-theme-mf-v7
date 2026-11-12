@@ -178,12 +178,18 @@ El theme se elige en **Administración → Configuración → Mostrar → Tema �
     (`f[]=campo&op[campo]=operador&v[campo][]=valor`); si un filtro deja de existir, el
     chip muestra “—”.
   - Estancadas: abiertas con `updated_on <= hoy - N` (N configurable: 3/7/15/30/60).
+  - **Panel de atención** (columna derecha): tres listas de 4 ítems cada una — vencidas,
+    por vencer en 7 días y estancadas — con el total real en el título (vía
+    `total_count`). Filtros API: `due_date<=ayer`, `due_date=><hoy|hoy+7` y
+    `updated_on<=hoy-N`, ordenadas por fecha. El umbral de estancadas es el mismo que
+    el del chip; al cambiarlo se recargan ambas cosas sin refrescar la página.
   - **Visibilidad por proyecto**: botón *Estadísticas* en el hero. Cada indicador
-    (KPI básicas, dona, cada chip, estancadas) se puede prender/apagar; se guarda en
-    `localStorage['rm-vz-stats:<ident>']`, o sea **por proyecto y por navegador**. No
-    requiere server ni afecta a otros usuarios. Para un default distinto, editar `DEF`
-    en el bloque 8 de `theme.js`; para un valor compartido habría que moverlo a un
-    plugin/custom field.
+    (KPI básicas, dona, cada chip, estancadas y cada lista del panel de atención) se
+    puede prender/apagar; se guarda en `localStorage['rm-vz-stats:<ident>']`, o sea
+    **por proyecto y por navegador**. No requiere server ni afecta a otros usuarios.
+    Si todo el panel de atención queda apagado, se oculta la caja completa. Para un
+    default distinto, editar `vzDefault` (bloque de configuración antes de los KPIs en
+    `theme.js`); para un valor compartido habría que moverlo a un plugin/custom field.
   - Tamaño de la dona: `.vz-donut` en `custom.css`.
 - **Taskboard**: sección *Taskboard / board* y *Taskboard compact*.
 - **Plugins**: sección *Plugin compatibility*; usar `html.dark-mode` cuando el plugin pisa
