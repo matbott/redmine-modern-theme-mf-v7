@@ -1156,6 +1156,137 @@
           $('#vz-act').html('<h3>' + T_ACT + '</h3><p class="vz-empty">No se pudo cargar la actividad.</p>');
         });
     });
+
+    /* ---------- 6) Dona: abiertas por tipo / por asignado ---------- */
+    safe('grafico', function () {
+      if (!hasIssues) return;
+      var $right = $('.splitcontentright').first();
+      if (!$right.length) return;
+
+      var PALETTE = ['--rm-accent', '--rm-green', '--rm-blue', '--rm-yellow', '--rm-purple', '--rm-red'];
+      var MAX = 6;                 // slices before "Otros"
+      var cache = { tracker: null, assignee: null };
+
+      var box =
+        '<div class="box vz-chart-box" id="vz-chart">' +
+          '<h3>Abiertas por tipo</h3>' +
+          '<div class="vz-chart-switch" role="tablist" aria-label="Agrupar las abiertas por">' +
+            '<button type="button" class="vz-chart-tab is-active" data-mode="tracker" role="tab" aria-selected="true">Tipo</button>' +
+            '<button type="button" class="vz-chart-tab" data-mode="assignee" role="tab" aria-selected="false">Asignado</button>' +
+          '</div>' +
+          '<div class="vz-chart-body">' + sk + '</div>' +
+        '</div>';
+
+      function normalize(items) {
+        items = items.filter(function (it) { return it.value > 0; });
+        items.sort(function (a, b) { return b.value - a.value; });
+        if (items.length > MAX) {
+          var rest = items.slice(MAX - 1);
+          items = items.slice(0, MAX - 1);
+          items.push({ label: 'Otros', value: rest.reduce(function (s, it) { return s + it.value; }, 0) });
+        }
+        return items;
+      }
+
+      function render(items, emptyText) {
+        var total = items.reduce(function (s, it) { return s + it.value; }, 0);
+        var $body = $('#vz-chart .vz-chart-body');
+        if (!total) {
+          $body.html('<p class="vz-empty">' + emptyText + '</p>');
+          return;
+        }
+        var off = 0;
+        var segs = items.map(function (it, i) {
+          var pct = it.value * 100 / total;
+          var color = 'var(' + PALETTE[i % PALETTE.length] + ')';
+          var seg = '<circle class="vz-donut-seg" cx="60" cy="60" r="46" fill="none" stroke-width="14"' +
+            ' pathLength="100" stroke="' + color + '"' +
+            ' stroke-dasharray="' + pct + ' ' + (100 - pct) + '"' +
+            ' stroke-dashoffset="' + (-off) + '" transform="rotate(-90 60 60)">' +
+            '<title>' + esc(it.label) + ': ' + it.value + '</title></circle>';
+          off += pct;
+          return seg;
+        }).join('');
+        var legend = items.map(function (it, i) {
+          var pct = Math.round(it.value * 100 / total);
+          return '<li><span class="vz-dot" style="background: var(' + PALETTE[i % PALETTE.length] + ')"></span>' +
+            '<span class="vz-leg-name">' + esc(it.label) + '</span>' +
+            '<span class="vz-leg-val">' + it.value + '</span>' +
+            '<span class="vz-leg-pct">' + pct + '%</span></li>';
+        }).join('');
+        $body.html(
+          '<div class="vz-donut-wrap">' +
+            '<svg class="vz-donut" viewBox="0 0 120 120" role="img" aria-label="' + esc(total + ' incidencias abiertas') + '">' +
+              '<circle class="vz-donut-track" cx="60" cy="60" r="46" fill="none" stroke-width="14"/>' +
+              segs +
+              '<text class="vz-donut-total" x="60" y="58" text-anchor="middle">' + total + '</text>' +
+              '<text class="vz-donut-cap" x="60" y="72" text-anchor="middle">abiertas</text>' +
+            '</svg>' +
+            '<ul class="vz-legend">' + legend + '</ul>' +
+          '</div>');
+      }
+
+      // Exact counts: the overview already renders the issue report by tracker.
+      function trackerItems() {
+        var out = [];
+        $('table.issue-report tbody tr').each(function () {
+          var $cells = $(this).children('td');
+          var name = $cells.filter('.name').first().text().trim();
+          var open = parseInt($cells.eq(1).text().trim(), 10);
+          if (name && !isNaN(open)) out.push({ label: name, value: open });
+        });
+        return out;
+      }
+
+      // Per-assignee counts: Redmine's report page has them server-side (exact,
+      // all issues), so one request beats paginating the API.
+      function loadAssignees(done) {
+        if (cache.assignee) { done(cache.assignee); return; }
+        fetch(proj + '/issues/report/assigned_to', { credentials: 'same-origin' })
+          .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+          .then(function (html) {
+            var doc = new DOMParser().parseFromString(html, 'text/html');
+            var out = [];
+            doc.querySelectorAll('table.issue-report-detailed tbody tr').forEach(function (tr) {
+              var nameCell = tr.querySelector('td.name');
+              var openCell = tr.querySelector('td:nth-last-child(3)');
+              if (!nameCell || !openCell) return;
+              var name = nameCell.textContent.trim();
+              if (/^\[ninguno\]$/i.test(name)) name = 'Sin asignar';
+              var open = parseInt(openCell.textContent.replace(/[^\d]/g, ''), 10) || 0;
+              if (name) out.push({ label: name, value: open });
+            });
+            cache.assignee = out;
+            done(out);
+          })
+          .catch(function (e) {
+            console.error('Vistazo moderno [assigned_to]:', e);
+            $('#vz-chart .vz-chart-body').html('<p class="vz-empty">No se pudo cargar el informe.</p>');
+          });
+      }
+
+      function setMode(mode) {
+        $('#vz-chart .vz-chart-tab').each(function () {
+          var on = $(this).data('mode') === mode;
+          $(this).toggleClass('is-active', on).attr('aria-selected', on ? 'true' : 'false');
+        });
+        $('#vz-chart > h3').text(mode === 'tracker' ? 'Abiertas por tipo' : 'Abiertas por asignado');
+        if (mode === 'tracker') {
+          render(normalize(trackerItems()), 'Sin incidencias abiertas.');
+        } else {
+          $('#vz-chart .vz-chart-body').html(sk);
+          loadAssignees(function (items) { render(normalize(items), 'Sin incidencias abiertas.'); });
+        }
+      }
+
+      var $chart = $(box);
+      var $members = $right.find('.members.box').first();
+      if ($members.length) $members.after($chart);
+      else $right.append($chart);
+
+      $chart.on('click', '.vz-chart-tab', function () { setMode($(this).data('mode')); });
+      render(normalize(trackerItems()), 'Sin incidencias abiertas.');
+    });
   }
 
   $(init);

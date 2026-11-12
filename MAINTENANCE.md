@@ -77,9 +77,10 @@ hay problema: el core está en una capa.
 | Filas seleccionadas (`:has`) | `custom.css` — Issue list |
 | Ancho de sidebar (180–360 px) | `theme.js` — bloque final + `custom.css` (slider) |
 | Admin index en tarjetas | `custom.css` — Admin index |
-| Hero + KPIs de proyecto (“Vistazo moderno”) | `custom.css` — Project overview + bloque final de `theme.js` |
+| Hero + KPIs + dona de proyecto (“Vistazo moderno”) | `custom.css` — Project overview + bloque final de `theme.js` |
 | Plugins RedmineUP Agile / Testcase / Vault | `custom.css` — Plugin compatibility |
 | Pins toolbar | `custom.css` — final |
+| View Customize — bloques `<pre>` | `custom.css` — Plugin compatibility |
 | Taskboard (`#rdb*`, `.rdb-*`) | `custom.css` — Taskboard / board |
 | Lista compacta del taskboard (`.rdb-compact`) | `custom.css` — Taskboard compact |
 | RedmineUP Checklists (campo nuevo ítem) | `custom.css` — Checklists |
@@ -166,8 +167,11 @@ El theme se elige en **Administración → Configuración → Mostrar → Tema �
 
 - **Colores de todo**: tokens en `application.css` §1, o `schemes.css` para esquemas.
   No agregar colores fijos en `custom.css`.
-- **Hero/KPIs**: markup y fetch en el bloque final de `theme.js`; estilos en la sección
-  *Project overview* de `custom.css`.
+- **Hero/KPIs/dona**: markup y fetch en el bloque final de `theme.js`; estilos en la
+  sección *Project overview* de `custom.css`. La dona toma los conteos por tipo de la
+  tabla `table.issue-report` que ya renderiza el overview (sin request) y los de asignado
+  del informe `/projects/<id>/issues/report/assigned_to` (una request, cacheada). Colores:
+  array `PALETTE` al inicio del bloque (`--rm-*`).
 - **Taskboard**: sección *Taskboard / board* y *Taskboard compact*.
 - **Plugins**: sección *Plugin compatibility*; usar `html.dark-mode` cuando el plugin pisa
   colores y `!important` solo para ganarle a CSS del plugin o a estilos inline.

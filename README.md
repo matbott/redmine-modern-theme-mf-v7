@@ -122,8 +122,10 @@ map, token translations and how to update from upstream.
 - **RedmineUP Checklists** — the new-item field takes the row.
 - **Admin index** — icon cards in a responsive grid.
 - **Project overview hero** (“Vistazo moderno”) — hero, KPI cards, issue/members/activity
-  summary; accent read from the active palette, so it follows dark mode and schemes.
-- **Plugin compatibility** — RedmineUP Agile, Redmineflux Testcase, Vault, Pins.
+  summary and a donut chart of open issues (toggle: by tracker / by assignee); accent read
+  from the active palette, so it follows dark mode and schemes.
+- **Plugin compatibility** — RedmineUP Agile, Redmineflux Testcase, Vault, Pins, View
+  Customize code blocks.
 - **Taskboard / board** (`#rdb*`, `.rdb-*`) — cards, headers, footers, dropdowns and the
   compact list on the theme tokens; answers the plugin's inline colours where needed.
 

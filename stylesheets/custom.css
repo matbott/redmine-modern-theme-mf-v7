@@ -368,6 +368,32 @@ table.issue-report td.vz-prog { white-space: nowrap; }
 }
 .vz-act small { display: block; margin-top: 2px; color: var(--rm-muted); font-size: .75rem; }
 
+/* ---------- Dona: abiertas por tipo / asignado ---------- */
+.vz-chart-switch { display: flex; gap: 6px; margin: -2px 0 14px; }
+.vz-chart-tab {
+  padding: 3px 11px; border: 1px solid var(--rm-border); border-radius: 999px;
+  background: transparent; color: var(--rm-muted); font-family: inherit;
+  font-size: .75rem; font-weight: 600; line-height: 1.6; cursor: pointer;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.vz-chart-tab:hover { border-color: var(--rm-accent); color: var(--rm-fg); }
+.vz-chart-tab.is-active {
+  background: var(--rm-accent); border-color: var(--rm-accent); color: var(--rm-on-accent);
+}
+.vz-donut-wrap { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.vz-donut { inline-size: 132px; block-size: 132px; flex: 0 0 auto; }
+.vz-donut-track { stroke: var(--rm-border); opacity: .45; }
+.vz-donut-seg { transition: opacity .15s; }
+.vz-donut-seg:hover { opacity: .75; }
+.vz-donut-total { fill: var(--rm-fg); font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.vz-donut-cap { fill: var(--rm-muted); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; }
+.vz-legend { flex: 1 1 150px; min-inline-size: 0; margin: 0; padding: 0; list-style: none; }
+.vz-legend li { display: flex; align-items: center; gap: 8px; padding: 3px 0; font-size: .82rem; }
+.vz-dot { inline-size: 9px; block-size: 9px; border-radius: 999px; flex: 0 0 auto; }
+.vz-leg-name { flex: 1 1 auto; min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--rm-fg); }
+.vz-leg-val { font-weight: 600; color: var(--rm-fg); font-variant-numeric: tabular-nums; }
+.vz-leg-pct { inline-size: 34px; text-align: end; color: var(--rm-muted); font-variant-numeric: tabular-nums; }
+
 /* ---------- Skeletons ---------- */
 .vz-sk {
   height: 12px; margin: 14px 0; border-radius: 6px;
@@ -478,6 +504,15 @@ html.dark-mode #main .activity_date_heading .date_title { color: var(--rm-fg); }
 }
 #sidebar #tags-list li.vault-tag:not([style*="background"]) a.vault-tag-link { color: var(--rm-fg) !important; }
 #sidebar #tags-list li.vault-tag a.vault-tag-link:hover { text-decoration: underline !important; }
+
+/* ── View Customize — code blocks ────────────────────────────
+   The plugin paints <pre> blocks with a fixed #fafafa, which
+   stays white in dark mode. */
+table.view_customize.box td pre {
+  background-color: var(--rm-surface-2) !important;
+  border-color: var(--rm-border) !important;
+  color: var(--rm-fg) !important;
+}
 
 /* ── Taskboard / board plugin (rdb-*) ──────────────────────
    #rdb, #rdb-wrapper, #rdb-board, #rdb-taskboard.
