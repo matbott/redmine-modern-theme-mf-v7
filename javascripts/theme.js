@@ -1657,67 +1657,78 @@
 (function () {
   var m = location.pathname.match(/^\/projects\/([^\/]+)\/issues\/?$/);
   if (!m) return;
-  if (!document.body.classList.contains('controller-issues') ||
-      !document.body.classList.contains('action-index')) return;
 
-  var ident = m[1];
-  var conf = {};
-  try { conf = JSON.parse(localStorage.getItem('rm-vz-stats:' + ident) || '{}') || {}; } catch (e) { conf = {}; }
-  if (conf.issueCards === false) return;
+  var ident;
+  try { ident = decodeURIComponent(m[1]); } catch (e) { ident = m[1]; }
 
-  var svg = function (p) {
-    return '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + p + '</svg>';
-  };
-  var ico = {
-    open: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/>',
-    total: '<path d="M5 7h14M5 12h14M5 17h14"/>'
-  };
-  var esc = function (s) {
-    return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
-      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
-    });
-  };
+  function start() {
+    if (!document.body.classList.contains('controller-issues') ||
+        !document.body.classList.contains('action-index')) return;
 
-  fetch('/projects/' + encodeURIComponent(ident) + '/issues/report/tracker', { credentials: 'same-origin' })
-    .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
-    .then(function (html) {
-      var doc = new DOMParser().parseFromString(html, 'text/html');
-      var rows = doc.querySelectorAll('table.issue-report-detailed tbody tr');
-      var items = [], total = 0;
+    var conf = {};
+    try { conf = JSON.parse(localStorage.getItem('rm-vz-stats:' + ident) || '{}') || {}; } catch (e) { conf = {}; }
+    if (conf.issueCards === false) return;
 
-      Array.prototype.forEach.call(rows, function (tr) {
-        var nameCell = tr.querySelector('td.name');
-        if (!nameCell) return;
-        var name = (nameCell.textContent || '').trim();
-        var openCell = tr.querySelector('td:nth-last-child(3)');
-        var openLink = openCell ? openCell.querySelector('a') : null;
-        var href = openLink ? openLink.getAttribute('href') : '';
-        var open = parseInt(openCell ? openCell.textContent : '', 10) || 0;
-        total += open;
-        if (open > 0 && href) items.push({ name: name, href: href, open: open });
+    var svg = function (p) {
+      return '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + p + '</svg>';
+    };
+    var ico = {
+      open: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/>',
+      total: '<path d="M5 7h14M5 12h14M5 17h14"/>'
+    };
+    var esc = function (s) {
+      return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
       });
+    };
 
-      if (!total) return;
-      items.sort(function (a, b) { return b.open - a.open; });
+    fetch('/projects/' + encodeURIComponent(ident) + '/issues/report/tracker', { credentials: 'same-origin' })
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+      .then(function (html) {
+        var doc = new DOMParser().parseFromString(html, 'text/html');
+        var rows = doc.querySelectorAll('table.issue-report-detailed tbody tr');
+        var items = [], total = 0;
 
-      var cards = items.map(function (it) {
-        return '<a class="vz-kpi" href="' + esc(it.href) + '">' +
-          '<span class="vz-ico">' + svg(ico.open) + '</span>' +
-          '<span class="vz-txt"><small>' + esc(it.name) + '</small><b>' + it.open + '</b></span>' +
-        '</a>';
-      });
-      cards.push(
-        '<a class="vz-kpi" href="/projects/' + encodeURIComponent(ident) + '/issues?set_filter=1&status_id=o">' +
-          '<span class="vz-ico">' + svg(ico.total) + '</span>' +
-          '<span class="vz-txt"><small>Total abiertas</small><b>' + total + '</b></span>' +
-        '</a>');
+        Array.prototype.forEach.call(rows, function (tr) {
+          var nameCell = tr.querySelector('td.name');
+          if (!nameCell) return;
+          var name = (nameCell.textContent || '').trim();
+          var openCell = tr.querySelector('td:nth-last-child(3)');
+          var openLink = openCell ? openCell.querySelector('a') : null;
+          var href = openLink ? openLink.getAttribute('href') : '';
+          var open = parseInt(openCell ? openCell.textContent : '', 10) || 0;
+          total += open;
+          if (open > 0 && href) items.push({ name: name, href: href, open: open });
+        });
 
-      var h2 = document.querySelector('#content > h2');
-      if (!h2) return;
-      var box = document.createElement('div');
-      box.className = 'vz-kpis vz-kpis-issues';
-      box.innerHTML = cards.join('');
-      h2.parentNode.insertBefore(box, h2.nextSibling);
-    })
-    .catch(function (e) { console.error('Vistazo moderno [tracker report]:', e); });
+        if (!total) return;
+        items.sort(function (a, b) { return b.open - a.open; });
+
+        var cards = items.map(function (it) {
+          return '<a class="vz-kpi" href="' + esc(it.href) + '">' +
+            '<span class="vz-ico">' + svg(ico.open) + '</span>' +
+            '<span class="vz-txt"><small>' + esc(it.name) + '</small><b>' + it.open + '</b></span>' +
+          '</a>';
+        });
+        cards.push(
+          '<a class="vz-kpi" href="/projects/' + encodeURIComponent(ident) + '/issues?set_filter=1&status_id=o">' +
+            '<span class="vz-ico">' + svg(ico.total) + '</span>' +
+            '<span class="vz-txt"><small>Total abiertas</small><b>' + total + '</b></span>' +
+          '</a>');
+
+        var h2 = document.querySelector('#content > h2');
+        if (!h2) return;
+        var box = document.createElement('div');
+        box.className = 'vz-kpis vz-kpis-issues';
+        box.innerHTML = cards.join('');
+        h2.parentNode.insertBefore(box, h2.nextSibling);
+      })
+      .catch(function (e) { console.error('Vistazo moderno [tracker report]:', e); });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start);
+  } else {
+    start();
+  }
 })();
