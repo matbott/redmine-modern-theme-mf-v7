@@ -248,7 +248,7 @@ body.controller-issues.action-index {
 /* ---------- Grilla y cards ---------- */
 body.controller-projects.action-show .splitcontent {
   display: grid; gap: 16px; align-items: start;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 }
 body.controller-projects.action-show .splitcontentleft,
 body.controller-projects.action-show .splitcontentright {
