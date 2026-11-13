@@ -992,31 +992,34 @@ td.author a.user .rm-user-avatar {
 }
 
 /* ── Calendar ────────────────────────────────────────────────
-   Core paints the calendar grid with static open-color values
-   (--oc-white / --oc-gray-1), so the cells stay light in dark mode.
-   Use the theme surfaces and borders instead; light mode stays close
-   to the original white / off-white. */
+   Core paints the grid with static open-colors, and the RedmineUP
+   plugin stylesheet (loaded after the theme) repaints weekends, the
+   week-number column and "today" with #f1f1f1 / #def / #ffd. Those
+   rules are unlayered and more specific, so this is one of the few
+   places where !important is needed: it is plugin CSS. */
 ul.cal {
-  border-color: var(--rm-border);
-  border-radius: var(--rm-r);
-  box-shadow: none;
+  border-color: var(--rm-border) !important;
+  border-radius: var(--rm-r) !important;
+  box-shadow: none !important;
 }
 .cal .calhead,
 .cal .week-number {
-  background-color: var(--rm-surface-2);
-  color: var(--rm-fg);
+  background-color: var(--rm-surface-2) !important;
+  color: var(--rm-fg) !important;
+  border-color: var(--rm-border) !important;
 }
 .cal .calbody {
-  border-color: var(--rm-border);
-  box-shadow: none;
+  border-color: var(--rm-border) !important;
+  box-shadow: none !important;
 }
-.cal .calbody.this-month {
-  background-color: var(--rm-surface);
+.cal .calbody.this-month,
+.cal .calbody.today {
+  background-color: var(--rm-surface) !important;
 }
 .cal .calbody.other-month,
 .cal .calbody.nwday:not(.other-month) {
-  background-color: var(--rm-surface-2);
+  background-color: var(--rm-surface-2) !important;
 }
 .cal .calbody.other-month p.day-num {
-  color: var(--rm-muted);
+  color: var(--rm-muted) !important;
 }
