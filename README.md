@@ -52,7 +52,7 @@ Upstream reports and screenshots go to the
 - Priority arrows and a colour dot per tracker in issue lists and on the issue page.
 - Syntax highlighting, Gantt bars and the calendar coloured from the active palette.
 - Project list as a card grid that reads left to right.
-- Collapsible Subtasks / Related issues sections, toast notifications
+- Collapsible Subtasks / Related issues sections, centered toast notifications
   (`window.rmToast(message, type, duration)`).
 - Phones (below 900px): Redmine 7's own header and flyout menu in the theme's colours.
 - Written with logical properties throughout, so right-to-left languages mirror as in core.

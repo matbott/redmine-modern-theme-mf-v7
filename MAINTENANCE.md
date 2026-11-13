@@ -5,12 +5,13 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 ## Estado actual (2026-11-13)
 
 - Repo: `matbott/redmine-modern-theme-mf-v7`, rama `main`.
-- Último commit funcional: `26c9dfa`, tag **`v1.2.3`** (calendario dark: pisa el CSS
-  del plugin RedmineUP con `!important`). El commit de esta documentación va después.
+- Último commit funcional: `0a827f3`, tag **`v1.2.4`** (toast de cambio de modo
+  centrado; el calendario dark de v1.2.3 ya está incluido). El commit de esta
+  documentación va después.
 - Server: Redmine **7.0.3**, container `redmine-redmine-1`, theme instalado en
   `/usr/src/redmine/themes/redmine-modern-theme-mf-v7`.
 - **Pendiente inmediato**: deployar el último `main` en el server con el bloque de
-  *Deploy* y hacer `Ctrl+F5`. El tag `v1.2.3` todavía puede no estar deployado.
+  *Deploy* y hacer `Ctrl+F5`. El tag `v1.2.4` todavía puede no estar deployado.
 - El theme anterior `redmine-modern-theme-mf` sigue instalado y se puede volver a él
   desde Administración → Configuración → Mostrar → Tema.
 
@@ -29,7 +30,7 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
    el deploy no tomó la regla con `#header`). El buscador de proyectos y los campos
    autocompletar deben mostrar una sola lupa (sin mosaico).
 5. **Mi cuenta**: al final de la sección *Sidebar position* debe verse
-   `Modern Theme MF v1.2.3` en chico. Ya **no** debe aparecer en el pie del sidebar.
+   `Modern Theme MF v1.2.4` en chico. Ya **no** debe aparecer en el pie del sidebar.
 6. **Listado de incidencias**: en las columnas **Asignado** y **Autor** debe aparecer
    un círculo con iniciales antes del nombre. El color tiene que coincidir con el
    avatar del menú de cuenta (misma clase `avatar-color-<id % 16>` de Redmine).
@@ -38,6 +39,9 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 8. **Calendario** (`/projects/<id>/issues/calendar`) en modo oscuro: las celdas del mes,
    las de otros meses, la cabecera y los bordes deben usar superficies oscuras del
    theme, no blanco/gris claro.
+9. **Cambio de modo**: al tocar el sol/luna debe aparecer abajo, centrado, el popup
+   `Dark mode — <scheme>` / `Light mode — <scheme>` completo y legible. No debe quedar
+   corrido hacia un costado ni cortado.
 
 ### Decisiones vigentes
 
@@ -53,7 +57,7 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 ### Versionado
 
 - La versión visible está en `javascripts/theme.js`, bloque `LOCAL CUSTOMISATIONS —
-  sidebar width` (`var VERSION = '1.2.3'`).
+  sidebar width` (`var VERSION = '1.2.4'`).
 - Al publicar cambios: subir `VERSION`, commit, `git tag -a vX.Y.Z` y push del tag.
 - Se muestra al final del fieldset `#rm-layout` de **Mi cuenta** (sidebar position /
   width), como `Modern Theme MF vX.Y.Z`.
@@ -293,6 +297,11 @@ El theme se elige en **Administración → Configuración → Mostrar → Tema �
   Por eso estas reglas usan `!important`: es CSS de plugin, el caso permitido. Se usan
   `--rm-surface`, `--rm-surface-2`, `--rm-border` y `--rm-muted`; aplica a calendarios
   de proyecto y globales.
+- **Toast de cambio de modo**: final de `custom.css`. La regla responsive de
+  `application.css` para `#rm-toast-container` deja `left/right: .75rem` pero conserva
+  `transform: translateX(-50%)`, así que el popup se va media pantalla a la izquierda.
+  Se restaura el centrado con `html #rm-toast-container` (mayor especificidad, sin
+  `!important`) y se limita el ancho a `min(420px, calc(100vw - 24px))`.
 - **Avatares del listado**: bloque final de `theme.js` (`initials avatars in issue list
   user columns`). Antepone un `span` con iniciales a `td.assigned_to a.user` y
   `td.author a.user`. Reutiliza las clases nativas `avatar s16 avatar-color-<id % 16>`,
