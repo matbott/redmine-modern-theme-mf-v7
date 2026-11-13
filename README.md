@@ -130,6 +130,9 @@ map, token translations and how to update from upstream.
   in the hero lets each project toggle every indicator and every attention list on/off
   (per browser, stored in `localStorage`), and sets the stalled threshold (3–60 days).
   All read from the active palette, so they follow dark mode and schemes.
+- **Issue list cards** — inside a project issue list, KPI-style cards above the filters
+  show open issues by tracker (plus a total), linking to the matching filtered list.
+  Toggle in the overview Statistics panel (“Tarjetas del listado”).
 - **Plugin compatibility** — RedmineUP Agile, Redmineflux Testcase, Vault, Pins, View
   Customize code blocks.
 - **Taskboard / board** (`#rdb*`, `.rdb-*`) — cards, headers, footers, dropdowns and the

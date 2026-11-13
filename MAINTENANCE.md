@@ -192,6 +192,12 @@ El theme se elige en **Administración → Configuración → Mostrar → Tema �
     default distinto, editar `vzDefault` (bloque de configuración antes de los KPIs en
     `theme.js`); para un valor compartido habría que moverlo a un plugin/custom field.
   - Tamaño de la dona: `.vz-donut` en `custom.css`.
+- **Tarjetas de abiertas por tipo** (listado de incidencias): bloque final de `theme.js`
+  (`issue list KPI cards`), sólo en `/projects/<id>/issues`. Lee
+  `/projects/<id>/issues/report/tracker` (una request), ordena por abiertas y agrega una
+  tarjeta de Total. Es una foto fija: no sigue los filtros de la página. Cada tarjeta
+  linkea al listado filtrado por ese tipo y estado abierto. Se prende/apaga con
+  *Tarjetas del listado* en el panel Estadísticas del Vistazo.
 - **Taskboard**: sección *Taskboard / board* y *Taskboard compact*.
 - **Plugins**: sección *Plugin compatibility*; usar `html.dark-mode` cuando el plugin pisa
   colores y `!important` solo para ganarle a CSS del plugin o a estilos inline.
