@@ -960,6 +960,31 @@ html.dark-mode .rdb-compact { background: var(--rm-surface) !important; }
 input.autocomplete {
   background-repeat: no-repeat;
 }
-#quick-search #q:focus {
-  inline-size: min(380px, 42vw);
+/* custom.css is imported before the theme's own rules, so match one more
+   specific selector to beat `#quick-search #q:focus { inline-size: 220px }`. */
+#header #quick-search #q:focus {
+  inline-size: min(400px, 44vw);
+}
+
+/* ── Theme version in the sidebar footer ─────────────────── */
+#sidebar.rm-has-version {
+  display: flex;
+  flex-direction: column;
+}
+#sidebar .rm-theme-version {
+  margin-block-start: auto;
+  padding: 12px 8px 0;
+  border-block-start: 1px solid var(--rm-border);
+  color: var(--rm-muted);
+  font-size: .6875rem;
+  letter-spacing: .03em;
+  line-height: 1.4;
+  user-select: none;
+}
+#sidebar .rm-theme-version b {
+  color: var(--rm-fg);
+  font-weight: 600;
+}
+#main.collapsedsidebar #sidebar .rm-theme-version {
+  display: none;
 }
