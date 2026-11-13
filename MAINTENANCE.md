@@ -5,13 +5,13 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 ## Estado actual (2026-11-13)
 
 - Repo: `matbott/redmine-modern-theme-mf-v7`, rama `main`.
-- Último commit funcional: `86fb9af` (Mi vistazo con id de usuario, fechas en las
-  consultas API, icono de autocompletar y búsqueda más ancha). El commit de esta
-  documentación va después.
+- Último commit funcional: `3d486e6`, tag **`v1.1.0`** (búsqueda más ancha, icono de
+  autocompletar y versión en el pie del sidebar). El commit de esta documentación va
+  después.
 - Server: Redmine **7.0.3**, container `redmine-redmine-1`, theme instalado en
   `/usr/src/redmine/themes/redmine-modern-theme-mf-v7`.
 - **Pendiente inmediato**: deployar el último `main` en el server con el bloque de
-  *Deploy* y hacer `Ctrl+F5`. El commit `86fb9af` todavía puede no estar deployado.
+  *Deploy* y hacer `Ctrl+F5`. El tag `v1.1.0` todavía puede no estar deployado.
 - El theme anterior `redmine-modern-theme-mf` sigue instalado y se puede volver a él
   desde Administración → Configuración → Mostrar → Tema.
 
@@ -26,9 +26,12 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
    reales (no en `behind-schedule`).
 3. **Vistazo**: columnas 50/50, dona debajo de Incidencias, panel de atención 4+4+4,
    panel **Personalizar** con los 16 checks (incluye los 3 de colores).
-4. **Búsqueda del header**: al enfocar debe crecer hasta ~380 px. El buscador de
-   proyectos y los campos autocompletar deben mostrar una sola lupa (sin mosaico).
-5. **Listado de incidencias**: tarjetas de abiertas por tipo arriba de los filtros y
+4. **Búsqueda del header**: al enfocar debe crecer hasta ~400 px (si solo llega a 220,
+   el deploy no tomó la regla con `#header`). El buscador de proyectos y los campos
+   autocompletar deben mostrar una sola lupa (sin mosaico).
+5. **Pie del sidebar**: debe verse `Modern Theme MF v1.1.0` en chico, al final de la
+   barra lateral.
+6. **Listado de incidencias**: tarjetas de abiertas por tipo arriba de los filtros y
    link “Total abiertas”.
 
 ### Decisiones vigentes
@@ -41,6 +44,14 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 - “Mi vistazo” no tiene toggles propios; el umbral de estancadas está fijo en 7 días.
 - Los colores de vencimiento solo corren en listados de **proyecto** y necesitan la
   columna Fecha fin visible.
+
+### Versionado
+
+- La versión visible está en `javascripts/theme.js`, bloque final
+  `LOCAL: theme version in the sidebar footer` (`var VERSION = '1.1.0'`).
+- Al publicar cambios: subir `VERSION`, commit, `git tag -a vX.Y.Z` y push del tag.
+- Se muestra al pie de `#sidebar` como `Modern Theme MF vX.Y.Z` (se oculta con la
+  sidebar colapsada).
 
 ### Backlog acordado / ideas
 
