@@ -966,27 +966,20 @@ input.autocomplete {
   inline-size: min(400px, 44vw);
 }
 
-/* ── Theme version in the sidebar footer ─────────────────── */
-#sidebar.rm-has-version {
-  display: flex;
-  flex-direction: column;
-}
-#sidebar .rm-theme-version {
-  margin-block-start: auto;
-  padding: 12px 8px 0;
+/* ── Theme version on My account ─────────────────────────── */
+#rm-layout .rm-theme-version {
+  margin: 18px 0 0;
+  padding-block-start: 10px;
   border-block-start: 1px solid var(--rm-border);
   color: var(--rm-muted);
-  font-size: .6875rem;
+  font-size: .75rem;
   letter-spacing: .03em;
   line-height: 1.4;
   user-select: none;
 }
-#sidebar .rm-theme-version b {
+#rm-layout .rm-theme-version b {
   color: var(--rm-fg);
   font-weight: 600;
-}
-#main.collapsedsidebar #sidebar .rm-theme-version {
-  display: none;
 }
 
 /* ── Initials avatars in issue lists ───────────────────────

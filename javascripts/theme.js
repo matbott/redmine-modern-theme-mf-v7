@@ -1583,6 +1583,7 @@
   var root = document.documentElement;
   var KEY = 'rm-sidebar-width';
   var MIN = 180, MAX = 360;
+  var VERSION = '1.2.2';
 
   function storedWidth() {
     try {
@@ -1646,6 +1647,14 @@
     var sideRow = layout.querySelector('.rm-side-options');
     if (sideRow && sideRow.parentNode === layout) layout.insertBefore(block, sideRow.nextSibling);
     else layout.appendChild(block);
+
+    if (!layout.querySelector('.rm-theme-version')) {
+      var version = document.createElement('p');
+      version.className = 'rm-theme-version';
+      version.title = 'redmine-modern-theme-mf-v7';
+      version.innerHTML = 'Modern Theme MF <b>v' + VERSION + '</b>';
+      layout.appendChild(version);
+    }
   }
 
   if (document.readyState === 'loading') {
@@ -1897,31 +1906,6 @@
     document.addEventListener('DOMContentLoaded', start);
   } else {
     start();
-  }
-})();
-
-/* ── LOCAL: theme version in the sidebar footer ───────────────
-   theme.js is loaded from <head>, so wait for the body. The version is
-   manual: bump it here and tag the release (see MAINTENANCE.md). */
-(function () {
-  'use strict';
-  var VERSION = '1.2.1';
-
-  function render() {
-    var sidebar = document.getElementById('sidebar');
-    if (!sidebar || sidebar.querySelector('.rm-theme-version')) return;
-    var el = document.createElement('div');
-    el.className = 'rm-theme-version';
-    el.title = 'redmine-modern-theme-mf-v7';
-    el.innerHTML = 'Modern Theme MF <b>v' + VERSION + '</b>';
-    sidebar.appendChild(el);
-    sidebar.classList.add('rm-has-version');
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', render);
-  } else {
-    render();
   }
 })();
 
