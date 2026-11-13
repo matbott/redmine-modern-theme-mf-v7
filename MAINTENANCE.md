@@ -184,20 +184,29 @@ El theme se elige en **Administración → Configuración → Mostrar → Tema �
     `total_count`). Filtros API: `due_date<=ayer`, `due_date=><hoy|hoy+7` y
     `updated_on<=hoy-N`, ordenadas por fecha. El umbral de estancadas es el mismo que
     el del chip; al cambiarlo se recargan ambas cosas sin refrescar la página.
-  - **Visibilidad por proyecto**: botón *Estadísticas* en el hero. Cada indicador
+  - **Visibilidad por proyecto**: botón *Personalizar* en el hero. Cada indicador
     (KPI básicas, dona, cada chip, estancadas y cada lista del panel de atención) se
     puede prender/apagar; se guarda en `localStorage['rm-vz-stats:<ident>']`, o sea
     **por proyecto y por navegador**. No requiere server ni afecta a otros usuarios.
     Si todo el panel de atención queda apagado, se oculta la caja completa. Para un
     default distinto, editar `vzDefault` (bloque de configuración antes de los KPIs en
     `theme.js`); para un valor compartido habría que moverlo a un plugin/custom field.
+  - **Colores de vencimiento** (listado de incidencias): toggles *dueLate*, *dueWeek* y
+    *dueMonth* en el panel *Personalizar*. El bloque del listado pinta
+    `td.due_date` con rojo (`--rm-red`), naranja (`--rm-red` + `--rm-yellow`) o amarillo
+    (`--rm-yellow`) según falten 0-7 o 0-30 días. La columna Fecha fin tiene que estar
+    visible en el listado; las vencidas además traen `tr.behind-schedule` de Redmine.
   - Tamaño de la dona: `.vz-donut` en `custom.css`.
 - **Tarjetas de abiertas por tipo** (listado de incidencias): bloque final de `theme.js`
   (`issue list KPI cards`), sólo en `/projects/<id>/issues`. Lee
   `/projects/<id>/issues/report/tracker` (una request), ordena por abiertas y agrega una
   tarjeta de Total. Es una foto fija: no sigue los filtros de la página. Cada tarjeta
   linkea al listado filtrado por ese tipo y estado abierto. Se prende/apaga con
-  *Tarjetas del listado* en el panel Estadísticas del Vistazo.
+  *Tarjetas del listado* en el panel *Personalizar* del Vistazo.
+- **Mi vistazo** (Mi página): bloque final de `theme.js` (`My page`). Inserta una fila de
+  KPI arriba de los bloques de `/my/page` con datos del usuario logueado (valores `me`
+  en los filtros): asignadas abiertas, vencidas, vencen en 7 días, reportadas abiertas,
+  cerradas en 7 días y estancadas +7 días. Son links a `/issues` ya filtrados.
 - **Taskboard**: sección *Taskboard / board* y *Taskboard compact*.
 - **Plugins**: sección *Plugin compatibility*; usar `html.dark-mode` cuando el plugin pisa
   colores y `!important` solo para ganarle a CSS del plugin o a estilos inline.

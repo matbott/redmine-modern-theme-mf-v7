@@ -1005,7 +1005,8 @@
     var vzDefault = {
       kpis: true, donut: true, unassigned: true, overdue: true, nodue: true,
       'new': true, closed: true, mttr: true, stalled: true, stalledDays: 7,
-      attnLate: true, attnSoon: true, attnStalled: true, issueCards: true
+      attnLate: true, attnSoon: true, attnStalled: true, issueCards: true,
+      dueLate: true, dueWeek: true, dueMonth: true
     };
     var vzConf = (function () {
       var saved = {};
@@ -1459,7 +1460,7 @@
         .catch(function (e) { console.error('Vistazo moderno [mttr]:', e); setOpValue('mttr', null); });
     });
 
-    /* ---------- 8) Estadísticas: visibilidad por proyecto (este navegador) ---------- */
+    /* ---------- 8) Personalizar: visibilidad y colores por proyecto (este navegador) ---------- */
     safe('estadisticas', function () {
       if (!hasIssues) return;
       var $ops = $('.vz-ops').first();
@@ -1502,6 +1503,11 @@
         ['attnSoon', 'Lista: por vencer (4)'],
         ['attnStalled', 'Lista: estancadas (4)']
       ].map(function (r) { return checkRow(r[0], r[1]); }).join('');
+      var dueColors = [
+        ['dueLate', 'Vencidas (rojo)'],
+        ['dueWeek', 'Vencen en 7 d (naranja)'],
+        ['dueMonth', 'Vencen en 30 d (amarillo)']
+      ].map(function (r) { return checkRow(r[0], r[1]); }).join('');
 
       var days = [3, 7, 15, 30, 60].map(function (d) {
         return '<option value="' + d + '"' + (vzConf.stalledDays === d ? ' selected' : '') + '>' + d + ' días</option>';
@@ -1511,13 +1517,15 @@
         '<div class="vz-stats">' +
           '<button type="button" class="vz-btn vz-stats-btn" aria-expanded="false" aria-controls="vz-stats-panel">' +
             svg('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>') +
-            'Estadísticas' +
+            'Personalizar' +
           '</button>' +
           '<div class="vz-stats-panel" id="vz-stats-panel" hidden>' +
             '<h4>Indicadores</h4>' +
             indicators +
             '<h4 class="vz-stats-sub">Panel de atención</h4>' +
             attention +
+            '<h4 class="vz-stats-sub">Colores de vencimiento</h4>' +
+            dueColors +
             '<div class="vz-stats-row"><span>Estancadas hace más de</span>' +
               '<select id="vz-stats-days" aria-label="Días para estancadas">' + days + '</select></div>' +
             '<p class="vz-stats-hint">Se guarda en este navegador para este proyecto.</p>' +
@@ -1667,6 +1675,7 @@
 
     var conf = {};
     try { conf = JSON.parse(localStorage.getItem('rm-vz-stats:' + ident) || '{}') || {}; } catch (e) { conf = {}; }
+    colorDueDates(conf);
     if (conf.issueCards === false) return;
 
     var svg = function (p) {
@@ -1681,6 +1690,43 @@
         return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
       });
     };
+
+    function parseDate(text) {
+      var m = text.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (m) return new Date(+m[1], +m[2] - 1, +m[3]);
+      m = text.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})/);
+      if (!m) return null;
+      var a = +m[1], b = +m[2], y = +m[3], dayFirst;
+      if (a > 12) dayFirst = true;
+      else if (b > 12) dayFirst = false;
+      else {
+        var lang = (document.documentElement.lang || 'en').toLowerCase();
+        dayFirst = lang.indexOf('en-us') !== 0;
+      }
+      return new Date(y, (dayFirst ? b : a) - 1, dayFirst ? a : b);
+    }
+
+    function colorDueDates(conf) {
+      var $ = window.jQuery;
+      if (!$) return;
+      var today = new Date(); today.setHours(0, 0, 0, 0);
+      var DAY = 864e5;
+      $('table.issues tbody tr').each(function () {
+        var $cell = $(this).find('td.due_date').first();
+        if (!$cell.length) return;
+        var date = parseDate($cell.text().replace(/\s+/g, ' ').trim());
+        if (!date) return;
+        var days = Math.round((date - today) / DAY);
+        $cell.removeClass('vz-due-late vz-due-week vz-due-month');
+        if (days < 0) {
+          if (conf.dueLate !== false) $cell.addClass('vz-due-late');
+        } else if (days <= 7) {
+          if (conf.dueWeek !== false) $cell.addClass('vz-due-week');
+        } else if (days <= 30) {
+          if (conf.dueMonth !== false) $cell.addClass('vz-due-month');
+        }
+      });
+    }
 
     fetch('/projects/' + encodeURIComponent(ident) + '/issues/report/tracker', { credentials: 'same-origin' })
       .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
@@ -1724,6 +1770,111 @@
         h2.parentNode.insertBefore(box, h2.nextSibling);
       })
       .catch(function (e) { console.error('Vistazo moderno [tracker report]:', e); });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start);
+  } else {
+    start();
+  }
+})();
+
+/* ============================================================
+   LOCAL CUSTOMISATIONS — My page ("Mi vistazo")
+   KPI strip with the logged-in user's workload, above the
+   configurable My page blocks. Counts come from /issues.json
+   with the "me" value, so it follows the current user.
+   ============================================================ */
+(function () {
+  function start() {
+    if (!document.body.classList.contains('controller-my') ||
+        !document.body.classList.contains('action-page')) return;
+    if (document.getElementById('vz-my')) return;
+
+    var $ = window.jQuery;
+    if (!$) return;
+
+    var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+    var iso = function (d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
+    var daysAgo = function (n) { return iso(new Date(Date.now() - n * 864e5)); };
+    var today = daysAgo(0), yesterday = daysAgo(1), weekAgo = daysAgo(7), weekAhead = daysAgo(-7);
+
+    var query = function (filters) {
+      var parts = ['set_filter=1'];
+      filters.forEach(function (f) {
+        parts.push('f%5B%5D=' + encodeURIComponent(f[0]));
+        parts.push('op%5B' + encodeURIComponent(f[0]) + '%5D=' + encodeURIComponent(f[1]));
+        if (f[2] != null) {
+          (Array.isArray(f[2]) ? f[2] : [f[2]]).forEach(function (v) {
+            parts.push('v%5B' + encodeURIComponent(f[0]) + '%5D%5B%5D=' + encodeURIComponent(v));
+          });
+        }
+      });
+      return '/issues?' + parts.join('&');
+    };
+    var api = function (filters) {
+      var parts = ['limit=1'];
+      filters.forEach(function (f) {
+        parts.push(encodeURIComponent(f[0]) + '=' + encodeURIComponent(f[1]));
+      });
+      return '/issues.json?' + parts.join('&');
+    };
+
+    var svg = function (p) {
+      return '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + p + '</svg>';
+    };
+    var ico = {
+      open: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/>',
+      alert: '<path d="M12 3 2.5 20h19L12 3z"/><path d="M12 9v5"/><circle cx="12" cy="17" r=".6" fill="currentColor"/>',
+      clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+      user: '<circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.6 2.9-6 7-6s7 2.4 7 6"/>',
+      closed: '<circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/>',
+      pause: '<circle cx="12" cy="12" r="9"/><path d="M10 9v6M14 9v6"/>'
+    };
+
+    var cards = [
+      { id: 'assigned', label: 'Asignadas abiertas', icon: 'open',
+        href: query([['assigned_to_id', 'me'], ['status_id', 'o']]),
+        api: api([['assigned_to_id', 'me'], ['status_id', 'o']]) },
+      { id: 'late', label: 'Vencidas', icon: 'alert', cls: 'is-late',
+        href: query([['assigned_to_id', 'me'], ['status_id', 'o'], ['due_date', '<=', yesterday]]),
+        api: api([['assigned_to_id', 'me'], ['status_id', 'o'], ['due_date', '<=', yesterday]]) },
+      { id: 'week', label: 'Vencen en 7 días', icon: 'clock', cls: 'is-soon',
+        href: query([['assigned_to_id', 'me'], ['status_id', 'o'], ['due_date', '><', [today, weekAhead]]]),
+        api: api([['assigned_to_id', 'me'], ['status_id', 'o'], ['due_date', '><' + today + '|' + weekAhead]]) },
+      { id: 'reported', label: 'Reportadas abiertas', icon: 'user',
+        href: query([['author_id', 'me'], ['status_id', 'o']]),
+        api: api([['author_id', 'me'], ['status_id', 'o']]) },
+      { id: 'closed', label: 'Cerradas 7 días', icon: 'closed', cls: 'is-ok',
+        href: query([['assigned_to_id', 'me'], ['status_id', 'c'], ['updated_on', '>=', weekAgo]]),
+        api: api([['assigned_to_id', 'me'], ['status_id', 'c'], ['updated_on', '>=', weekAgo]]) },
+      { id: 'stalled', label: 'Estancadas +7 d', icon: 'pause', cls: 'is-stalled',
+        href: query([['assigned_to_id', 'me'], ['status_id', 'o'], ['updated_on', '<=', daysAgo(7)]]),
+        api: api([['assigned_to_id', 'me'], ['status_id', 'o'], ['updated_on', '<=', daysAgo(7)]]) }
+    ];
+
+    var box = $('<div class="vz-kpis vz-kpis-my" id="vz-my"></div>');
+    cards.forEach(function (c) {
+      box.append(
+        '<a class="vz-kpi' + (c.cls ? ' ' + c.cls : '') + '" href="' + c.href + '">' +
+          '<span class="vz-ico">' + svg(ico[c.icon]) + '</span>' +
+          '<span class="vz-txt"><small>' + c.label + '</small><b id="vz-my-' + c.id + '">\u2014</b></span>' +
+        '</a>');
+    });
+
+    var $h2 = $('#content > h2').first();
+    if (!$h2.length) {
+      $('#content').first().prepend(box);
+    } else {
+      $h2.after(box);
+    }
+
+    cards.forEach(function (c) {
+      fetch(c.api, { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
+        .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+        .then(function (d) { $('#vz-my-' + c.id).text(typeof d.total_count === 'number' ? d.total_count : '\u2014'); })
+        .catch(function (e) { console.error('Vistazo moderno [my ' + c.id + ']:', e); });
+    });
   }
 
   if (document.readyState === 'loading') {

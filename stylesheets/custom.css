@@ -239,11 +239,36 @@ body.controller-projects.action-show #content > .contextual {
 }
 
 /* ---------- Tarjetas de abiertas por tipo (listado de incidencias) ---------- */
-body.controller-issues.action-index {
+body.controller-issues.action-index,
+body.controller-my.action-page {
   --vz-accent: var(--rm-accent, var(--rm-fg));
   --vz-on-accent: #fff;
+  --vz-orange: color-mix(in srgb, var(--rm-red) 45%, var(--rm-yellow));
 }
 .vz-kpis-issues { margin: 14px 0 18px; }
+.vz-kpis-my { margin: 0 0 18px; }
+.vz-kpi.is-late b { color: var(--rm-red); }
+.vz-kpi.is-soon b { color: var(--vz-orange); }
+.vz-kpi.is-ok b { color: var(--rm-green); }
+.vz-kpi.is-stalled b { color: var(--rm-purple); }
+
+/* ---------- Vencimientos en el listado de incidencias ---------- */
+table.issues td.due_date.vz-due-late {
+  color: var(--rm-red) !important; font-weight: 700;
+  background: color-mix(in srgb, var(--rm-red) 14%, transparent) !important;
+}
+table.issues td.due_date.vz-due-week {
+  color: var(--vz-orange) !important; font-weight: 600;
+  background: color-mix(in srgb, var(--vz-orange) 14%, transparent) !important;
+}
+table.issues td.due_date.vz-due-month {
+  color: var(--rm-yellow) !important; font-weight: 600;
+  background: color-mix(in srgb, var(--rm-yellow) 16%, transparent) !important;
+}
+/* Redmine already marks overdue rows; keep the cue even without the due-date column */
+table.issues tbody tr.behind-schedule td:first-child {
+  box-shadow: inset 3px 0 0 var(--rm-red);
+}
 
 /* ---------- Grilla y cards ---------- */
 body.controller-projects.action-show .splitcontent {

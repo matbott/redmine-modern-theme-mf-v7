@@ -127,12 +127,18 @@ map, token translations and how to update from upstream.
   operational strip (unassigned, overdue, no due date, new/closed last 7 days, stalled,
   average closing time). An **Attention** box lists up to 4 overdue, 4 due in the next
   7 days and 4 stalled issues (running totals in each heading). A **Statistics** button
-  in the hero lets each project toggle every indicator and every attention list on/off
-  (per browser, stored in `localStorage`), and sets the stalled threshold (3–60 days).
-  All read from the active palette, so they follow dark mode and schemes.
+  in the hero (“Personalizar”) lets each project toggle every indicator, every attention
+  list and the due-date colours on/off (per browser, stored in `localStorage`), and sets
+  the stalled threshold (3–60 days). All read from the active palette, so they follow
+  dark mode and schemes.
+- **My page** — a “Mi vistazo” KPI strip above your own blocks: assigned open, overdue,
+  due in 7 days, reported open, closed in the last 7 days and stalled +7 days, all for
+  the logged-in user.
+- **Due-date colours** — in a project issue list the due date is painted red (overdue),
+  orange (next 7 days) or yellow (next 30 days); each band can be toggled.
 - **Issue list cards** — inside a project issue list, KPI-style cards above the filters
   show open issues by tracker (plus a total), linking to the matching filtered list.
-  Toggle in the overview Statistics panel (“Tarjetas del listado”).
+  Toggle in the overview “Personalizar” panel (“Tarjetas del listado”).
 - **Plugin compatibility** — RedmineUP Agile, Redmineflux Testcase, Vault, Pins, View
   Customize code blocks.
 - **Taskboard / board** (`#rdb*`, `.rdb-*`) — cards, headers, footers, dropdowns and the
