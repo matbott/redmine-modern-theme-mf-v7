@@ -113,8 +113,7 @@ audits WCAG contrast, `seed.rb` fills a local development database.
 ## Local customisations
 
 Everything below lives in `stylesheets/custom.css` (imported right after `schemes.css`),
-except the two script blocks at the end of `javascripts/theme.js`
-(sidebar width and the project hero). See [MAINTENANCE.md](MAINTENANCE.md) for the full
+except the clearly marked script blocks at the end of `javascripts/theme.js`. See [MAINTENANCE.md](MAINTENANCE.md) for the full
 map, token translations and how to update from upstream.
 
 - **Selected issue rows** — `tr:has(input[type=checkbox]:checked)`, so the row paints as
@@ -136,6 +135,9 @@ map, token translations and how to update from upstream.
 - **My page** — a “Mi vistazo” KPI strip above your own blocks: assigned open, overdue,
   due in 7 days, reported open, closed in the last 7 days and stalled +7 days, all for
   the logged-in user.
+- **Initials avatars** — in issue lists, the **Assigned to** and **Author** columns get a
+  small initials avatar before the name. It reuses Redmine's own `avatar-color-<id % 16>`
+  palette, so the colour matches the account menu; no extra requests.
 - **Due-date colours** — in a project issue list the due date is painted red (overdue),
   orange (next 7 days) or yellow (next 30 days); each band can be toggled.
 - **Issue list cards** — inside a project issue list, KPI-style cards above the filters

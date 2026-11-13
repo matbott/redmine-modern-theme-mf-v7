@@ -5,13 +5,12 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 ## Estado actual (2026-11-13)
 
 - Repo: `matbott/redmine-modern-theme-mf-v7`, rama `main`.
-- Último commit funcional: `3d486e6`, tag **`v1.1.0`** (búsqueda más ancha, icono de
-  autocompletar y versión en el pie del sidebar). El commit de esta documentación va
-  después.
+- Último commit funcional: `81bab91`, tag **`v1.2.0`** (avatares con iniciales en
+  Asignado/Autor del listado). El commit de esta documentación va después.
 - Server: Redmine **7.0.3**, container `redmine-redmine-1`, theme instalado en
   `/usr/src/redmine/themes/redmine-modern-theme-mf-v7`.
 - **Pendiente inmediato**: deployar el último `main` en el server con el bloque de
-  *Deploy* y hacer `Ctrl+F5`. El tag `v1.1.0` todavía puede no estar deployado.
+  *Deploy* y hacer `Ctrl+F5`. El tag `v1.2.0` todavía puede no estar deployado.
 - El theme anterior `redmine-modern-theme-mf` sigue instalado y se puede volver a él
   desde Administración → Configuración → Mostrar → Tema.
 
@@ -29,9 +28,12 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 4. **Búsqueda del header**: al enfocar debe crecer hasta ~400 px (si solo llega a 220,
    el deploy no tomó la regla con `#header`). El buscador de proyectos y los campos
    autocompletar deben mostrar una sola lupa (sin mosaico).
-5. **Pie del sidebar**: debe verse `Modern Theme MF v1.1.0` en chico, al final de la
+5. **Pie del sidebar**: debe verse `Modern Theme MF v1.2.0` en chico, al final de la
    barra lateral.
-6. **Listado de incidencias**: tarjetas de abiertas por tipo arriba de los filtros y
+6. **Listado de incidencias**: en las columnas **Asignado** y **Autor** debe aparecer
+   un círculo con iniciales antes del nombre. El color tiene que coincidir con el
+   avatar del menú de cuenta (misma clase `avatar-color-<id % 16>` de Redmine).
+7. **Listado de incidencias**: tarjetas de abiertas por tipo arriba de los filtros y
    link “Total abiertas”.
 
 ### Decisiones vigentes
@@ -48,7 +50,7 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 ### Versionado
 
 - La versión visible está en `javascripts/theme.js`, bloque final
-  `LOCAL: theme version in the sidebar footer` (`var VERSION = '1.1.0'`).
+  `LOCAL: theme version in the sidebar footer` (`var VERSION = '1.2.0'`).
 - Al publicar cambios: subir `VERSION`, commit, `git tag -a vX.Y.Z` y push del tag.
 - Se muestra al pie de `#sidebar` como `Modern Theme MF vX.Y.Z` (se oculta con la
   sidebar colapsada).
@@ -281,6 +283,12 @@ El theme se elige en **Administración → Configuración → Mostrar → Tema �
   a[href^="/users/"]`, fallback `a.user`) y lo usa en los links (`f[]` + `op[]=` +
   `v[]`) y en `/issues.json?assigned_to_id=<id>`; si no lo encuentra cae a `me`. No
   usar `op[assigned_to_id]=me`: el operador va vacío (`=`) y `me` es el valor.
+- **Avatares del listado**: bloque final de `theme.js` (`initials avatars in issue list
+  user columns`). Antepone un `span` con iniciales a `td.assigned_to a.user` y
+  `td.author a.user`. Reutiliza las clases nativas `avatar s16 avatar-color-<id % 16>`,
+  así que el color es exactamente el que Redmine usa en el menú de cuenta; no hay
+  requests extra. Iniciales: primera letra del primer y del último token del nombre;
+  una sola palabra → sus dos primeras letras. El CSS solo ajusta margen y font-size.
 - **Taskboard**: sección *Taskboard / board* y *Taskboard compact*.
 - **Plugins**: sección *Plugin compatibility*; usar `html.dark-mode` cuando el plugin pisa
   colores y `!important` solo para ganarle a CSS del plugin o a estilos inline.
