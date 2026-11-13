@@ -5,26 +5,30 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 ## Estado actual (2026-11-13)
 
 - Repo: `matbott/redmine-modern-theme-mf-v7`, rama `main`.
-- Último commit funcional: `3ef64a4` (Mi vistazo con id de usuario + marcador
-  propio de vencidas). El commit de esta documentación va después.
+- Último commit funcional: `86fb9af` (Mi vistazo con id de usuario, fechas en las
+  consultas API, icono de autocompletar y búsqueda más ancha). El commit de esta
+  documentación va después.
 - Server: Redmine **7.0.3**, container `redmine-redmine-1`, theme instalado en
   `/usr/src/redmine/themes/redmine-modern-theme-mf-v7`.
 - **Pendiente inmediato**: deployar el último `main` en el server con el bloque de
-  *Deploy* y hacer `Ctrl+F5`. El commit `3ef64a4` todavía puede no estar deployado.
+  *Deploy* y hacer `Ctrl+F5`. El commit `86fb9af` todavía puede no estar deployado.
 - El theme anterior `redmine-modern-theme-mf` sigue instalado y se puede volver a él
   desde Administración → Configuración → Mostrar → Tema.
 
 ### Verificación pendiente (para mañana)
 
 1. **Mi página** (`/my/page`): que las 6 tarjetas cuenten y que cada link abra el
-   listado con resultados (usan el id del usuario, no `me`).
+   listado con resultados (usan el id del usuario, no `me`). Con Redmine Admin deben
+   dar: vencidas 20, cerradas 7 días 8, estancadas 2 (verificado contra la API).
 2. **Listado de incidencias**: agregar la columna **Fecha fin** (Opciones → Columnas) y
    comprobar rojo vencida, naranja ≤7 días, amarillo ≤30 días. Una fecha a +30 días no
    debe tener color ni barra. La barra roja izquierda debe aparecer **solo** en vencidas
    reales (no en `behind-schedule`).
 3. **Vistazo**: columnas 50/50, dona debajo de Incidencias, panel de atención 4+4+4,
    panel **Personalizar** con los 16 checks (incluye los 3 de colores).
-4. **Listado de incidencias**: tarjetas de abiertas por tipo arriba de los filtros y
+4. **Búsqueda del header**: al enfocar debe crecer hasta ~380 px. El buscador de
+   proyectos y los campos autocompletar deben mostrar una sola lupa (sin mosaico).
+5. **Listado de incidencias**: tarjetas de abiertas por tipo arriba de los filtros y
    link “Total abiertas”.
 
 ### Decisiones vigentes
