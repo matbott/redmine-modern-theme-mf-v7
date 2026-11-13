@@ -2,18 +2,33 @@
 
 Notas para retomar el trabajo sin tener que reconstruir el contexto.
 
-## Estado actual (2026-11-13)
+## Estado actual (2026-11-12)
 
 - Repo: `matbott/redmine-modern-theme-mf-v7`, rama `main`.
 - Último commit funcional: `0a827f3`, tag **`v1.2.4`** (toast de cambio de modo
-  centrado; el calendario dark de v1.2.3 ya está incluido). El commit de esta
-  documentación va después.
+  centrado; el calendario dark de v1.2.3 ya está incluido). Documentación: `7dd2ef3`.
+- Estado del repo: `main` limpio y pusheado, tags `v1.2.3` y `v1.2.4` en origin.
 - Server: Redmine **7.0.3**, container `redmine-redmine-1`, theme instalado en
   `/usr/src/redmine/themes/redmine-modern-theme-mf-v7`.
 - **Pendiente inmediato**: deployar el último `main` en el server con el bloque de
   *Deploy* y hacer `Ctrl+F5`. El tag `v1.2.4` todavía puede no estar deployado.
 - El theme anterior `redmine-modern-theme-mf` sigue instalado y se puede volver a él
   desde Administración → Configuración → Mostrar → Tema.
+
+### Última sesión (2026-11-12)
+
+- **Calendario dark (v1.2.3)**: el problema no era el core sino el CSS del plugin
+  RedmineUP, que se carga después del theme y repinta fines de semana, columna de semana
+  y “hoy” con colores claros. Se resolvió con `!important` en la sección *Calendar* de
+  `custom.css`, justificado por ser CSS de plugin.
+- **Toast de cambio de modo (v1.2.4)**: el popup aparecía corrido y cortado porque la
+  regla responsive de `application.css` deja `left/right` pero conserva
+  `transform: translateX(-50%)`. Se restauró el centrado desde `custom.css` con
+  `html #rm-toast-container`, sin `!important`.
+- Ambos fixes se validaron con Chrome headless contra la página real en modo dark
+  (estilos calculados del calendario y posición/medidas del toast).
+- Queda pendiente el deploy de `v1.2.4` y la recorrida visual de la lista de
+  verificación de abajo.
 
 ### Verificación pendiente (para mañana)
 
