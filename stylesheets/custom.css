@@ -988,3 +988,12 @@ input.autocomplete {
 #main.collapsedsidebar #sidebar .rm-theme-version {
   display: none;
 }
+
+/* ── Initials avatars in issue lists ───────────────────────
+   Reuse Redmine's own avatar sizes/colours; just tighten the gap and
+   make the initials readable at 16 px inside dense table rows. */
+td.assigned_to a.user .rm-user-avatar,
+td.author a.user .rm-user-avatar {
+  margin-inline-end: 6px;
+  font-size: 8px;
+}

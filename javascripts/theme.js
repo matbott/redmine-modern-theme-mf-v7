@@ -1905,7 +1905,7 @@
    manual: bump it here and tag the release (see MAINTENANCE.md). */
 (function () {
   'use strict';
-  var VERSION = '1.1.0';
+  var VERSION = '1.2.0';
 
   function render() {
     var sidebar = document.getElementById('sidebar');
@@ -1922,5 +1922,52 @@
     document.addEventListener('DOMContentLoaded', render);
   } else {
     render();
+  }
+})();
+
+/* ── LOCAL: initials avatars in issue list user columns ────────
+   Redmine's own avatar palette is `avatar-color-<user.id % 16>` (same
+   classes used by the account menu). Issue list cells only render a
+   plain <a class="user">, so we prepend the initials span client-side.
+   No extra requests and the colour matches Redmine exactly. */
+(function () {
+  'use strict';
+
+  function initials(name) {
+    var clean = String(name || '').replace(/\([^)]*\)/g, ' ').trim();
+    var parts = clean.split(/[\s,]+/).filter(Boolean);
+    var first = function (s, n) {
+      var m = s.match(/[\p{L}\p{N}]/gu);
+      return m ? m.slice(0, n).join('').toUpperCase() : '';
+    };
+    if (!parts.length) return '';
+    if (parts.length === 1) return first(parts[0], 2);
+    return first(parts[0], 1) + first(parts[parts.length - 1], 1);
+  }
+
+  function decorate() {
+    var links = document.querySelectorAll('td.assigned_to a.user, td.author a.user');
+    Array.prototype.forEach.call(links, function (a) {
+      if (a.querySelector('.rm-user-avatar')) return;
+      var m = (a.getAttribute('href') || '').match(/^\/users\/(\d+)/);
+      if (!m) return;
+      var name = a.textContent.trim();
+      var ini = initials(name);
+      if (!ini) return;
+
+      var span = document.createElement('span');
+      span.className = 'avatar s16 avatar-color-' + (parseInt(m[1], 10) % 16) + ' rm-user-avatar';
+      span.setAttribute('role', 'img');
+      span.setAttribute('aria-hidden', 'true');
+      span.setAttribute('title', name);
+      span.textContent = ini;
+      a.insertBefore(span, a.firstChild);
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', decorate);
+  } else {
+    decorate();
   }
 })();
