@@ -1854,7 +1854,7 @@
         api: api([['assigned_to_id', uid], ['status_id', 'o']]) },
       { id: 'late', label: 'Vencidas', icon: 'alert', cls: 'is-late',
         href: query([['assigned_to_id', '=', uid], ['status_id', 'o'], ['due_date', '<=', yesterday]]),
-        api: api([['assigned_to_id', uid], ['status_id', 'o'], ['due_date', '<=', yesterday]]) },
+        api: api([['assigned_to_id', uid], ['status_id', 'o'], ['due_date', '<=' + yesterday]]) },
       { id: 'week', label: 'Vencen en 7 días', icon: 'clock', cls: 'is-soon',
         href: query([['assigned_to_id', '=', uid], ['status_id', 'o'], ['due_date', '><', [today, weekAhead]]]),
         api: api([['assigned_to_id', uid], ['status_id', 'o'], ['due_date', '><' + today + '|' + weekAhead]]) },
@@ -1863,10 +1863,10 @@
         api: api([['author_id', uid], ['status_id', 'o']]) },
       { id: 'closed', label: 'Cerradas 7 días', icon: 'closed', cls: 'is-ok',
         href: query([['assigned_to_id', '=', uid], ['status_id', 'c'], ['updated_on', '>=', weekAgo]]),
-        api: api([['assigned_to_id', uid], ['status_id', 'c'], ['updated_on', '>=', weekAgo]]) },
+        api: api([['assigned_to_id', uid], ['status_id', 'c'], ['updated_on', '>=' + weekAgo]]) },
       { id: 'stalled', label: 'Estancadas +7 d', icon: 'pause', cls: 'is-stalled',
         href: query([['assigned_to_id', '=', uid], ['status_id', 'o'], ['updated_on', '<=', daysAgo(7)]]),
-        api: api([['assigned_to_id', uid], ['status_id', 'o'], ['updated_on', '<=', daysAgo(7)]]) }
+        api: api([['assigned_to_id', uid], ['status_id', 'o'], ['updated_on', '<=' + daysAgo(7)]]) }
     ];
 
     var box = $('<div class="vz-kpis vz-kpis-my" id="vz-my"></div>');

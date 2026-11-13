@@ -948,3 +948,18 @@ html.dark-mode .rdb-compact { background: var(--rm-surface) !important; }
   align-items: center;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
 }
+
+/* ── Header search: wider focus + one magnifier only ────────
+   Core's project quick-search already draws its icon with an inline SVG,
+   but the theme's input.autocomplete background rule is unlayered and wins,
+   so the two icons stack and the background (no repeat set upstream) tiles
+   across the field. Keep the background icon only where core has no SVG. */
+.quick-search input.autocomplete {
+  background-image: none;
+}
+input.autocomplete {
+  background-repeat: no-repeat;
+}
+#quick-search #q:focus {
+  inline-size: min(380px, 42vw);
+}
