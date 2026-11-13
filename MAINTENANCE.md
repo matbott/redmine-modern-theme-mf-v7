@@ -5,12 +5,13 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 ## Estado actual (2026-11-13)
 
 - Repo: `matbott/redmine-modern-theme-mf-v7`, rama `main`.
-- Último commit funcional: `a4bca4b`, tag **`v1.2.1`** (calendario con tokens del
-  theme, sin fondo claro en modo oscuro). El commit de esta documentación va después.
+- Último commit funcional: `c013962`, tag **`v1.2.2`** (versión del theme movida a
+  Mi cuenta, junto a las opciones de paleta y sidebar). El commit de esta
+  documentación va después.
 - Server: Redmine **7.0.3**, container `redmine-redmine-1`, theme instalado en
   `/usr/src/redmine/themes/redmine-modern-theme-mf-v7`.
 - **Pendiente inmediato**: deployar el último `main` en el server con el bloque de
-  *Deploy* y hacer `Ctrl+F5`. El tag `v1.2.1` todavía puede no estar deployado.
+  *Deploy* y hacer `Ctrl+F5`. El tag `v1.2.2` todavía puede no estar deployado.
 - El theme anterior `redmine-modern-theme-mf` sigue instalado y se puede volver a él
   desde Administración → Configuración → Mostrar → Tema.
 
@@ -28,8 +29,8 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 4. **Búsqueda del header**: al enfocar debe crecer hasta ~400 px (si solo llega a 220,
    el deploy no tomó la regla con `#header`). El buscador de proyectos y los campos
    autocompletar deben mostrar una sola lupa (sin mosaico).
-5. **Pie del sidebar**: debe verse `Modern Theme MF v1.2.1` en chico, al final de la
-   barra lateral.
+5. **Mi cuenta**: al final de la sección *Sidebar position* debe verse
+   `Modern Theme MF v1.2.2` en chico. Ya **no** debe aparecer en el pie del sidebar.
 6. **Listado de incidencias**: en las columnas **Asignado** y **Autor** debe aparecer
    un círculo con iniciales antes del nombre. El color tiene que coincidir con el
    avatar del menú de cuenta (misma clase `avatar-color-<id % 16>` de Redmine).
@@ -52,11 +53,11 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 
 ### Versionado
 
-- La versión visible está en `javascripts/theme.js`, bloque final
-  `LOCAL: theme version in the sidebar footer` (`var VERSION = '1.2.1'`).
+- La versión visible está en `javascripts/theme.js`, bloque `LOCAL CUSTOMISATIONS —
+  sidebar width` (`var VERSION = '1.2.2'`).
 - Al publicar cambios: subir `VERSION`, commit, `git tag -a vX.Y.Z` y push del tag.
-- Se muestra al pie de `#sidebar` como `Modern Theme MF vX.Y.Z` (se oculta con la
-  sidebar colapsada).
+- Se muestra al final del fieldset `#rm-layout` de **Mi cuenta** (sidebar position /
+  width), como `Modern Theme MF vX.Y.Z`.
 
 ### Backlog acordado / ideas
 
