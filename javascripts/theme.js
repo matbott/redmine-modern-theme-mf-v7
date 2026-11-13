@@ -1583,7 +1583,7 @@
   var root = document.documentElement;
   var KEY = 'rm-sidebar-width';
   var MIN = 180, MAX = 360;
-  var VERSION = '1.2.3';
+  var VERSION = '1.2.4';
 
   function storedWidth() {
     try {

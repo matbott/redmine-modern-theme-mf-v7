@@ -1023,3 +1023,17 @@ ul.cal {
 .cal .calbody.other-month p.day-num {
   color: var(--rm-muted) !important;
 }
+
+/* ── Toast position ──────────────────────────────────────────
+   Upstream's responsive #rm-toast-container rule sets left/right
+   to .75rem but keeps transform: translateX(-50%), which shifts the
+   popup half its width off-screen. Restore the centred toast and
+   cap it to the viewport on narrow screens. */
+html #rm-toast-container {
+  left: 50%;
+  right: auto;
+  inline-size: auto;
+  min-inline-size: min(280px, calc(100vw - 24px));
+  max-inline-size: min(420px, calc(100vw - 24px));
+  transform: translateX(-50%);
+}
