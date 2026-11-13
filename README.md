@@ -122,7 +122,8 @@ map, token translations and how to update from upstream.
 - **RedmineUP Checklists** — the new-item field takes the row.
 - **Admin index** — icon cards in a responsive grid.
 - **Project overview hero** (“Vistazo moderno”) — hero, KPI cards, issue/members/activity
-  summary, a donut chart of open issues (toggle: by tracker / by assignee) and an
+  summary, a donut chart of open issues (toggle: by tracker / by assignee) placed in
+  the left column right under the *Issues* box, and an
   operational strip (unassigned, overdue, no due date, new/closed last 7 days, stalled,
   average closing time). An **Attention** box lists up to 4 overdue, 4 due in the next
   7 days and 4 stalled issues (running totals in each heading). A **Statistics** button

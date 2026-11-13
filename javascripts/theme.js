@@ -1264,8 +1264,8 @@
     /* ---------- 6) Dona: abiertas por tipo / por asignado ---------- */
     safe('grafico', function () {
       if (!hasIssues) return;
-      var $right = $('.splitcontentright').first();
-      if (!$right.length) return;
+      var $left = $('.splitcontentleft').first();
+      if (!$left.length) return;
 
       var PALETTE = ['--rm-accent', '--rm-green', '--rm-blue', '--rm-yellow', '--rm-purple', '--rm-red'];
       var MAX = 6;                 // slices before "Otros"
@@ -1383,10 +1383,11 @@
         }
       }
 
+      // Columna izquierda, justo debajo de la caja "Incidencias".
       var $chart = $(box);
-      var $members = $right.find('.members.box').first();
-      if ($members.length) $members.after($chart);
-      else $right.append($chart);
+      var $issues = $left.find('.issues.box').first();
+      if ($issues.length) $issues.after($chart);
+      else $left.prepend($chart);
 
       $chart.on('click', '.vz-chart-tab', function () { setMode($(this).data('mode')); });
       render(normalize(trackerItems()), 'Sin incidencias abiertas.');

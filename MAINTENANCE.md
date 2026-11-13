@@ -169,9 +169,10 @@ El theme se elige en **Administración → Configuración → Mostrar → Tema �
   No agregar colores fijos en `custom.css`.
 - **Hero/KPIs/dona/chips**: markup y fetch en el bloque final de `theme.js`; estilos en la
   sección *Project overview* de `custom.css`.
-  - Dona: conteos por tipo desde `table.issue-report` del overview (sin request); por
-    asignado desde `/projects/<id>/issues/report/assigned_to` (una request, cacheada).
-    Colores en el array `PALETTE` (`--rm-*`).
+  - Dona: se inserta en la columna izquierda, justo debajo de la caja *Incidencias*
+    (`.splitcontentleft .issues.box`). Conteos por tipo desde `table.issue-report` del
+    overview (sin request); por asignado desde `/projects/<id>/issues/report/assigned_to`
+    (una request, cacheada). Colores en el array `PALETTE` (`--rm-*`).
   - Chips: un `total_count` por indicador vía `/issues.json?...&limit=1` (sin asignar,
     vencidas, sin fecha, nuevas/cerradas 7 d, estancadas) y el cierre promedio sobre las
     últimas 30 cerradas. Los links usan el formato de query de Redmine
