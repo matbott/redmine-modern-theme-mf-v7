@@ -135,6 +135,8 @@ map, token translations and how to update from upstream.
 - **My page** — a “Mi vistazo” KPI strip above your own blocks: assigned open, overdue,
   due in 7 days, reported open, closed in the last 7 days and stalled +7 days, all for
   the logged-in user.
+- **Calendar** — the issue calendar grid uses theme surfaces and borders instead of
+  core's static white/grey open-colors, so it follows dark mode and schemes.
 - **Initials avatars** — in issue lists, the **Assigned to** and **Author** columns get a
   small initials avatar before the name. It reuses Redmine's own `avatar-color-<id % 16>`
   palette, so the colour matches the account menu; no extra requests.

@@ -5,12 +5,12 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 ## Estado actual (2026-11-13)
 
 - Repo: `matbott/redmine-modern-theme-mf-v7`, rama `main`.
-- Último commit funcional: `81bab91`, tag **`v1.2.0`** (avatares con iniciales en
-  Asignado/Autor del listado). El commit de esta documentación va después.
+- Último commit funcional: `a4bca4b`, tag **`v1.2.1`** (calendario con tokens del
+  theme, sin fondo claro en modo oscuro). El commit de esta documentación va después.
 - Server: Redmine **7.0.3**, container `redmine-redmine-1`, theme instalado en
   `/usr/src/redmine/themes/redmine-modern-theme-mf-v7`.
 - **Pendiente inmediato**: deployar el último `main` en el server con el bloque de
-  *Deploy* y hacer `Ctrl+F5`. El tag `v1.2.0` todavía puede no estar deployado.
+  *Deploy* y hacer `Ctrl+F5`. El tag `v1.2.1` todavía puede no estar deployado.
 - El theme anterior `redmine-modern-theme-mf` sigue instalado y se puede volver a él
   desde Administración → Configuración → Mostrar → Tema.
 
@@ -28,13 +28,16 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 4. **Búsqueda del header**: al enfocar debe crecer hasta ~400 px (si solo llega a 220,
    el deploy no tomó la regla con `#header`). El buscador de proyectos y los campos
    autocompletar deben mostrar una sola lupa (sin mosaico).
-5. **Pie del sidebar**: debe verse `Modern Theme MF v1.2.0` en chico, al final de la
+5. **Pie del sidebar**: debe verse `Modern Theme MF v1.2.1` en chico, al final de la
    barra lateral.
 6. **Listado de incidencias**: en las columnas **Asignado** y **Autor** debe aparecer
    un círculo con iniciales antes del nombre. El color tiene que coincidir con el
    avatar del menú de cuenta (misma clase `avatar-color-<id % 16>` de Redmine).
 7. **Listado de incidencias**: tarjetas de abiertas por tipo arriba de los filtros y
    link “Total abiertas”.
+8. **Calendario** (`/projects/<id>/issues/calendar`) en modo oscuro: las celdas del mes,
+   las de otros meses, la cabecera y los bordes deben usar superficies oscuras del
+   theme, no blanco/gris claro.
 
 ### Decisiones vigentes
 
@@ -50,7 +53,7 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 ### Versionado
 
 - La versión visible está en `javascripts/theme.js`, bloque final
-  `LOCAL: theme version in the sidebar footer` (`var VERSION = '1.2.0'`).
+  `LOCAL: theme version in the sidebar footer` (`var VERSION = '1.2.1'`).
 - Al publicar cambios: subir `VERSION`, commit, `git tag -a vX.Y.Z` y push del tag.
 - Se muestra al pie de `#sidebar` como `Modern Theme MF vX.Y.Z` (se oculta con la
   sidebar colapsada).
@@ -283,6 +286,10 @@ El theme se elige en **Administración → Configuración → Mostrar → Tema �
   a[href^="/users/"]`, fallback `a.user`) y lo usa en los links (`f[]` + `op[]=` +
   `v[]`) y en `/issues.json?assigned_to_id=<id>`; si no lo encuentra cae a `me`. No
   usar `op[assigned_to_id]=me`: el operador va vacío (`=`) y `me` es el valor.
+- **Calendario**: sección *Calendar* al final de `custom.css`. El core pinta
+  `ul.cal .calbody.this-month` con `--oc-white` y el resto con `--oc-gray-1`, valores
+  fijos que no cambian en dark. Se reemplazan por `--rm-surface`, `--rm-surface-2`,
+  `--rm-border` y `--rm-muted`; aplica a calendarios de proyecto y globales.
 - **Avatares del listado**: bloque final de `theme.js` (`initials avatars in issue list
   user columns`). Antepone un `span` con iniciales a `td.assigned_to a.user` y
   `td.author a.user`. Reutiliza las clases nativas `avatar s16 avatar-color-<id % 16>`,
