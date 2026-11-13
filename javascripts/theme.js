@@ -1712,14 +1712,19 @@
       var today = new Date(); today.setHours(0, 0, 0, 0);
       var DAY = 864e5;
       $('table.issues tbody tr').each(function () {
-        var $cell = $(this).find('td.due_date').first();
+        var $row = $(this);
+        var $cell = $row.find('td.due_date').first();
+        $row.removeClass('vz-row-late');
         if (!$cell.length) return;
         var date = parseDate($cell.text().replace(/\s+/g, ' ').trim());
         if (!date) return;
         var days = Math.round((date - today) / DAY);
         $cell.removeClass('vz-due-late vz-due-week vz-due-month');
         if (days < 0) {
-          if (conf.dueLate !== false) $cell.addClass('vz-due-late');
+          if (conf.dueLate !== false) {
+            $cell.addClass('vz-due-late');
+            $row.addClass('vz-row-late');
+          }
         } else if (days <= 7) {
           if (conf.dueWeek !== false) $cell.addClass('vz-due-week');
         } else if (days <= 30) {
@@ -1794,6 +1799,17 @@
     var $ = window.jQuery;
     if (!$) return;
 
+    var uid = (function () {
+      var hrefs = [];
+      $('.flyout-menu__avatar a[href^="/users/"]').each(function () { hrefs.push(this.getAttribute('href')); });
+      if (!hrefs.length) $('a.user[href^="/users/"]').each(function () { hrefs.push(this.getAttribute('href')); });
+      for (var i = 0; i < hrefs.length; i++) {
+        var m = (hrefs[i] || '').match(/^\/users\/(\d+)\/?$/);
+        if (m) return m[1];
+      }
+      return 'me';
+    })();
+
     var pad = function (n) { return (n < 10 ? '0' : '') + n; };
     var iso = function (d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
     var daysAgo = function (n) { return iso(new Date(Date.now() - n * 864e5)); };
@@ -1834,23 +1850,23 @@
 
     var cards = [
       { id: 'assigned', label: 'Asignadas abiertas', icon: 'open',
-        href: query([['assigned_to_id', 'me'], ['status_id', 'o']]),
-        api: api([['assigned_to_id', 'me'], ['status_id', 'o']]) },
+        href: query([['assigned_to_id', '=', uid], ['status_id', 'o']]),
+        api: api([['assigned_to_id', uid], ['status_id', 'o']]) },
       { id: 'late', label: 'Vencidas', icon: 'alert', cls: 'is-late',
-        href: query([['assigned_to_id', 'me'], ['status_id', 'o'], ['due_date', '<=', yesterday]]),
-        api: api([['assigned_to_id', 'me'], ['status_id', 'o'], ['due_date', '<=', yesterday]]) },
+        href: query([['assigned_to_id', '=', uid], ['status_id', 'o'], ['due_date', '<=', yesterday]]),
+        api: api([['assigned_to_id', uid], ['status_id', 'o'], ['due_date', '<=', yesterday]]) },
       { id: 'week', label: 'Vencen en 7 días', icon: 'clock', cls: 'is-soon',
-        href: query([['assigned_to_id', 'me'], ['status_id', 'o'], ['due_date', '><', [today, weekAhead]]]),
-        api: api([['assigned_to_id', 'me'], ['status_id', 'o'], ['due_date', '><' + today + '|' + weekAhead]]) },
+        href: query([['assigned_to_id', '=', uid], ['status_id', 'o'], ['due_date', '><', [today, weekAhead]]]),
+        api: api([['assigned_to_id', uid], ['status_id', 'o'], ['due_date', '><' + today + '|' + weekAhead]]) },
       { id: 'reported', label: 'Reportadas abiertas', icon: 'user',
-        href: query([['author_id', 'me'], ['status_id', 'o']]),
-        api: api([['author_id', 'me'], ['status_id', 'o']]) },
+        href: query([['author_id', '=', uid], ['status_id', 'o']]),
+        api: api([['author_id', uid], ['status_id', 'o']]) },
       { id: 'closed', label: 'Cerradas 7 días', icon: 'closed', cls: 'is-ok',
-        href: query([['assigned_to_id', 'me'], ['status_id', 'c'], ['updated_on', '>=', weekAgo]]),
-        api: api([['assigned_to_id', 'me'], ['status_id', 'c'], ['updated_on', '>=', weekAgo]]) },
+        href: query([['assigned_to_id', '=', uid], ['status_id', 'c'], ['updated_on', '>=', weekAgo]]),
+        api: api([['assigned_to_id', uid], ['status_id', 'c'], ['updated_on', '>=', weekAgo]]) },
       { id: 'stalled', label: 'Estancadas +7 d', icon: 'pause', cls: 'is-stalled',
-        href: query([['assigned_to_id', 'me'], ['status_id', 'o'], ['updated_on', '<=', daysAgo(7)]]),
-        api: api([['assigned_to_id', 'me'], ['status_id', 'o'], ['updated_on', '<=', daysAgo(7)]]) }
+        href: query([['assigned_to_id', '=', uid], ['status_id', 'o'], ['updated_on', '<=', daysAgo(7)]]),
+        api: api([['assigned_to_id', uid], ['status_id', 'o'], ['updated_on', '<=', daysAgo(7)]]) }
     ];
 
     var box = $('<div class="vz-kpis vz-kpis-my" id="vz-my"></div>');

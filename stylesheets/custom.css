@@ -265,8 +265,9 @@ table.issues td.due_date.vz-due-month {
   color: var(--rm-yellow) !important; font-weight: 600;
   background: color-mix(in srgb, var(--rm-yellow) 16%, transparent) !important;
 }
-/* Redmine already marks overdue rows; keep the cue even without the due-date column */
-table.issues tbody tr.behind-schedule td:first-child {
+/* Our own overdue marker: Redmine's "behind-schedule" is based on done_ratio
+   and also flags open issues that are not actually past their due date. */
+table.issues tbody tr.vz-row-late td:first-child {
   box-shadow: inset 3px 0 0 var(--rm-red);
 }
 

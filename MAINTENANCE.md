@@ -195,7 +195,9 @@ El theme se elige en **Administración → Configuración → Mostrar → Tema �
     *dueMonth* en el panel *Personalizar*. El bloque del listado pinta
     `td.due_date` con rojo (`--rm-red`), naranja (`--rm-red` + `--rm-yellow`) o amarillo
     (`--rm-yellow`) según falten 0-7 o 0-30 días. La columna Fecha fin tiene que estar
-    visible en el listado; las vencidas además traen `tr.behind-schedule` de Redmine.
+    visible en el listado. Las filas vencidas reciben `tr.vz-row-late` (barra roja a la
+    izquierda): no usamos `behind-schedule` de Redmine porque ese flag se basa en el
+    `done_ratio` y también marca incidencias que todavía no vencieron.
   - Tamaño de la dona: `.vz-donut` en `custom.css`.
 - **Tarjetas de abiertas por tipo** (listado de incidencias): bloque final de `theme.js`
   (`issue list KPI cards`), sólo en `/projects/<id>/issues`. Lee
@@ -204,9 +206,12 @@ El theme se elige en **Administración → Configuración → Mostrar → Tema �
   linkea al listado filtrado por ese tipo y estado abierto. Se prende/apaga con
   *Tarjetas del listado* en el panel *Personalizar* del Vistazo.
 - **Mi vistazo** (Mi página): bloque final de `theme.js` (`My page`). Inserta una fila de
-  KPI arriba de los bloques de `/my/page` con datos del usuario logueado (valores `me`
-  en los filtros): asignadas abiertas, vencidas, vencen en 7 días, reportadas abiertas,
-  cerradas en 7 días y estancadas +7 días. Son links a `/issues` ya filtrados.
+  KPI arriba de los bloques de `/my/page` con datos del usuario logueado: asignadas
+  abiertas, vencidas, vencen en 7 días, reportadas abiertas, cerradas en 7 días y
+  estancadas +7 días. Resuelve el id del usuario desde el menú (`.flyout-menu__avatar
+  a[href^="/users/"]`, fallback `a.user`) y lo usa en los links (`f[]` + `op[]=` +
+  `v[]`) y en `/issues.json?assigned_to_id=<id>`; si no lo encuentra cae a `me`. No
+  usar `op[assigned_to_id]=me`: el operador va vacío (`=`) y `me` es el valor.
 - **Taskboard**: sección *Taskboard / board* y *Taskboard compact*.
 - **Plugins**: sección *Plugin compatibility*; usar `html.dark-mode` cuando el plugin pisa
   colores y `!important` solo para ganarle a CSS del plugin o a estilos inline.
