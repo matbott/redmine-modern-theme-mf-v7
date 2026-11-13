@@ -2,33 +2,27 @@
 
 Notas para retomar el trabajo sin tener que reconstruir el contexto.
 
-## Estado actual (2026-11-12)
+## Estado actual (2026-11-13)
 
 - Repo: `matbott/redmine-modern-theme-mf-v7`, rama `main`.
-- Último commit funcional: `0a827f3`, tag **`v1.2.4`** (toast de cambio de modo
-  centrado; el calendario dark de v1.2.3 ya está incluido). Documentación: `7dd2ef3`.
-- Estado del repo: `main` limpio y pusheado, tags `v1.2.3` y `v1.2.4` en origin.
+- Último commit funcional: fix de sidebar y tag **`v1.2.5`** (consulta guardada + Clear
+  (×)). Documentación: el estado se actualiza tras el commit y tag.
+- Estado del repo: `main` limpio y pusheado, tags `v1.2.4` y `v1.2.5` en origin.
 - Server: Redmine **7.0.3**, container `redmine-redmine-1`, theme instalado en
   `/usr/src/redmine/themes/redmine-modern-theme-mf-v7`.
 - **Pendiente inmediato**: deployar el último `main` en el server con el bloque de
-  *Deploy* y hacer `Ctrl+F5`. El tag `v1.2.4` todavía puede no estar deployado.
+  *Deploy* y hacer `Ctrl+F5`. El tag `v1.2.5` todavía puede no estar deployado.
 - El theme anterior `redmine-modern-theme-mf` sigue instalado y se puede volver a él
   desde Administración → Configuración → Mostrar → Tema.
 
-### Última sesión (2026-11-12)
+### Última sesión (2026-11-13)
 
-- **Calendario dark (v1.2.3)**: el problema no era el core sino el CSS del plugin
-  RedmineUP, que se carga después del theme y repinta fines de semana, columna de semana
-  y “hoy” con colores claros. Se resolvió con `!important` en la sección *Calendar* de
-  `custom.css`, justificado por ser CSS de plugin.
-- **Toast de cambio de modo (v1.2.4)**: el popup aparecía corrido y cortado porque la
-  regla responsive de `application.css` deja `left/right` pero conserva
-  `transform: translateX(-50%)`. Se restauró el centrado desde `custom.css` con
-  `html #rm-toast-container`, sin `!important`.
-- Ambos fixes se validaron con Chrome headless contra la página real en modo dark
-  (estilos calculados del calendario y posición/medidas del toast).
-- Queda pendiente el deploy de `v1.2.4` y la recorrida visual de la lista de
-  verificación de abajo.
+- **Sidebar — consulta guardada + Clear (×) (v1.2.5)**: el query guardado seleccionado y su
+  link *Clear (×)* comparten un `<li>`; la query era bloque a todo ancho y empujaba el × a
+  una línea abajo, moviendo los links siguientes. Se corrigió con un flex row del `<li>`,
+  la query con ancho restante y el × al final. El icono usa `--rm-muted` por defecto y
+  `--rm-accent` al hover/focus. Validado con Chrome headless contra la página real del
+  listado con query guardada (`query_id=3`).
 
 ### Verificación pendiente (para mañana)
 
@@ -45,7 +39,7 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
    el deploy no tomó la regla con `#header`). El buscador de proyectos y los campos
    autocompletar deben mostrar una sola lupa (sin mosaico).
 5. **Mi cuenta**: al final de la sección *Sidebar position* debe verse
-   `Modern Theme MF v1.2.4` en chico. Ya **no** debe aparecer en el pie del sidebar.
+   `Modern Theme MF v1.2.5` en chico. Ya **no** debe aparecer en el pie del sidebar.
 6. **Listado de incidencias**: en las columnas **Asignado** y **Autor** debe aparecer
    un círculo con iniciales antes del nombre. El color tiene que coincidir con el
    avatar del menú de cuenta (misma clase `avatar-color-<id % 16>` de Redmine).
@@ -72,7 +66,7 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 ### Versionado
 
 - La versión visible está en `javascripts/theme.js`, bloque `LOCAL CUSTOMISATIONS —
-  sidebar width` (`var VERSION = '1.2.4'`).
+  sidebar width` (`var VERSION = '1.2.5'`).
 - Al publicar cambios: subir `VERSION`, commit, `git tag -a vX.Y.Z` y push del tag.
 - Se muestra al final del fieldset `#rm-layout` de **Mi cuenta** (sidebar position /
   width), como `Modern Theme MF vX.Y.Z`.

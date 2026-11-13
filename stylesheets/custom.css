@@ -47,6 +47,32 @@ table.list tbody tr:has(input[type="checkbox"]:checked) {
   margin: 0; padding: 0; accent-color: var(--rm-accent); cursor: pointer;
 }
 
+/* ── Sidebar — selected saved query and its Clear (×) ────────
+   The selected query and the clear link share one <li>. The query
+   is a full-width block, which pushed the × onto a second line and
+   moved every following link down. Keep both on one flex row, with
+   the × at the end and the query taking the remaining width. */
+#sidebar ul li:has(> a.icon-clear-query) {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+#sidebar ul li:has(> a.icon-clear-query) > a:not(.icon-clear-query) {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+#sidebar a.icon-clear-query { flex: 0 0 auto; }
+#sidebar a.icon-clear-query svg {
+  opacity: .8;
+  stroke: var(--rm-muted);
+  transition: opacity var(--rm-t), stroke var(--rm-t);
+}
+#sidebar a.icon-clear-query:hover svg,
+#sidebar a.icon-clear-query:focus-visible svg {
+  opacity: 1;
+  stroke: var(--rm-accent);
+}
+
 /* ── RedmineUP Checklists — new-item field ───────────────────
    The plugin asks for 40%, which the form's narrow inputs turn
    into ~170px; a checklist item deserves the row. */
