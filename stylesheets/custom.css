@@ -997,3 +997,33 @@ td.author a.user .rm-user-avatar {
   margin-inline-end: 6px;
   font-size: 8px;
 }
+
+/* ── Calendar ────────────────────────────────────────────────
+   Core paints the calendar grid with static open-color values
+   (--oc-white / --oc-gray-1), so the cells stay light in dark mode.
+   Use the theme surfaces and borders instead; light mode stays close
+   to the original white / off-white. */
+ul.cal {
+  border-color: var(--rm-border);
+  border-radius: var(--rm-r);
+  box-shadow: none;
+}
+.cal .calhead,
+.cal .week-number {
+  background-color: var(--rm-surface-2);
+  color: var(--rm-fg);
+}
+.cal .calbody {
+  border-color: var(--rm-border);
+  box-shadow: none;
+}
+.cal .calbody.this-month {
+  background-color: var(--rm-surface);
+}
+.cal .calbody.other-month,
+.cal .calbody.nwday:not(.other-month) {
+  background-color: var(--rm-surface-2);
+}
+.cal .calbody.other-month p.day-num {
+  color: var(--rm-muted);
+}

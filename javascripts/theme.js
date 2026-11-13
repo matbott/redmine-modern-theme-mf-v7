@@ -1905,7 +1905,7 @@
    manual: bump it here and tag the release (see MAINTENANCE.md). */
 (function () {
   'use strict';
-  var VERSION = '1.2.0';
+  var VERSION = '1.2.1';
 
   function render() {
     var sidebar = document.getElementById('sidebar');
