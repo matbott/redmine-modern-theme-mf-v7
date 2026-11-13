@@ -2,6 +2,55 @@
 
 Notas para retomar el trabajo sin tener que reconstruir el contexto.
 
+## Estado actual (2026-11-13)
+
+- Repo: `matbott/redmine-modern-theme-mf-v7`, rama `main`.
+- Último commit funcional: `3ef64a4` (Mi vistazo con id de usuario + marcador
+  propio de vencidas). El commit de esta documentación va después.
+- Server: Redmine **7.0.3**, container `redmine-redmine-1`, theme instalado en
+  `/usr/src/redmine/themes/redmine-modern-theme-mf-v7`.
+- **Pendiente inmediato**: deployar el último `main` en el server con el bloque de
+  *Deploy* y hacer `Ctrl+F5`. El commit `3ef64a4` todavía puede no estar deployado.
+- El theme anterior `redmine-modern-theme-mf` sigue instalado y se puede volver a él
+  desde Administración → Configuración → Mostrar → Tema.
+
+### Verificación pendiente (para mañana)
+
+1. **Mi página** (`/my/page`): que las 6 tarjetas cuenten y que cada link abra el
+   listado con resultados (usan el id del usuario, no `me`).
+2. **Listado de incidencias**: agregar la columna **Fecha fin** (Opciones → Columnas) y
+   comprobar rojo vencida, naranja ≤7 días, amarillo ≤30 días. Una fecha a +30 días no
+   debe tener color ni barra. La barra roja izquierda debe aparecer **solo** en vencidas
+   reales (no en `behind-schedule`).
+3. **Vistazo**: columnas 50/50, dona debajo de Incidencias, panel de atención 4+4+4,
+   panel **Personalizar** con los 16 checks (incluye los 3 de colores).
+4. **Listado de incidencias**: tarjetas de abiertas por tipo arriba de los filtros y
+   link “Total abiertas”.
+
+### Decisiones vigentes
+
+- La configuración del Vistazo es **por proyecto y por navegador**:
+  `localStorage['rm-vz-stats:<ident>']`. No hay backend ni configuración compartida.
+  Para compartirla habría que usar un `ProjectCustomField` o un plugin.
+- Los datos de las tarjetas del listado son una **foto fija** de abiertas por tipo; no
+  siguen los filtros de la página (decisión tomada).
+- “Mi vistazo” no tiene toggles propios; el umbral de estancadas está fijo en 7 días.
+- Los colores de vencimiento solo corren en listados de **proyecto** y necesitan la
+  columna Fecha fin visible.
+
+### Backlog acordado / ideas
+
+- Mi página: toggles por usuario, dona o mini-gráficos, horas de la semana, umbral de
+  estancadas configurable.
+- Colores de vencimiento en `/issues` global y en los listados de Mi página; banda de
+  60/90 días.
+- Vistazo global en Home (si algún día se retoma, además de Mi página).
+- Grafana: sincronizar `theme=dark|light` y `kiosk` en los iframes, envolverlos con
+  tokens del theme y definir altura por dashboard. Ver la sección de ideas al final.
+- Navegación: Ctrl+K, proyectos favoritos, chips de filtros rápidos, cabecera sticky,
+  barra de acciones al seleccionar filas, detalle de incidencia con barra sticky.
+- Revisar taskboard en móvil.
+
 ## Origen
 
 - Base: [`acosonic/redmine-modern-theme`](https://github.com/acosonic/redmine-modern-theme),
@@ -18,10 +67,15 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 stylesheets/application.css   upstream — solo se agregó @import url(custom.css)
 stylesheets/schemes.css       upstream
 stylesheets/custom.css        TODO lo local (≈800 líneas, con secciones comentadas)
-javascripts/theme.js          upstream + 2 bloques marcados al final
+javascripts/theme.js          upstream + bloques locales (Vistazo, sidebar width,
+                              tarjetas del listado, Mi página)
 README.md                     instalación y resumen
-MAINTENANCE.md                este archivo
+MAINTENANCE.md                este archivo (empezar por “Estado actual”)
 ```
+
+Archivos clave para retomar: `stylesheets/custom.css` (todo lo visual),
+`javascripts/theme.js` (bloques al final + `init` del Vistazo), esta guía, y el bloque
+de *Deploy* más abajo.
 
 Regla: **no editar los archivos del autor** salvo el `@import`. Así se puede rebasear
 contra upstream sin conflictos.
@@ -217,7 +271,19 @@ El theme se elige en **Administración → Configuración → Mostrar → Tema �
   colores y `!important` solo para ganarle a CSS del plugin o a estilos inline.
 - **Sidebar**: lado en el theme (My account) + ancho en nuestro bloque de `theme.js`.
 
-## Pendientes / ideas
+## Grafana (idea para retomar)
+
+Hoy los iframes se inyectan con View Customize y con el CMS de RedmineUP. El iframe es
+un documento aparte, así que el CSS del theme no puede tocar su fondo. Plan:
+
+- Bloque en `theme.js` que detecte claro/oscuro y reescriba el `src` de los iframes de
+  Grafana agregando `theme=dark|light`, `kiosk` y `refresh=...`.
+- Envolver el iframe en un contenedor con tokens (`--rm-surface`, borde, radio, sombra).
+- Altura por dashboard: Grafana no expone su alto por `postMessage`, así que conviene un
+  mapa URL→alto o una configuración por tablero.
+- En Grafana, paneles con fondo transparente + `kiosk` es lo que mejor se funde.
+
+## Notas sueltas
 
 - Revisar el taskboard en móvil (el theme nuevo tiene su propio responsive).
 - Si se agregan más plugins, sumar un bloque por plugin con su comentario.

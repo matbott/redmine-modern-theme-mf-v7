@@ -6,9 +6,11 @@ A clean, modern UI theme for **Redmine 7** with dark mode, 27 colour schemes (pl
 This is a personal fork of
 [`acosonic/redmine-modern-theme`](https://github.com/acosonic/redmine-modern-theme)
 (branch `redmine-7`), maintained separately from the Redmine 6-based theme used before.
-All local work lives in **`stylesheets/custom.css`** and one clearly marked block at the
+All local work lives in **`stylesheets/custom.css`** and the clearly marked blocks at the
 end of `javascripts/theme.js`, so the upstream files stay untouched and easy to rebase.
 See [Local customisations](#local-customisations).
+Current status, pending checks and backlog live in
+[`MAINTENANCE.md`](MAINTENANCE.md#estado-actual-2026-11-13).
 
 ## How it is built
 
