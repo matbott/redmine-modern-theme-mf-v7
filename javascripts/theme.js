@@ -1583,7 +1583,7 @@
   var root = document.documentElement;
   var KEY = 'rm-sidebar-width';
   var MIN = 180, MAX = 360;
-  var VERSION = '1.2.5';
+  var VERSION = '1.3.0';
 
   function storedWidth() {
     try {
@@ -1953,5 +1953,618 @@
     document.addEventListener('DOMContentLoaded', decorate);
   } else {
     decorate();
+  }
+})();
+
+/* ============================================================
+   LOCAL CUSTOMISATIONS — Home general dashboard
+   Adds a permission-aware overview to the Home page
+   (controller-welcome / action-index): users (admin only),
+   projects, issues, seven-day activity, logged time, average
+   close time, open issues by tracker and recent activity.
+
+   Every count comes from the JSON API and therefore respects the
+   current user's project/issue visibility. The users card is only
+   rendered for administrators; time and average-close cards hide
+   themselves if the endpoint is not available.
+   ============================================================ */
+(function () {
+  'use strict';
+
+  var I18N = {
+    es: {
+      title: 'Resumen general',
+      subtitle: 'Actividad de la instancia según tus permisos.',
+      scopeAdmin: 'Vista global',
+      scopeUser: 'Según tus permisos',
+      scopePublic: 'Resumen público',
+      loading: 'Cargando…',
+      na: '—',
+      users: 'Usuarios',
+      usersActive: '{n} activos 7d',
+      projects: 'Proyectos',
+      projectsVisible: 'Proyectos visibles',
+      projectsPublic: 'Proyectos públicos',
+      projectsSub: '{open} abiertos · {closed} cerrados',
+      issues: 'Incidencias',
+      issuesVisible: 'Incidencias visibles',
+      issuesPublic: 'Incidencias públicas',
+      issuesSub: '{open} abiertas · {closed} cerradas',
+      open: 'Incidencias abiertas',
+      closed: 'Incidencias cerradas',
+      ofTotal: '{pct}% del total',
+      ofVisible: '{pct}% de las visibles',
+      ofPublic: '{pct}% de las públicas',
+      new7: 'Nuevas 7 días',
+      new7Sub: 'creadas en 7 días',
+      closed7: 'Cerradas 7 días',
+      closed7Sub: 'cerradas en 7 días',
+      updated7: 'Actualizadas 7 días',
+      updated7Sub: 'con actividad reciente',
+      hours7: 'Horas registradas 7 días',
+      hours7Sub: 'tiempo dedicado',
+      avgClose: 'Cierre promedio',
+      avgCloseSub: 'últimas 30 cerradas',
+      byTracker: 'Abiertas por tipo',
+      recent: 'Actividad reciente',
+      allOpen: 'Ver abiertas',
+      allRecent: 'Ver todas',
+      noData: 'Sin datos',
+      noActivity: 'Sin actividad reciente.',
+      noTrackers: 'Sin datos por tipo.'
+    },
+    en: {
+      title: 'Overview',
+      subtitle: 'Instance activity according to your permissions.',
+      scopeAdmin: 'Global view',
+      scopeUser: 'According to your permissions',
+      scopePublic: 'Public overview',
+      loading: 'Loading…',
+      na: '—',
+      users: 'Users',
+      usersActive: '{n} active in 7d',
+      projects: 'Projects',
+      projectsVisible: 'Visible projects',
+      projectsPublic: 'Public projects',
+      projectsSub: '{open} open · {closed} closed',
+      issues: 'Issues',
+      issuesVisible: 'Visible issues',
+      issuesPublic: 'Public issues',
+      issuesSub: '{open} open · {closed} closed',
+      open: 'Open issues',
+      closed: 'Closed issues',
+      ofTotal: '{pct}% of total',
+      ofVisible: '{pct}% of visible',
+      ofPublic: '{pct}% of public',
+      new7: 'New in 7 days',
+      new7Sub: 'created in 7 days',
+      closed7: 'Closed in 7 days',
+      closed7Sub: 'closed in 7 days',
+      updated7: 'Updated in 7 days',
+      updated7Sub: 'recent activity',
+      hours7: 'Hours logged 7 days',
+      hours7Sub: 'time spent',
+      avgClose: 'Average close',
+      avgCloseSub: 'last 30 closed',
+      byTracker: 'Open by type',
+      recent: 'Recent activity',
+      allOpen: 'View open',
+      allRecent: 'View all',
+      noData: 'No data',
+      noActivity: 'No recent activity.',
+      noTrackers: 'No type data.'
+    }
+  };
+
+  var ICONS = {
+    users: '<circle cx="9" cy="8" r="3"/><path d="M3 19c0-3 2.7-5 6-5s6 2 6 5"/><path d="M16 5.5a3 3 0 0 1 0 5.8"/><path d="M17.5 14.2c2.1.5 3.5 2 3.5 4.3"/>',
+    folder: '<path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/>',
+    issues: '<circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/>',
+    open: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none"/>',
+    closed: '<circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/>',
+    plus: '<circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/>',
+    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    edit: '<path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17v3z"/><path d="M13.5 6.5l3 3"/>',
+    timer: '<circle cx="12" cy="13" r="7"/><path d="M12 10v3l2 1M9 3h6"/>',
+    gauge: '<path d="M4 18a8 8 0 1 1 16 0"/><path d="M12 18l4-5"/><circle cx="12" cy="18" r="1" fill="currentColor" stroke="none"/>'
+  };
+
+  function start() {
+    if (!document.body.classList.contains('controller-welcome') ||
+        !document.body.classList.contains('action-index')) return;
+    if (document.getElementById('rh-home')) return;
+
+    var content = document.getElementById('content');
+    if (!content) return;
+
+    var lang = (document.documentElement.lang || 'en').toLowerCase().slice(0, 2);
+    var T = I18N[lang] || I18N.en;
+    var nf = window.Intl ? new Intl.NumberFormat(lang === 'es' ? 'es' : 'en') : null;
+    var nf1 = window.Intl ? new Intl.NumberFormat(lang === 'es' ? 'es' : 'en', { maximumFractionDigits: 1 }) : null;
+    var dateFmt = window.Intl ? new Intl.DateTimeFormat(lang === 'es' ? 'es' : 'en', {
+      day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
+    }) : null;
+
+    var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+    var iso = function (d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
+    var daysAgo = function (n) { return iso(new Date(Date.now() - n * 864e5)); };
+    var today = daysAgo(0);
+    var weekAgo = daysAgo(7);
+
+    var account = document.getElementById('account');
+    var loggedIn = !!(account && account.classList.contains('dropdown'));
+    var isAdmin = !!document.querySelector('a[href="/admin"]');
+    var scope = isAdmin ? T.scopeAdmin : (loggedIn ? T.scopeUser : T.scopePublic);
+    var projectsLabel = isAdmin ? T.projects : (loggedIn ? T.projectsVisible : T.projectsPublic);
+    var issuesLabel = isAdmin ? T.issues : (loggedIn ? T.issuesVisible : T.issuesPublic);
+    var pctLabel = isAdmin ? T.ofTotal : (loggedIn ? T.ofVisible : T.ofPublic);
+
+    var num = function (n) { return nf ? nf.format(n) : String(n); };
+    var num1 = function (n) { return nf1 ? nf1.format(n) : String(n); };
+
+    function fmt(s, vars) {
+      return String(s).replace(/\{(\w+)\}/g, function (_, k) {
+        return vars && vars[k] != null ? vars[k] : '';
+      });
+    }
+
+    function esc(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    function apiUrl(path, params) {
+      var parts = [];
+      Object.keys(params || {}).forEach(function (k) {
+        var v = params[k];
+        if (v == null) return;
+        parts.push(encodeURIComponent(k) + '=' + encodeURIComponent(v));
+      });
+      return path + (parts.length ? '?' + parts.join('&') : '');
+    }
+
+    function issueQuery(filters) {
+      var parts = ['set_filter=1'];
+      (filters || []).forEach(function (f) {
+        parts.push('f%5B%5D=' + encodeURIComponent(f[0]));
+        parts.push('op%5B' + encodeURIComponent(f[0]) + '%5D=' + encodeURIComponent(f[1]));
+        if (f[2] != null) {
+          (Array.isArray(f[2]) ? f[2] : [f[2]]).forEach(function (v) {
+            parts.push('v%5B' + encodeURIComponent(f[0]) + '%5D%5B%5D=' + encodeURIComponent(v));
+          });
+        }
+      });
+      return '/issues?' + parts.join('&');
+    }
+
+    function issueFetch(filters) {
+      return issueQuery(filters) + '&per_page=25';
+    }
+
+    function projectQuery(status) {
+      if (status == null) return '/projects';
+      return '/projects?set_filter=1&f%5B%5D=status&op%5Bstatus%5D=%3D&v%5Bstatus%5D%5B%5D=' + encodeURIComponent(status);
+    }
+
+    var jsonCache = {};
+    function json(url) {
+      if (jsonCache[url]) return jsonCache[url];
+      var p = fetch(url, { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
+        .then(function (r) {
+          if (!r.ok) throw new Error('HTTP ' + r.status + ' ' + url);
+          return r.json();
+        });
+      jsonCache[url] = p;
+      return p;
+    }
+
+    var htmlCache = {};
+    function html(url) {
+      if (htmlCache[url]) return htmlCache[url];
+      var p = fetch(url, { headers: { 'Accept': 'text/html' }, credentials: 'same-origin' })
+        .then(function (r) {
+          if (!r.ok) throw new Error('HTTP ' + r.status + ' ' + url);
+          var finalPath = '';
+          try { finalPath = new URL(r.url, location.href).pathname; } catch (e) { finalPath = ''; }
+          if (/^\/login(?:\/|$)/.test(finalPath)) throw new Error('Auth required ' + url);
+          return r.text();
+        })
+        .then(function (source) {
+          return new DOMParser().parseFromString(source, 'text/html');
+        });
+      htmlCache[url] = p;
+      return p;
+    }
+
+    function issueCount(doc) {
+      var items = doc.querySelector('.pagination .items');
+      if (items) {
+        var m = (items.textContent || '').match(/(\d+)\s*[-–]\s*(\d+)\s*\/\s*(\d+)/);
+        if (m) return parseInt(m[3], 10);
+      }
+      var rows = doc.querySelectorAll('table.issues tbody tr');
+      if (rows.length) return rows.length;
+      return 0;
+    }
+
+    function projectCount(doc) {
+      var seen = {};
+      var links = doc.querySelectorAll('#projects-index a.project[href^="/projects/"]');
+      Array.prototype.forEach.call(links, function (a) {
+        seen[a.getAttribute('href')] = 1;
+      });
+      return Object.keys(seen).length;
+    }
+
+    function safeIssueCount(filters) {
+      var url = issueFetch(filters);
+      return html(url).then(issueCount).catch(function (e) {
+        console.warn('Home dashboard [' + url + ']:', e.message || e);
+        return null;
+      });
+    }
+
+    function safeProjectCount(url) {
+      return html(url).then(projectCount).catch(function (e) {
+        console.warn('Home dashboard [' + url + ']:', e.message || e);
+        return null;
+      });
+    }
+
+    function csv(url) {
+      return fetch(url, { headers: { 'Accept': 'text/csv' }, credentials: 'same-origin' })
+        .then(function (r) {
+          if (!r.ok) throw new Error('HTTP ' + r.status + ' ' + url);
+          var type = r.headers.get('content-type') || '';
+          if (type.indexOf('csv') === -1) throw new Error('Unexpected content-type: ' + type);
+          return r.text();
+        });
+    }
+
+    function csvRows(source) {
+      var rows = [], row = [], cell = '', quoted = false;
+      for (var i = 0; i < source.length; i++) {
+        var ch = source[i];
+        if (quoted) {
+          if (ch === '"') {
+            if (source[i + 1] === '"') { cell += '"'; i++; }
+            else quoted = false;
+          } else {
+            cell += ch;
+          }
+        } else if (ch === '"') {
+          quoted = true;
+        } else if (ch === ',') {
+          row.push(cell); cell = '';
+        } else if (ch === '\n') {
+          row.push(cell); rows.push(row); row = []; cell = '';
+        } else if (ch !== '\r') {
+          cell += ch;
+        }
+      }
+      if (cell !== '' || row.length) { row.push(cell); rows.push(row); }
+      return rows;
+    }
+
+    function setValue(id, value, sub) {
+      var v = document.getElementById('rh-' + id);
+      if (v) v.textContent = value;
+      if (sub != null) {
+        var s = document.getElementById('rh-' + id + '-sub');
+        if (s) s.textContent = sub;
+      }
+    }
+
+    function setCount(id, value, sub) {
+      if (value == null) { setValue(id, T.na, T.noData); return; }
+      setValue(id, num(value), sub);
+    }
+
+    function hideCard(id) {
+      var el = document.getElementById('rh-card-' + id);
+      if (el) el.remove();
+    }
+
+    function svg(path) {
+      return '<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + path + '</svg>';
+    }
+
+    function cardHtml(c, quick) {
+      return '<a class="rh-kpi' + (quick ? ' rh-kpi--quick' : '') + '" id="rh-card-' + c.id + '" href="' + esc(c.href) + '">' +
+        '<span class="rh-ico">' + svg(ICONS[c.icon]) + '</span>' +
+        '<span class="rh-kpi-txt">' +
+          '<small>' + esc(c.label) + '</small>' +
+          '<b id="rh-' + c.id + '">\u2014</b>' +
+          '<span class="rh-sub" id="rh-' + c.id + '-sub">' + esc(T.loading) + '</span>' +
+        '</span>' +
+      '</a>';
+    }
+
+    function pct(part, total) {
+      return total > 0 && typeof part === 'number' ? Math.round(part * 100 / total) : 0;
+    }
+
+    function fmtDate(value) {
+      var stamp = parseListDate(value);
+      if (!dateFmt || !isFinite(stamp)) return '';
+      return dateFmt.format(new Date(stamp));
+    }
+
+    function fmtDuration(days) {
+      if (typeof days !== 'number' || !isFinite(days) || days < 0) return T.na;
+      if (days < 1) return num(Math.round(days * 24)) + ' h';
+      return num1(days) + ' d';
+    }
+
+    function parseListDate(value) {
+      var m = String(value || '').match(/(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
+      if (m) return new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]).getTime();
+      var d = Date.parse(value);
+      return isFinite(d) ? d : NaN;
+    }
+
+    function loadHours() {
+      return csv('/time_entries.csv?from=' + encodeURIComponent(weekAgo) +
+        '&to=' + encodeURIComponent(today) + '&c%5B%5D=hours')
+        .then(function (source) {
+          var rows = csvRows(source).slice(1);
+          var sum = 0;
+          rows.forEach(function (r) {
+            var h = parseFloat(String(r[0]).replace(',', '.'));
+            if (isFinite(h)) sum += h;
+          });
+          return { hours: sum, truncated: false };
+        });
+    }
+
+    function loadAvgClose() {
+      var url = issueQuery([['status_id', 'c']]) + '&sort=updated_on:desc&per_page=50' +
+        '&c%5B%5D=id&c%5B%5D=subject&c%5B%5D=created_on&c%5B%5D=closed_on';
+      return html(url).then(function (doc) {
+        var rows = doc.querySelectorAll('table.issues tbody tr');
+        var vals = [];
+        Array.prototype.forEach.call(rows, function (tr, index) {
+          if (index >= 30) return;
+          var created = tr.querySelector('td.created_on');
+          var closed = tr.querySelector('td.closed_on');
+          var a = created ? parseListDate(created.textContent.trim()) : NaN;
+          var b = closed ? parseListDate(closed.textContent.trim()) : NaN;
+          if (isFinite(a) && isFinite(b) && b >= a) vals.push((b - a) / 864e5);
+        });
+        if (!vals.length) return null;
+        return vals.reduce(function (s, v) { return s + v; }, 0) / vals.length;
+      });
+    }
+
+    var home = document.createElement('div');
+    home.id = 'rh-home';
+    home.className = 'rh-home';
+    home.innerHTML =
+      '<section class="rh-hero">' +
+        '<div class="rh-hero-main">' +
+          '<span class="rh-eyebrow">Redmine</span>' +
+          '<h1>' + esc(T.title) + '</h1>' +
+          '<p>' + esc(T.subtitle) + '</p>' +
+        '</div>' +
+        '<div class="rh-hero-side"><span class="rh-scope">' + esc(scope) + '</span></div>' +
+      '</section>' +
+      '<div class="rh-kpis" id="rh-kpis"></div>' +
+      '<div class="rh-quick" id="rh-quick"></div>' +
+      '<div class="rh-grid">' +
+        '<section class="rh-panel">' +
+          '<div class="rh-panel-head"><h3>' + esc(T.byTracker) + '</h3>' +
+            '<a href="' + esc(issueQuery([['status_id', 'o']])) + '">' + esc(T.allOpen) + '</a></div>' +
+          '<div class="rh-bars" id="rh-trackers">' +
+            '<div class="vz-sk"></div><div class="vz-sk w80"></div><div class="vz-sk w60"></div>' +
+          '</div>' +
+        '</section>' +
+        '<section class="rh-panel">' +
+          '<div class="rh-panel-head"><h3>' + esc(T.recent) + '</h3>' +
+            '<a href="' + esc(issueQuery([['status_id', '*']]) + '&sort=updated_on:desc') + '">' + esc(T.allRecent) + '</a></div>' +
+          '<ul class="rh-activity" id="rh-activity"><li class="rh-empty">' + esc(T.loading) + '</li></ul>' +
+        '</section>' +
+      '</div>';
+
+    var h2 = content.querySelector(':scope > h2');
+    if (h2 && h2.parentNode === content) {
+      h2.insertAdjacentElement('afterend', home);
+    } else {
+      content.insertBefore(home, content.firstChild);
+    }
+
+    var primary = [];
+    if (isAdmin) primary.push({ id: 'users', label: T.users, icon: 'users', href: '/users' });
+    primary.push({ id: 'projects', label: projectsLabel, icon: 'folder', href: '/projects' });
+    primary.push({ id: 'issues', label: issuesLabel, icon: 'issues', href: issueQuery([['status_id', '*']]) });
+    primary.push({ id: 'issues-open', label: T.open, icon: 'open', href: issueQuery([['status_id', 'o']]) });
+    primary.push({ id: 'issues-closed', label: T.closed, icon: 'closed', href: issueQuery([['status_id', 'c']]) });
+
+    var quick = [
+      { id: 'new7', label: T.new7, icon: 'plus', href: issueQuery([['status_id', '*'], ['created_on', '>=', weekAgo]]) },
+      { id: 'closed7', label: T.closed7, icon: 'closed', href: issueQuery([['status_id', 'c'], ['updated_on', '>=', weekAgo]]) },
+      { id: 'updated7', label: T.updated7, icon: 'edit', href: issueQuery([['status_id', '*'], ['updated_on', '>=', weekAgo]]) }
+    ];
+    if (loggedIn) {
+      quick.push({ id: 'hours7', label: T.hours7, icon: 'timer',
+        href: '/time_entries?from=' + encodeURIComponent(weekAgo) + '&to=' + encodeURIComponent(today) });
+    }
+    quick.push({ id: 'avg-close', label: T.avgClose, icon: 'gauge', href: issueQuery([['status_id', 'c']]) });
+
+    document.getElementById('rh-kpis').innerHTML = primary.map(function (c) { return cardHtml(c, false); }).join('');
+    document.getElementById('rh-quick').innerHTML = quick.map(function (c) { return cardHtml(c, true); }).join('');
+
+    if (isAdmin) {
+      csv('/users.csv?status=1&c%5B%5D=login&c%5B%5D=last_login_on')
+        .then(function (source) {
+          var rows = csvRows(source).slice(1).filter(function (r) {
+            return r.length > 1 && r[0];
+          });
+          var active = rows.filter(function (r) {
+            return r[1] && r[1].slice(0, 10) >= weekAgo;
+          }).length;
+          setValue('users', num(rows.length), fmt(T.usersActive, { n: num(active) }));
+        })
+        .catch(function (e) {
+          console.warn('Home dashboard [users]:', e.message || e);
+          hideCard('users');
+        });
+    }
+
+    var projectsP = Promise.all([
+      safeProjectCount(projectQuery(null)),
+      safeProjectCount(projectQuery(1)),
+      safeProjectCount(projectQuery(5))
+    ]);
+    projectsP.then(function (v) {
+      var total = v[0], open = v[1], closed = v[2];
+      if (total == null && open == null && closed == null) {
+        setValue('projects', T.na, T.noData);
+        return;
+      }
+      if (total == null) total = (open || 0) + (closed || 0);
+      setValue('projects', num(total), fmt(T.projectsSub, {
+        open: num(open || 0), closed: num(closed || 0)
+      }));
+    });
+
+    var issuesP = Promise.all([
+      safeIssueCount([['status_id', '*']]),
+      safeIssueCount([['status_id', 'o']]),
+      safeIssueCount([['status_id', 'c']])
+    ]);
+    issuesP.then(function (v) {
+      var total = v[0], open = v[1], closed = v[2];
+      if (total == null && open == null && closed == null) {
+        setValue('issues', T.na, T.noData);
+        setValue('issues-open', T.na, T.noData);
+        setValue('issues-closed', T.na, T.noData);
+        return;
+      }
+      if (total == null) total = (open || 0) + (closed || 0);
+      setValue('issues', num(total), fmt(T.issuesSub, {
+        open: num(open || 0), closed: num(closed || 0)
+      }));
+      setCount('issues-open', open, fmt(pctLabel, { pct: pct(open, total) }));
+      setCount('issues-closed', closed, fmt(pctLabel, { pct: pct(closed, total) }));
+    });
+
+    safeIssueCount([['status_id', '*'], ['created_on', '>=', weekAgo]])
+      .then(function (n) { setCount('new7', n, T.new7Sub); });
+    safeIssueCount([['status_id', 'c'], ['updated_on', '>=', weekAgo]])
+      .then(function (n) { setCount('closed7', n, T.closed7Sub); });
+    safeIssueCount([['status_id', '*'], ['updated_on', '>=', weekAgo]])
+      .then(function (n) { setCount('updated7', n, T.updated7Sub); });
+
+    if (loggedIn) {
+      loadHours()
+        .then(function (r) {
+          if (!r) return;
+          setValue('hours7', num1(r.hours) + ' h' + (r.truncated ? '+' : ''), T.hours7Sub);
+        })
+        .catch(function (e) {
+          console.warn('Home dashboard [hours]:', e.message || e);
+          hideCard('hours7');
+        });
+    }
+
+    loadAvgClose()
+      .then(function (days) {
+        if (days == null) { setValue('avg-close', T.na, T.noData); return; }
+        setValue('avg-close', fmtDuration(days), T.avgCloseSub);
+      })
+      .catch(function (e) {
+        console.warn('Home dashboard [avg close]:', e.message || e);
+        hideCard('avg-close');
+      });
+
+    (function loadTrackers() {
+      var box = document.getElementById('rh-trackers');
+      if (!box) return;
+      json(apiUrl('/trackers.json', { limit: 100 }))
+        .then(function (d) {
+          var trackers = (d.trackers || []).slice(0, 10);
+          if (!trackers.length) {
+            box.innerHTML = '<div class="rh-empty">' + esc(T.noTrackers) + '</div>';
+            return;
+          }
+          Promise.all(trackers.map(function (tr) {
+            return safeIssueCount([['status_id', 'o'], ['tracker_id', '=', String(tr.id)]])
+              .then(function (n) { return { tr: tr, n: n }; });
+          })).then(function (rows) {
+            rows = rows.filter(function (r) { return r.n != null && r.n > 0; });
+            rows.sort(function (a, b) { return b.n - a.n; });
+            if (!rows.length) {
+              box.innerHTML = '<div class="rh-empty">' + esc(T.noTrackers) + '</div>';
+              return;
+            }
+            var max = rows[0].n || 1;
+            box.innerHTML = rows.map(function (r) {
+              var p = Math.max(4, Math.round(r.n / max * 100));
+              var href = issueQuery([['status_id', 'o'], ['tracker_id', '=', String(r.tr.id)]]);
+              return '<a class="rh-bar-row" href="' + esc(href) + '">' +
+                '<span class="rh-bar-label">' + esc(r.tr.name) + '</span>' +
+                '<span class="rh-bar-num">' + num(r.n) + '</span>' +
+                '<span class="rh-bar-track"><span class="rh-bar-fill" style="--rh-pct:' + p + '%"></span></span>' +
+              '</a>';
+            }).join('');
+          });
+        })
+        .catch(function (e) {
+          console.warn('Home dashboard [trackers]:', e.message || e);
+          box.innerHTML = '<div class="rh-empty">' + esc(T.noData) + '</div>';
+        });
+    })();
+
+    (function loadActivity() {
+      var box = document.getElementById('rh-activity');
+      if (!box) return;
+      var url = issueQuery([['status_id', '*']]) + '&sort=updated_on:desc&per_page=25' +
+        '&c%5B%5D=id&c%5B%5D=project&c%5B%5D=status&c%5B%5D=subject&c%5B%5D=updated_on';
+      html(url)
+        .then(function (doc) {
+          var rows = doc.querySelectorAll('table.issues tbody tr');
+          if (!rows.length) {
+            box.innerHTML = '<li class="rh-empty">' + esc(T.noActivity) + '</li>';
+            return;
+          }
+          box.innerHTML = '';
+          Array.prototype.forEach.call(rows, function (tr, index) {
+            if (index >= 6) return;
+            var id = (tr.id || '').replace(/^issue-/, '');
+            var subjectLink = tr.querySelector('td.subject a');
+            var subject = subjectLink ? subjectLink.textContent.trim() : '';
+            var projectLink = tr.querySelector('td.project a');
+            var project = projectLink ? projectLink.textContent.trim() : '';
+            var status = tr.querySelector('td.status');
+            var updated = tr.querySelector('td.updated_on');
+            var li = document.createElement('li');
+            var a = document.createElement('a');
+            a.className = 'rh-act-subject';
+            a.href = subjectLink ? subjectLink.getAttribute('href') : '/issues/' + encodeURIComponent(id);
+            a.textContent = '#' + id + ' ' + subject;
+            var meta = document.createElement('span');
+            meta.className = 'rh-act-meta';
+            var bits = [];
+            if (project) bits.push(project);
+            if (status) bits.push(status.textContent.trim());
+            if (updated) bits.push(fmtDate(updated.textContent.trim()));
+            meta.textContent = bits.filter(Boolean).join(' \u00b7 ');
+            li.appendChild(a);
+            li.appendChild(meta);
+            box.appendChild(li);
+          });
+        })
+        .catch(function (e) {
+          console.warn('Home dashboard [activity]:', e.message || e);
+          box.innerHTML = '<li class="rh-empty">' + esc(T.noData) + '</li>';
+        });
+    })();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start);
+  } else {
+    start();
   }
 })();

@@ -2,55 +2,67 @@
 
 Notas para retomar el trabajo sin tener que reconstruir el contexto.
 
-## Estado actual (2026-11-13)
+## Estado actual (2026-11-14)
 
 - Repo: `matbott/redmine-modern-theme-mf-v7`, rama `main`.
-- Último commit funcional: fix de sidebar y tag **`v1.2.5`** (consulta guardada + Clear
-  (×)). Documentación: el estado se actualiza tras el commit y tag.
-- Estado del repo: `main` limpio y pusheado, tags `v1.2.4` y `v1.2.5` en origin.
+- Último commit funcional: **dashboard de Inicio** y tag **`v1.3.0`**.
+- Estado del repo: `main` limpio y pusheado, tags `v1.2.4`, `v1.2.5` y `v1.3.0` en origin.
 - Server: Redmine **7.0.3**, container `redmine-redmine-1`, theme instalado en
   `/usr/src/redmine/themes/redmine-modern-theme-mf-v7`.
-- **Pendiente inmediato**: deployar el último `main` en el server con el bloque de
-  *Deploy* y hacer `Ctrl+F5`. El tag `v1.2.5` todavía puede no estar deployado.
+- **Pendiente inmediato**: deployar `v1.3.0` en el server con el bloque de *Deploy* y
+  hacer `Ctrl+F5`. Validar el dashboard de Inicio como admin, usuario común y anónimo.
 - El theme anterior `redmine-modern-theme-mf` sigue instalado y se puede volver a él
   desde Administración → Configuración → Mostrar → Tema.
 
-### Última sesión (2026-11-13)
+### Última sesión (2026-11-14)
 
-- **Sidebar — consulta guardada + Clear (×) (v1.2.5)**: el query guardado seleccionado y su
-  link *Clear (×)* comparten un `<li>`; la query era bloque a todo ancho y empujaba el × a
-  una línea abajo, moviendo los links siguientes. Se corrigió con un flex row del `<li>`,
-  la query con ancho restante y el × al final. El icono usa `--rm-muted` por defecto y
-  `--rm-accent` al hover/focus. Validado con Chrome headless contra la página real del
-  listado con query guardada (`query_id=3`).
+- **Inicio — dashboard general (v1.3.0)**: bloque `#rh-home` sobre el texto de bienvenida,
+  con hero + 5 KPIs principales + 5 métricas rápidas + “Abiertas por tipo” y “Actividad
+  reciente”. Incluye usuarios (solo admin), proyectos, incidencias, nuevas/cerradas/
+  actualizadas en 7 días, horas registradas, cierre promedio y actividad reciente.
+- Los conteos se leen de las **páginas HTML** de Redmine con la sesión actual, no de la
+  API JSON: en este server la API JSON no autentica por cookie y devolvía solo datos
+  públicos. Así el admin ve los totales globales, un usuario común ve sus proyectos e
+  incidencias visibles y el anónimo ve solo lo público.
+- Validado con un proyecto privado temporal: admin 4 proyectos / 93 incidencias, usuario
+  miembro 4 / 93, anónimo 3 / 92. El proyecto de prueba se eliminó al terminar.
+- Validado en claro/oscuro, español/inglés y móvil (390 px), sin errores de JS.
+
 
 ### Verificación pendiente (para mañana)
 
-1. **Mi página** (`/my/page`): que las 6 tarjetas cuenten y que cada link abra el
+1. **Inicio — dashboard (v1.3.0)**: como admin deben verse Usuarios 4 / 3 activos,
+   Proyectos 3 (3 abiertos · 0 cerrados), Incidencias 92 (77 abiertas · 15 cerradas),
+   Nuevas 45, Cerradas 14, Actualizadas 88, Horas 18,5 h y Cierre promedio 34,3 d.
+   Como usuario común la tarjeta de Usuarios se oculta y el chip debe decir
+   “Según tus permisos”. Como anónimo debe decir “Resumen público” y no mostrar horas.
+2. **Inicio — links**: cada tarjeta y cada barra de “Abiertas por tipo” debe abrir el
+   listado filtrado con resultados; “Ver todas” de actividad debe ordenar por actualización.
+3. **Mi página** (`/my/page`): que las 6 tarjetas cuenten y que cada link abra el
    listado con resultados (usan el id del usuario, no `me`). Con Redmine Admin deben
    dar: vencidas 20, cerradas 7 días 8, estancadas 2 (verificado contra la API).
-2. **Listado de incidencias**: agregar la columna **Fecha fin** (Opciones → Columnas) y
+4. **Listado de incidencias**: agregar la columna **Fecha fin** (Opciones → Columnas) y
    comprobar rojo vencida, naranja ≤7 días, amarillo ≤30 días. Una fecha a +30 días no
    debe tener color ni barra. La barra roja izquierda debe aparecer **solo** en vencidas
    reales (no en `behind-schedule`).
-3. **Vistazo**: columnas 50/50, dona debajo de Incidencias, panel de atención 4+4+4,
+5. **Vistazo**: columnas 50/50, dona debajo de Incidencias, panel de atención 4+4+4,
    panel **Personalizar** con los 16 checks (incluye los 3 de colores).
-4. **Búsqueda del header**: al enfocar debe crecer hasta ~400 px (si solo llega a 220,
+6. **Búsqueda del header**: al enfocar debe crecer hasta ~400 px (si solo llega a 220,
    el deploy no tomó la regla con `#header`). El buscador de proyectos y los campos
    autocompletar deben mostrar una sola lupa (sin mosaico).
-5. **Mi cuenta**: al final de la sección *Sidebar position* debe verse
-   `Modern Theme MF v1.2.5` en chico. Ya **no** debe aparecer en el pie del sidebar.
-6. **Listado de incidencias**: en las columnas **Asignado** y **Autor** debe aparecer
+7. **Mi cuenta**: al final de la sección *Sidebar position* debe verse
+   `Modern Theme MF v1.3.0` en chico. Ya **no** debe aparecer en el pie del sidebar.
+8. **Listado de incidencias**: en las columnas **Asignado** y **Autor** debe aparecer
    un círculo con iniciales antes del nombre. El color tiene que coincidir con el
    avatar del menú de cuenta (misma clase `avatar-color-<id % 16>` de Redmine).
-7. **Listado de incidencias**: tarjetas de abiertas por tipo arriba de los filtros y
+9. **Listado de incidencias**: tarjetas de abiertas por tipo arriba de los filtros y
    link “Total abiertas”.
-8. **Calendario** (`/projects/<id>/issues/calendar`) en modo oscuro: las celdas del mes,
-   las de otros meses, la cabecera y los bordes deben usar superficies oscuras del
-   theme, no blanco/gris claro.
-9. **Cambio de modo**: al tocar el sol/luna debe aparecer abajo, centrado, el popup
-   `Dark mode — <scheme>` / `Light mode — <scheme>` completo y legible. No debe quedar
-   corrido hacia un costado ni cortado.
+10. **Calendario** (`/projects/<id>/issues/calendar`) en modo oscuro: las celdas del mes,
+    las de otros meses, la cabecera y los bordes deben usar superficies oscuras del
+    theme, no blanco/gris claro.
+11. **Cambio de modo**: al tocar el sol/luna debe aparecer abajo, centrado, el popup
+    `Dark mode — <scheme>` / `Light mode — <scheme>` completo y legible. No debe quedar
+    corrido hacia un costado ni cortado.
 
 ### Decisiones vigentes
 
@@ -66,7 +78,7 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 ### Versionado
 
 - La versión visible está en `javascripts/theme.js`, bloque `LOCAL CUSTOMISATIONS —
-  sidebar width` (`var VERSION = '1.2.5'`).
+  sidebar width` (`var VERSION = '1.3.0'`).
 - Al publicar cambios: subir `VERSION`, commit, `git tag -a vX.Y.Z` y push del tag.
 - Se muestra al final del fieldset `#rm-layout` de **Mi cuenta** (sidebar position /
   width), como `Modern Theme MF vX.Y.Z`.
@@ -77,7 +89,8 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
   estancadas configurable.
 - Colores de vencimiento en `/issues` global y en los listados de Mi página; banda de
   60/90 días.
-- Vistazo global en Home (si algún día se retoma, además de Mi página).
+- Home: cache por sesión, selector de período (7/30/90 días) y tarjeta de usuarios activos
+  con último acceso.
 - Grafana: sincronizar `theme=dark|light` y `kiosk` en los iframes, envolverlos con
   tokens del theme y definir altura por dashboard. Ver la sección de ideas al final.
 - Navegación: Ctrl+K, proyectos favoritos, chips de filtros rápidos, cabecera sticky,
@@ -165,6 +178,7 @@ hay problema: el core está en una capa.
 | Ancho de sidebar (180–360 px) | `theme.js` — bloque final + `custom.css` (slider) |
 | Admin index en tarjetas | `custom.css` — Admin index |
 | Hero + KPIs + dona + chips de operación (“Vistazo moderno”) | `custom.css` — Project overview + bloque final de `theme.js` |
+| Dashboard general de Inicio (permisos, KPIs, tipos y actividad) | `custom.css` — Home + bloque final de `theme.js` |
 | Plugins RedmineUP Agile / Testcase / Vault | `custom.css` — Plugin compatibility |
 | Pins toolbar | `custom.css` — final |
 | View Customize — bloques `<pre>` | `custom.css` — Plugin compatibility |
