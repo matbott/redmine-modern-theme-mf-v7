@@ -10,7 +10,7 @@ All local work lives in **`stylesheets/custom.css`** and the clearly marked bloc
 end of `javascripts/theme.js`, so the upstream files stay untouched and easy to rebase.
 See [Local customisations](#local-customisations).
 Current status, pending checks and backlog live in
-[`MAINTENANCE.md`](MAINTENANCE.md#estado-actual-2026-11-13).
+[`MAINTENANCE.md`](MAINTENANCE.md#estado-actual-2026-11-14).
 
 ## How it is built
 
@@ -116,6 +116,9 @@ Everything below lives in `stylesheets/custom.css` (imported right after `scheme
 except the clearly marked script blocks at the end of `javascripts/theme.js`. See [MAINTENANCE.md](MAINTENANCE.md) for the full
 map, token translations and how to update from upstream.
 
+All custom UI strings are **English by default** so the theme can be shared as-is, with a
+Spanish table selected automatically when Redmine's `<html lang>` starts with `es`.
+
 - **Selected issue rows** — `tr:has(input[type=checkbox]:checked)`, so the row paints as
   soon as its checkbox is ticked (core only marks it on submit).
 - **Sidebar width** — per-browser slider on **My account** (180–360 px), stored as
@@ -128,13 +131,14 @@ map, token translations and how to update from upstream.
   operational strip (unassigned, overdue, no due date, new/closed last 7 days, stalled,
   average closing time). An **Attention** box lists up to 4 overdue, 4 due in the next
   7 days and 4 stalled issues (running totals in each heading). A **Statistics** button
-  in the hero (“Personalizar”) lets each project toggle every indicator, every attention
+  in the hero (“Customise”) lets each project toggle every indicator, every attention
   list and the due-date colours on/off (per browser, stored in `localStorage`), and sets
   the stalled threshold (3–60 days). All read from the active palette, so they follow
   dark mode and schemes.
-- **My page** — a “Mi vistazo” KPI strip above your own blocks: assigned open, overdue,
-  due in 7 days, reported open, closed in the last 7 days and stalled +7 days, all for
-  the logged-in user.
+- **My page** — a “My overview” KPI strip above your own blocks: assigned open, overdue,
+  due in 7 days, reported open, closed in the last 7 days, stalled +7 days and hours
+  logged this week, all for the logged-in user. The hours card reads the time-entry CSV
+  with the current session, so it respects private projects and permissions.
 - **Home dashboard** — a permission-aware overview above the welcome text: users
   (admin only), visible projects and issues, new/closed/updated in the last 7 days,
   logged hours, average closing time, open issues by tracker and recent activity. The
@@ -151,7 +155,7 @@ map, token translations and how to update from upstream.
   orange (next 7 days) or yellow (next 30 days); each band can be toggled.
 - **Issue list cards** — inside a project issue list, KPI-style cards above the filters
   show open issues by tracker (plus a total), linking to the matching filtered list.
-  Toggle in the overview “Personalizar” panel (“Tarjetas del listado”).
+  Toggle in the overview “Customise” panel (“Issue list cards”).
 - **Plugin compatibility** — RedmineUP Agile, Redmineflux Testcase, Vault, Pins, View
   Customize code blocks.
 - **Taskboard / board** (`#rdb*`, `.rdb-*`) — cards, headers, footers, dropdowns and the

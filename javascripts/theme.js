@@ -863,6 +863,201 @@
 
 
 /* ============================================================
+   LOCAL CUSTOMISATIONS — translations
+   English is the default so the theme can be shared as-is.
+   Spanish is used automatically when Redmine's <html lang> is es.
+   Missing keys fall back to English, then to the key itself.
+   ============================================================ */
+var RM_I18N = (function () {
+  var en = {
+    attention: 'Attention',
+    recentActivity: 'Recent activity',
+    unassigned: 'Unassigned',
+    agoDays: '{n} d ago',
+    inDays: 'in {n} d',
+    today: 'today',
+    lateTitle: 'Overdue ({n})',
+    nothingLate: 'Nothing overdue',
+    soonTitle: 'Due in 7 days ({n})',
+    nothingSoon: 'Nothing due soon',
+    stalledTitle: 'Stalled +{days} d ({n})',
+    nothingStalled: 'Nothing stalled',
+    loadFailed: 'Could not load.',
+    noActivity: 'No activity yet.',
+    activityLoadFailed: 'Could not load activity.',
+    justNow: 'just now',
+    minutesAgo: '{n} min ago',
+    hoursAgo: '{n} h ago',
+    daysAgo: '{n} d ago',
+    openByTracker: 'Open by tracker',
+    openByAssignee: 'Open by assignee',
+    groupOpenBy: 'Group open issues by',
+    tracker: 'Tracker',
+    assignee: 'Assignee',
+    others: 'Others',
+    noOpenIssues: 'No open issues.',
+    openIssuesAria: '{n} open issues',
+    openCaption: 'open',
+    reportLoadFailed: 'Could not load the report.',
+    newIssue: 'New issue',
+    issues: 'Issues',
+    kpiOpen: 'Open',
+    kpiClosed: 'Closed',
+    kpiTotal: 'Total',
+    kpiComplete: 'Complete',
+    kpiMembers: 'Members',
+    percentClosed: '% closed',
+    percentClosedTitle: '{n}% closed',
+    unassignedChip: 'unassigned',
+    overdueChip: 'overdue',
+    noDueChip: 'no due date',
+    newChip: 'new 7 d',
+    closedChip: 'closed 7 d',
+    avgCloseChip: 'avg. close',
+    stalledChip: 'stalled',
+    opsAria: 'Operational indicators',
+    customise: 'Customise',
+    indicators: 'Indicators',
+    kpiBasic: 'Basic KPIs',
+    donutGroup: 'Donut by tracker / assignee',
+    chipUnassigned: 'Chip: unassigned',
+    chipOverdue: 'Chip: overdue',
+    chipNoDue: 'Chip: no due date',
+    chipNew: 'Chip: new (7 days)',
+    chipClosed: 'Chip: closed (7 days)',
+    chipAvg: 'Chip: average close',
+    chipStalled: 'Chip: stalled',
+    issueCards: 'Issue list cards',
+    attentionPanel: 'Attention panel',
+    listLate: 'List: overdue (4)',
+    listSoon: 'List: due soon (4)',
+    listStalled: 'List: stalled (4)',
+    dueColours: 'Due-date colours',
+    dueLate: 'Overdue (red)',
+    dueWeek: 'Due in 7 d (orange)',
+    dueMonth: 'Due in 30 d (yellow)',
+    stalledMoreThan: 'Stalled for more than',
+    stalledDaysAria: 'Days for stalled issues',
+    days: '{n} days',
+    savedHint: 'Saved in this browser for this project.',
+    totalOpen: 'Total open',
+    myAssigned: 'Assigned open',
+    myLate: 'Overdue',
+    myWeek: 'Due in 7 days',
+    myReported: 'Reported open',
+    myClosed: 'Closed in 7 days',
+    myStalled: 'Stalled +7 d',
+    myHoursWeek: 'Hours this week',
+    sidebarWidth: 'Sidebar width',
+    sidebarWidthHint: 'Between 180 and 360 px. Saved in this browser only.'
+  };
+  var es = {
+    attention: 'Atención',
+    recentActivity: 'Actividad reciente',
+    unassigned: 'Sin asignar',
+    agoDays: 'hace {n} d',
+    inDays: 'en {n} d',
+    today: 'hoy',
+    lateTitle: 'Vencidas ({n})',
+    nothingLate: 'Nada vencido',
+    soonTitle: 'Vencen en 7 días ({n})',
+    nothingSoon: 'Nada por vencer',
+    stalledTitle: 'Estancadas +{days} d ({n})',
+    nothingStalled: 'Nada estancado',
+    loadFailed: 'No se pudo cargar.',
+    noActivity: 'Sin actividad todavía.',
+    activityLoadFailed: 'No se pudo cargar la actividad.',
+    justNow: 'recién',
+    minutesAgo: 'hace {n} min',
+    hoursAgo: 'hace {n} h',
+    daysAgo: 'hace {n} d',
+    openByTracker: 'Abiertas por tipo',
+    openByAssignee: 'Abiertas por asignado',
+    groupOpenBy: 'Agrupar las abiertas por',
+    tracker: 'Tipo',
+    assignee: 'Asignado',
+    others: 'Otros',
+    noOpenIssues: 'Sin incidencias abiertas.',
+    openIssuesAria: '{n} incidencias abiertas',
+    openCaption: 'abiertas',
+    reportLoadFailed: 'No se pudo cargar el informe.',
+    newIssue: 'Nueva incidencia',
+    issues: 'Incidencias',
+    kpiOpen: 'Abiertas',
+    kpiClosed: 'Cerradas',
+    kpiTotal: 'Total',
+    kpiComplete: 'Completado',
+    kpiMembers: 'Miembros',
+    percentClosed: '% cerradas',
+    percentClosedTitle: '{n}% cerradas',
+    unassignedChip: 'sin asignar',
+    overdueChip: 'vencidas',
+    noDueChip: 'sin fecha',
+    newChip: 'nuevas 7 d',
+    closedChip: 'cerradas 7 d',
+    avgCloseChip: 'cierre prom.',
+    stalledChip: 'estancadas',
+    opsAria: 'Indicadores operativos',
+    customise: 'Personalizar',
+    indicators: 'Indicadores',
+    kpiBasic: 'KPI básicas',
+    donutGroup: 'Dona por tipo / asignado',
+    chipUnassigned: 'Chip: sin asignar',
+    chipOverdue: 'Chip: vencidas',
+    chipNoDue: 'Chip: sin fecha límite',
+    chipNew: 'Chip: nuevas (7 días)',
+    chipClosed: 'Chip: cerradas (7 días)',
+    chipAvg: 'Chip: cierre promedio',
+    chipStalled: 'Chip: estancadas',
+    issueCards: 'Tarjetas del listado',
+    attentionPanel: 'Panel de atención',
+    listLate: 'Lista: vencidas (4)',
+    listSoon: 'Lista: por vencer (4)',
+    listStalled: 'Lista: estancadas (4)',
+    dueColours: 'Colores de vencimiento',
+    dueLate: 'Vencidas (rojo)',
+    dueWeek: 'Vencen en 7 d (naranja)',
+    dueMonth: 'Vencen en 30 d (amarillo)',
+    stalledMoreThan: 'Estancadas hace más de',
+    stalledDaysAria: 'Días para estancadas',
+    days: '{n} días',
+    savedHint: 'Se guarda en este navegador para este proyecto.',
+    totalOpen: 'Total abiertas',
+    myAssigned: 'Asignadas abiertas',
+    myLate: 'Vencidas',
+    myWeek: 'Vencen en 7 días',
+    myReported: 'Reportadas abiertas',
+    myClosed: 'Cerradas 7 días',
+    myStalled: 'Estancadas +7 d',
+    myHoursWeek: 'Horas esta semana',
+    sidebarWidth: 'Ancho de la barra lateral',
+    sidebarWidthHint: 'Entre 180 y 360 px. Se guarda solo en este navegador.'
+  };
+  var tables = { en: en, es: es };
+  var locale = document.documentElement.lang || 'en';
+  var lang = locale.toLowerCase().split('-')[0];
+  var table = tables[lang] || en;
+  function t(key, vars) {
+    var s = (table && table[key]) || en[key] || key;
+    if (vars) Object.keys(vars).forEach(function (k) {
+      s = s.split('{' + k + '}').join(vars[k]);
+    });
+    return s;
+  }
+  var nf = window.Intl ? new Intl.NumberFormat(lang === 'es' ? 'es' : 'en') : null;
+  var nf1 = window.Intl ? new Intl.NumberFormat(lang === 'es' ? 'es' : 'en', { maximumFractionDigits: 1 }) : null;
+  return {
+    t: t,
+    lang: lang,
+    locale: locale,
+    num: function (n) { return nf ? nf.format(n) : String(n); },
+    num1: function (n) { return nf1 ? nf1.format(n) : String(n); },
+    date: function (d) { return d.toLocaleDateString(locale); }
+  };
+})();
+
+
+/* ============================================================
    LOCAL CUSTOMISATIONS — project overview hero ("Vistazo moderno")
    Replaces the plain title with a hero + KPI cards and a two-column
    summary (issues, members, activity) on project overview pages.
@@ -1050,7 +1245,7 @@
     /* ---------- 1) Columna % cerradas ---------- */
     safe('tabla', function () {
       var $table = $('table.issue-report');
-      $table.find('thead tr').append('<th>% cerradas</th>');
+      $table.find('thead tr').append('<th>' + RM_I18N.t('percentClosed') + '</th>');
       $table.find('tbody tr').each(function () {
         var td = $(this).find('td');
         var o = parseInt($(td[1]).text(), 10) || 0;
@@ -1062,7 +1257,7 @@
         var label = t ? '<a href="' + href + '">' + pct + '%</a>' : '<span>\u2014</span>';
         $(this).append(
           '<td class="vz-prog"><div class="vz-prog-in">' +
-          '<div class="vz-bar" title="' + pct + '% cerradas"><span style="width:' + pct + '%"></span></div>' +
+          '<div class="vz-bar" title="' + RM_I18N.t('percentClosedTitle', { n: pct }) + '"><span style="width:' + pct + '%"></span></div>' +
           label + '</div></td>');
       });
     });
@@ -1081,10 +1276,10 @@
       // Botones: solo los que existen en el menu del proyecto
       var actions = '';
       if ($('#main-menu a.new-issue-sub').length) {
-        actions += btn(link('a.new-issue-sub', proj + '/issues/new'), 'plus', 'Nueva incidencia', true);
+        actions += btn(link('a.new-issue-sub', proj + '/issues/new'), 'plus', RM_I18N.t('newIssue'), true);
       }
       if ($('#main-menu a.issues').length) {
-        actions += btn(link('a.issues', proj + '/issues'), 'total', 'Incidencias');
+        actions += btn(link('a.issues', proj + '/issues'), 'total', RM_I18N.t('issues'));
       }
 
       var hero =
@@ -1104,12 +1299,12 @@
       var kpis = '<div class="vz-kpis">';
       if (hasIssues) {
         kpis +=
-          kpi(proj + '/issues?set_filter=1', 'open', 'Abiertas', open) +
-          kpi(proj + '/issues?set_filter=1&status_id=c', 'closed', 'Cerradas', closed) +
-          kpi(proj + '/issues?set_filter=1&status_id=*', 'total', 'Total', total) +
-          kpi(proj + '/issues/report', 'pie', 'Completado', pctAll + '%');
+          kpi(proj + '/issues?set_filter=1', 'open', RM_I18N.t('kpiOpen'), open) +
+          kpi(proj + '/issues?set_filter=1&status_id=c', 'closed', RM_I18N.t('kpiClosed'), closed) +
+          kpi(proj + '/issues?set_filter=1&status_id=*', 'total', RM_I18N.t('kpiTotal'), total) +
+          kpi(proj + '/issues/report', 'pie', RM_I18N.t('kpiComplete'), pctAll + '%');
       }
-      kpis += kpi('#', 'users', 'Miembros', members) + '</div>';
+      kpis += kpi('#', 'users', RM_I18N.t('kpiMembers'), members) + '</div>';
 
       $h2.after(hero + kpis);
 
@@ -1126,8 +1321,8 @@
 
     /* ---------- 3) Cajas con skeleton ---------- */
     var sk = '<div class="vz-sk"></div><div class="vz-sk w80"></div><div class="vz-sk w60"></div>';
-    var T_ATTN = 'Atenci\u00f3n';
-    var T_ACT = 'Actividad reciente';
+    var T_ATTN = RM_I18N.t('attention');
+    var T_ACT = RM_I18N.t('recentActivity');
 
     safe('cajas', function () {
       if (hasIssues) {
@@ -1157,12 +1352,12 @@
 
       var row = function (item) {
         var i = item.issue;
-        var who = i.assigned_to ? i.assigned_to.name : 'Sin asignar';
+        var who = i.assigned_to ? i.assigned_to.name : RM_I18N.t('unassigned');
         var prio = i.priority ? i.priority.name : '';
         var note = item.days != null
-          ? (item.days < 0 ? 'hace ' + Math.abs(item.days) + ' d'
-            : item.days === 0 ? 'hoy' : 'en ' + item.days + ' d')
-          : 'hace ' + item.since + ' d';
+          ? (item.days < 0 ? RM_I18N.t('agoDays', { n: Math.abs(item.days) })
+            : item.days === 0 ? RM_I18N.t('today') : RM_I18N.t('inDays', { n: item.days }))
+          : RM_I18N.t('agoDays', { n: item.since });
         return '<li class="' + item.cls + '">' +
           '<a href="/issues/' + i.id + '">#' + i.id + ' ' + esc(i.subject) + '</a>' +
           '<span>' + esc(who) + ' \u00b7 ' + esc(prio) + '</span>' +
@@ -1205,15 +1400,15 @@
           }) : [];
 
           $box.html(
-            section('vz-attn-late', 'Vencidas (' + (res[0].total_count || 0) + ')', late, 'Nada vencido') +
-            section('vz-attn-soon', 'Vencen en 7 d\u00edas (' + (res[1].total_count || 0) + ')', soon, 'Nada por vencer') +
-            section('vz-attn-stalled', 'Estancadas +' + vzConf.stalledDays + ' d (' + (res[2] ? (res[2].total_count || 0) : 0) + ')', stalled, 'Nada estancado')
+            section('vz-attn-late', RM_I18N.t('lateTitle', { n: res[0].total_count || 0 }), late, RM_I18N.t('nothingLate')) +
+            section('vz-attn-soon', RM_I18N.t('soonTitle', { n: res[1].total_count || 0 }), soon, RM_I18N.t('nothingSoon')) +
+            section('vz-attn-stalled', RM_I18N.t('stalledTitle', { days: vzConf.stalledDays, n: res[2] ? (res[2].total_count || 0) : 0 }), stalled, RM_I18N.t('nothingStalled'))
           );
           vzApply();
         })
         .catch(function (e) {
           console.error('Vistazo moderno [issues.json]:', e);
-          $box.html('<h3>' + T_ATTN + '</h3><p class="vz-empty">No se pudo cargar.</p>');
+          $box.html('<h3>' + T_ATTN + '</h3><p class="vz-empty">' + RM_I18N.t('loadFailed') + '</p>');
         });
     };
 
@@ -1225,11 +1420,11 @@
     safe('actividad', function () {
       var ago = function (d) {
         var s = Math.max(0, (Date.now() - d) / 1000);
-        if (s < 60) return 'reci\u00e9n';
-        var m = s / 60; if (m < 60) return 'hace ' + Math.floor(m) + ' min';
-        var h = m / 60; if (h < 24) return 'hace ' + Math.floor(h) + ' h';
-        var dd = h / 24; if (dd < 30) return 'hace ' + Math.floor(dd) + ' d';
-        return d.toLocaleDateString('es-UY');
+        if (s < 60) return RM_I18N.t('justNow');
+        var m = s / 60; if (m < 60) return RM_I18N.t('minutesAgo', { n: Math.floor(m) });
+        var h = m / 60; if (h < 24) return RM_I18N.t('hoursAgo', { n: Math.floor(h) });
+        var dd = h / 24; if (dd < 30) return RM_I18N.t('daysAgo', { n: Math.floor(dd) });
+        return RM_I18N.date(d);
       };
 
       var feed = $('link[type="application/atom+xml"]').first().attr('href') || (proj + '/activity.atom');
@@ -1241,7 +1436,7 @@
           var xml = new DOMParser().parseFromString(txt, 'application/xml');
           var entries = Array.prototype.slice.call(xml.querySelectorAll('entry')).slice(0, 8);
           if (!entries.length) {
-            $('#vz-act').html('<h3>' + T_ACT + '</h3><p class="vz-empty">Sin actividad todav\u00eda.</p>');
+            $('#vz-act').html('<h3>' + T_ACT + '</h3><p class="vz-empty">' + RM_I18N.t('noActivity') + '</p>');
             return;
           }
           var items = entries.map(function (e) {
@@ -1258,7 +1453,7 @@
         })
         .catch(function (e) {
           console.error('Vistazo moderno [activity.atom]:', e);
-          $('#vz-act').html('<h3>' + T_ACT + '</h3><p class="vz-empty">No se pudo cargar la actividad.</p>');
+          $('#vz-act').html('<h3>' + T_ACT + '</h3><p class="vz-empty">' + RM_I18N.t('activityLoadFailed') + '</p>');
         });
     });
 
@@ -1274,10 +1469,10 @@
 
       var box =
         '<div class="box vz-chart-box" id="vz-chart">' +
-          '<h3>Abiertas por tipo</h3>' +
-          '<div class="vz-chart-switch" role="tablist" aria-label="Agrupar las abiertas por">' +
-            '<button type="button" class="vz-chart-tab is-active" data-mode="tracker" role="tab" aria-selected="true">Tipo</button>' +
-            '<button type="button" class="vz-chart-tab" data-mode="assignee" role="tab" aria-selected="false">Asignado</button>' +
+          '<h3>' + RM_I18N.t('openByTracker') + '</h3>' +
+          '<div class="vz-chart-switch" role="tablist" aria-label="' + RM_I18N.t('groupOpenBy') + '">' +
+            '<button type="button" class="vz-chart-tab is-active" data-mode="tracker" role="tab" aria-selected="true">' + RM_I18N.t('tracker') + '</button>' +
+            '<button type="button" class="vz-chart-tab" data-mode="assignee" role="tab" aria-selected="false">' + RM_I18N.t('assignee') + '</button>' +
           '</div>' +
           '<div class="vz-chart-body">' + sk + '</div>' +
         '</div>';
@@ -1288,7 +1483,7 @@
         if (items.length > MAX) {
           var rest = items.slice(MAX - 1);
           items = items.slice(0, MAX - 1);
-          items.push({ label: 'Otros', value: rest.reduce(function (s, it) { return s + it.value; }, 0) });
+          items.push({ label: RM_I18N.t('others'), value: rest.reduce(function (s, it) { return s + it.value; }, 0) });
         }
         return items;
       }
@@ -1321,11 +1516,11 @@
         }).join('');
         $body.html(
           '<div class="vz-donut-wrap">' +
-            '<svg class="vz-donut" viewBox="0 0 120 120" role="img" aria-label="' + esc(total + ' incidencias abiertas') + '">' +
+            '<svg class="vz-donut" viewBox="0 0 120 120" role="img" aria-label="' + esc(RM_I18N.t('openIssuesAria', { n: total })) + '">' +
               '<circle class="vz-donut-track" cx="60" cy="60" r="46" fill="none" stroke-width="14"/>' +
               segs +
               '<text class="vz-donut-total" x="60" y="58" text-anchor="middle">' + total + '</text>' +
-              '<text class="vz-donut-cap" x="60" y="72" text-anchor="middle">abiertas</text>' +
+              '<text class="vz-donut-cap" x="60" y="72" text-anchor="middle">' + RM_I18N.t('openCaption') + '</text>' +
             '</svg>' +
             '<ul class="vz-legend">' + legend + '</ul>' +
           '</div>');
@@ -1357,7 +1552,7 @@
               var openCell = tr.querySelector('td:nth-last-child(3)');
               if (!nameCell || !openCell) return;
               var name = nameCell.textContent.trim();
-              if (/^\[ninguno\]$/i.test(name)) name = 'Sin asignar';
+              if (/^\[ninguno\]$/i.test(name)) name = RM_I18N.t('unassigned');
               var open = parseInt(openCell.textContent.replace(/[^\d]/g, ''), 10) || 0;
               if (name) out.push({ label: name, value: open });
             });
@@ -1366,7 +1561,7 @@
           })
           .catch(function (e) {
             console.error('Vistazo moderno [assigned_to]:', e);
-            $('#vz-chart .vz-chart-body').html('<p class="vz-empty">No se pudo cargar el informe.</p>');
+            $('#vz-chart .vz-chart-body').html('<p class="vz-empty">' + RM_I18N.t('reportLoadFailed') + '</p>');
           });
       }
 
@@ -1375,12 +1570,12 @@
           var on = $(this).data('mode') === mode;
           $(this).toggleClass('is-active', on).attr('aria-selected', on ? 'true' : 'false');
         });
-        $('#vz-chart > h3').text(mode === 'tracker' ? 'Abiertas por tipo' : 'Abiertas por asignado');
+        $('#vz-chart > h3').text(mode === 'tracker' ? RM_I18N.t('openByTracker') : RM_I18N.t('openByAssignee'));
         if (mode === 'tracker') {
-          render(normalize(trackerItems()), 'Sin incidencias abiertas.');
+          render(normalize(trackerItems()), RM_I18N.t('noOpenIssues'));
         } else {
           $('#vz-chart .vz-chart-body').html(sk);
-          loadAssignees(function (items) { render(normalize(items), 'Sin incidencias abiertas.'); });
+          loadAssignees(function (items) { render(normalize(items), RM_I18N.t('noOpenIssues')); });
         }
       }
 
@@ -1391,7 +1586,7 @@
       else $left.prepend($chart);
 
       $chart.on('click', '.vz-chart-tab', function () { setMode($(this).data('mode')); });
-      render(normalize(trackerItems()), 'Sin incidencias abiertas.');
+      render(normalize(trackerItems()), RM_I18N.t('noOpenIssues'));
     });
 
     /* ---------- 7) Chips de operación (SLA / flujo) ---------- */
@@ -1402,25 +1597,25 @@
       var weekAgo = daysAgo(7);
 
       var ops = [
-        { id: 'unassigned', label: 'sin asignar',
+        { id: 'unassigned', label: RM_I18N.t('unassignedChip'),
           href: queryUrl([['status_id', 'o'], ['assigned_to_id', '!*']]),
           count: 'status_id=o&assigned_to_id=%21*' },
-        { id: 'overdue', label: 'vencidas', danger: true,
+        { id: 'overdue', label: RM_I18N.t('overdueChip'), danger: true,
           href: queryUrl([['status_id', 'o'], ['due_date', '<=', daysAgo(1)]]),
           count: 'status_id=o&due_date=%3C%3D' + daysAgo(1) },
-        { id: 'nodue', label: 'sin fecha',
+        { id: 'nodue', label: RM_I18N.t('noDueChip'),
           href: queryUrl([['status_id', 'o'], ['due_date', '!*']]),
           count: 'status_id=o&due_date=%21*' },
-        { id: 'new', label: 'nuevas 7 d',
+        { id: 'new', label: RM_I18N.t('newChip'),
           href: queryUrl([['created_on', '>=', weekAgo]]),
           count: 'created_on=%3E=' + weekAgo },
-        { id: 'closed', label: 'cerradas 7 d',
+        { id: 'closed', label: RM_I18N.t('closedChip'),
           href: queryUrl([['status_id', 'c'], ['updated_on', '>=', weekAgo]]),
           count: 'status_id=c&updated_on=%3E=' + weekAgo },
-        { id: 'mttr', label: 'cierre prom.', href: proj + '/issues/report', avg: true }
+        { id: 'mttr', label: RM_I18N.t('avgCloseChip'), href: proj + '/issues/report', avg: true }
       ];
 
-      var chips = '<div class="vz-ops" aria-label="Indicadores operativos">' +
+      var chips = '<div class="vz-ops" aria-label="' + RM_I18N.t('opsAria') + '">' +
         ops.map(function (op) {
           return '<a class="vz-op' + (op.danger ? ' is-danger' : '') + '" id="vz-op-' + op.id + '" href="' + op.href + '">' +
             '<b>\u2014</b><span>' + op.label + '</span></a>';
@@ -1455,7 +1650,7 @@
 
           if (!days.length) { setOpValue('mttr', null); return; }
           var avg = days.reduce(function (s, x) { return s + x; }, 0) / days.length;
-          setOpValue('mttr', Number(avg.toFixed(1)).toLocaleString('es-UY') + ' d');
+          setOpValue('mttr', RM_I18N.num1(Number(avg.toFixed(1))) + ' d');
         })
         .catch(function (e) { console.error('Vistazo moderno [mttr]:', e); setOpValue('mttr', null); });
     });
@@ -1468,7 +1663,7 @@
       if (!$ops.length || !$actions.length) return;
 
       // Estancadas: abiertas sin actualizar desde hace más de N días.
-      $ops.append('<a class="vz-op is-warn" id="vz-op-stalled" href="#"><b>\u2014</b><span>estancadas</span></a>');
+      $ops.append('<a class="vz-op is-warn" id="vz-op-stalled" href="#"><b>\u2014</b><span>' + RM_I18N.t('stalledChip') + '</span></a>');
       var stalledFor = null;
       function loadStalled() {
         var date = daysAgo(vzConf.stalledDays);
@@ -1487,48 +1682,48 @@
         return '<label><input type="checkbox" data-stat="' + key + '"' + (vzConf[key] ? ' checked' : '') + '> ' + label + '</label>';
       };
       var indicators = [
-        ['kpis', 'KPI básicas'],
-        ['donut', 'Dona por tipo / asignado'],
-        ['unassigned', 'Chip: sin asignar'],
-        ['overdue', 'Chip: vencidas'],
-        ['nodue', 'Chip: sin fecha límite'],
-        ['new', 'Chip: nuevas (7 días)'],
-        ['closed', 'Chip: cerradas (7 días)'],
-        ['mttr', 'Chip: cierre promedio'],
-        ['stalled', 'Chip: estancadas'],
-        ['issueCards', 'Tarjetas del listado']
+        ['kpis', RM_I18N.t('kpiBasic')],
+        ['donut', RM_I18N.t('donutGroup')],
+        ['unassigned', RM_I18N.t('chipUnassigned')],
+        ['overdue', RM_I18N.t('chipOverdue')],
+        ['nodue', RM_I18N.t('chipNoDue')],
+        ['new', RM_I18N.t('chipNew')],
+        ['closed', RM_I18N.t('chipClosed')],
+        ['mttr', RM_I18N.t('chipAvg')],
+        ['stalled', RM_I18N.t('chipStalled')],
+        ['issueCards', RM_I18N.t('issueCards')]
       ].map(function (r) { return checkRow(r[0], r[1]); }).join('');
       var attention = [
-        ['attnLate', 'Lista: vencidas (4)'],
-        ['attnSoon', 'Lista: por vencer (4)'],
-        ['attnStalled', 'Lista: estancadas (4)']
+        ['attnLate', RM_I18N.t('listLate')],
+        ['attnSoon', RM_I18N.t('listSoon')],
+        ['attnStalled', RM_I18N.t('listStalled')]
       ].map(function (r) { return checkRow(r[0], r[1]); }).join('');
       var dueColors = [
-        ['dueLate', 'Vencidas (rojo)'],
-        ['dueWeek', 'Vencen en 7 d (naranja)'],
-        ['dueMonth', 'Vencen en 30 d (amarillo)']
+        ['dueLate', RM_I18N.t('dueLate')],
+        ['dueWeek', RM_I18N.t('dueWeek')],
+        ['dueMonth', RM_I18N.t('dueMonth')]
       ].map(function (r) { return checkRow(r[0], r[1]); }).join('');
 
       var days = [3, 7, 15, 30, 60].map(function (d) {
-        return '<option value="' + d + '"' + (vzConf.stalledDays === d ? ' selected' : '') + '>' + d + ' días</option>';
+        return '<option value="' + d + '"' + (vzConf.stalledDays === d ? ' selected' : '') + '>' + RM_I18N.t('days', { n: d }) + '</option>';
       }).join('');
 
       var widget =
         '<div class="vz-stats">' +
           '<button type="button" class="vz-btn vz-stats-btn" aria-expanded="false" aria-controls="vz-stats-panel">' +
             svg('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>') +
-            'Personalizar' +
+            RM_I18N.t('customise') +
           '</button>' +
           '<div class="vz-stats-panel" id="vz-stats-panel" hidden>' +
-            '<h4>Indicadores</h4>' +
+            '<h4>' + RM_I18N.t('indicators') + '</h4>' +
             indicators +
-            '<h4 class="vz-stats-sub">Panel de atención</h4>' +
+            '<h4 class="vz-stats-sub">' + RM_I18N.t('attentionPanel') + '</h4>' +
             attention +
-            '<h4 class="vz-stats-sub">Colores de vencimiento</h4>' +
+            '<h4 class="vz-stats-sub">' + RM_I18N.t('dueColours') + '</h4>' +
             dueColors +
-            '<div class="vz-stats-row"><span>Estancadas hace más de</span>' +
-              '<select id="vz-stats-days" aria-label="Días para estancadas">' + days + '</select></div>' +
-            '<p class="vz-stats-hint">Se guarda en este navegador para este proyecto.</p>' +
+            '<div class="vz-stats-row"><span>' + RM_I18N.t('stalledMoreThan') + '</span>' +
+              '<select id="vz-stats-days" aria-label="' + RM_I18N.t('stalledDaysAria') + '">' + days + '</select></div>' +
+            '<p class="vz-stats-hint">' + RM_I18N.t('savedHint') + '</p>' +
           '</div>' +
         '</div>';
 
@@ -1583,7 +1778,7 @@
   var root = document.documentElement;
   var KEY = 'rm-sidebar-width';
   var MIN = 180, MAX = 360;
-  var VERSION = '1.3.1';
+  var VERSION = '1.4.0';
 
   function storedWidth() {
     try {
@@ -1613,7 +1808,7 @@
     var label = document.createElement('label');
     label.className = 'rm-width-label';
     label.setAttribute('for', 'rm-width-range');
-    label.textContent = 'Sidebar width';
+    label.textContent = RM_I18N.t('sidebarWidth');
     var value = document.createElement('span');
     value.className = 'rm-width-value';
     value.textContent = current + 'px';
@@ -1628,7 +1823,7 @@
     range.max = String(MAX);
     range.step = '10';
     range.value = String(current);
-    range.setAttribute('aria-label', 'Sidebar width');
+    range.setAttribute('aria-label', RM_I18N.t('sidebarWidth'));
     range.addEventListener('input', function () {
       var w = parseInt(range.value, 10);
       value.textContent = w + 'px';
@@ -1638,7 +1833,7 @@
 
     var hint = document.createElement('p');
     hint.className = 'rm-scheme-hint';
-    hint.textContent = 'Between 180 and 360 px. Saved in this browser only.';
+    hint.textContent = RM_I18N.t('sidebarWidthHint');
 
     block.appendChild(head);
     block.appendChild(range);
@@ -1773,7 +1968,7 @@
         cards.push(
           '<a class="vz-kpi" href="/projects/' + encodeURIComponent(ident) + '/issues?set_filter=1&status_id=o">' +
             '<span class="vz-ico">' + svg(ico.total) + '</span>' +
-            '<span class="vz-txt"><small>Total abiertas</small><b>' + total + '</b></span>' +
+            '<span class="vz-txt"><small>' + RM_I18N.t('totalOpen') + '</small><b>' + total + '</b></span>' +
           '</a>');
 
         var h2 = document.querySelector('#content > h2');
@@ -1823,6 +2018,10 @@
     var iso = function (d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
     var daysAgo = function (n) { return iso(new Date(Date.now() - n * 864e5)); };
     var today = daysAgo(0), yesterday = daysAgo(1), weekAgo = daysAgo(7), weekAhead = daysAgo(-7);
+    var now = new Date();
+    var weekStartDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - ((now.getDay() + 6) % 7));
+    var weekEndDate = new Date(weekStartDate.getTime() + 6 * 864e5);
+    var weekStart = iso(weekStartDate), weekEnd = iso(weekEndDate);
 
     var query = function (filters) {
       var parts = ['set_filter=1'];
@@ -1854,28 +2053,32 @@
       clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
       user: '<circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.6 2.9-6 7-6s7 2.4 7 6"/>',
       closed: '<circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/>',
-      pause: '<circle cx="12" cy="12" r="9"/><path d="M10 9v6M14 9v6"/>'
+      pause: '<circle cx="12" cy="12" r="9"/><path d="M10 9v6M14 9v6"/>',
+      timer: '<circle cx="12" cy="13" r="7"/><path d="M12 10v3l2 1M9 3h6"/>'
     };
 
     var cards = [
-      { id: 'assigned', label: 'Asignadas abiertas', icon: 'open',
+      { id: 'assigned', label: RM_I18N.t('myAssigned'), icon: 'open',
         href: query([['assigned_to_id', '=', uid], ['status_id', 'o']]),
         api: api([['assigned_to_id', uid], ['status_id', 'o']]) },
-      { id: 'late', label: 'Vencidas', icon: 'alert', cls: 'is-late',
+      { id: 'late', label: RM_I18N.t('myLate'), icon: 'alert', cls: 'is-late',
         href: query([['assigned_to_id', '=', uid], ['status_id', 'o'], ['due_date', '<=', yesterday]]),
         api: api([['assigned_to_id', uid], ['status_id', 'o'], ['due_date', '<=' + yesterday]]) },
-      { id: 'week', label: 'Vencen en 7 días', icon: 'clock', cls: 'is-soon',
+      { id: 'week', label: RM_I18N.t('myWeek'), icon: 'clock', cls: 'is-soon',
         href: query([['assigned_to_id', '=', uid], ['status_id', 'o'], ['due_date', '><', [today, weekAhead]]]),
         api: api([['assigned_to_id', uid], ['status_id', 'o'], ['due_date', '><' + today + '|' + weekAhead]]) },
-      { id: 'reported', label: 'Reportadas abiertas', icon: 'user',
+      { id: 'reported', label: RM_I18N.t('myReported'), icon: 'user',
         href: query([['author_id', '=', uid], ['status_id', 'o']]),
         api: api([['author_id', uid], ['status_id', 'o']]) },
-      { id: 'closed', label: 'Cerradas 7 días', icon: 'closed', cls: 'is-ok',
+      { id: 'closed', label: RM_I18N.t('myClosed'), icon: 'closed', cls: 'is-ok',
         href: query([['assigned_to_id', '=', uid], ['status_id', 'c'], ['updated_on', '>=', weekAgo]]),
         api: api([['assigned_to_id', uid], ['status_id', 'c'], ['updated_on', '>=' + weekAgo]]) },
-      { id: 'stalled', label: 'Estancadas +7 d', icon: 'pause', cls: 'is-stalled',
+      { id: 'stalled', label: RM_I18N.t('myStalled'), icon: 'pause', cls: 'is-stalled',
         href: query([['assigned_to_id', '=', uid], ['status_id', 'o'], ['updated_on', '<=', daysAgo(7)]]),
-        api: api([['assigned_to_id', uid], ['status_id', 'o'], ['updated_on', '<=' + daysAgo(7)]]) }
+        api: api([['assigned_to_id', uid], ['status_id', 'o'], ['updated_on', '<=' + daysAgo(7)]]) },
+      { id: 'hours', label: RM_I18N.t('myHoursWeek'), icon: 'timer',
+        href: '/time_entries?from=' + weekStart + '&to=' + weekEnd + '&user_id=' + encodeURIComponent(uid),
+        csv: '/time_entries.csv?from=' + weekStart + '&to=' + weekEnd + '&user_id=' + encodeURIComponent(uid) + '&c%5B%5D=hours' }
     ];
 
     var box = $('<div class="vz-kpis vz-kpis-my" id="vz-my"></div>');
@@ -1895,6 +2098,26 @@
     }
 
     cards.forEach(function (c) {
+      if (c.csv) {
+        fetch(c.csv, { credentials: 'same-origin' })
+          .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+          .then(function (text) {
+            var total = 0;
+            text.split(/\r?\n/).slice(1).forEach(function (line) {
+              if (!line) return;
+              var m = line.match(/^"([^"]*)"|^([^,]*)/);
+              var raw = ((m && (m[1] != null ? m[1] : m[2])) || '').replace(',', '.');
+              var n = parseFloat(raw);
+              if (!isNaN(n)) total += n;
+            });
+            $('#vz-my-' + c.id).text(RM_I18N.num1(total));
+          })
+          .catch(function (e) {
+            console.error('Vistazo moderno [my ' + c.id + ']:', e);
+            $('#vz-my-' + c.id).text('\u2014');
+          });
+        return;
+      }
       fetch(c.api, { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
         .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
         .then(function (d) { $('#vz-my-' + c.id).text(typeof d.total_count === 'number' ? d.total_count : '\u2014'); })

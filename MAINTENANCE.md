@@ -5,17 +5,29 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 ## Estado actual (2026-11-14)
 
 - Repo: `matbott/redmine-modern-theme-mf-v7`, rama `main`.
-- Último commit funcional: **dashboard de Inicio** y tag **`v1.3.1`**.
-- Estado del repo: `main` limpio y pusheado, tags `v1.2.4`, `v1.2.5`, `v1.3.0` y `v1.3.1` en origin.
+- Último commit funcional: **horas de la semana en Mi página + i18n EN/ES** (`v1.4.0`).
+- Estado del repo: `main` limpio, tags `v1.2.4`, `v1.2.5`, `v1.3.0`, `v1.3.1` y
+  `v1.4.0` en origin.
 - Server: Redmine **7.0.3**, container `redmine-redmine-1`, theme instalado en
   `/usr/src/redmine/themes/redmine-modern-theme-mf-v7`.
-- **Pendiente inmediato**: deployar `v1.3.1` en el server con el bloque de *Deploy* y
-  hacer `Ctrl+F5`. Validar el dashboard de Inicio como admin, usuario común y anónimo.
+- **Pendiente inmediato**: deployar `v1.4.0` en el server con el bloque de *Deploy* y
+  hacer `Ctrl+F5`. Validar el dashboard de Inicio y la tarjeta de horas de Mi página.
 - El theme anterior `redmine-modern-theme-mf` sigue instalado y se puede volver a él
   desde Administración → Configuración → Mostrar → Tema.
 
 ### Última sesión (2026-11-14)
 
+- **Mi página — horas de la semana (v1.4.0)**: séptima tarjeta en `#vz-my`, con las horas
+  registradas por el usuario logueado en la semana actual (lunes a domingo). Lee
+  `/time_entries.csv?from=<lunes>&to=<domingo>&user_id=<id>&c[]=hours` con la sesión, así
+  respeta proyectos privados. El link abre el listado de tiempo filtrado por usuario.
+- **Traducciones EN/ES (v1.4.0)**: se agregó `RM_I18N` al inicio de los bloques locales.
+  Inglés es el idioma por defecto (para compartir el theme) y español se elige solo si
+  `<html lang>` empieza con `es`. Se tradujeron el Vistazo, las tarjetas del listado, Mi
+  página y el ancho de barra lateral. Las claves faltantes caen a inglés.
+- Validado por inyección sobre el server: Mi página admin 18,5 h (link `18:30`), usuario
+  `lumen` 0 h; Vistazo y listado en EN/ES; móvil 390 px; sin errores de JS. El deploy
+  real queda pendiente para el usuario.
 - **Inicio — dashboard general (v1.3.1)**: bloque `#rh-home` sobre el texto de bienvenida,
   con hero + 5 KPIs principales + 5 métricas rápidas + “Abiertas por tipo” y “Actividad
   reciente”. Incluye usuarios (solo admin), proyectos, incidencias, nuevas/cerradas/
@@ -43,9 +55,12 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
    “Según tus permisos”. Como anónimo debe decir “Resumen público” y no mostrar horas.
 2. **Inicio — links**: cada tarjeta y cada barra de “Abiertas por tipo” debe abrir el
    listado filtrado con resultados; “Ver todas” de actividad debe ordenar por actualización.
-3. **Mi página** (`/my/page`): que las 6 tarjetas cuenten y que cada link abra el
-   listado con resultados (usan el id del usuario, no `me`). Con Redmine Admin deben
-   dar: vencidas 20, cerradas 7 días 8, estancadas 2 (verificado contra la API).
+3. **Mi página** (`/my/page`): que las 7 tarjetas cuenten y que cada link abra el
+   listado con resultados (usan el id del usuario, no `me`). La última es **Horas esta
+   semana** (lunes a domingo) y debe mostrar el total del usuario, no el de todos. Con
+   Redmine Admin deben dar: vencidas 20, cerradas 7 días 8, estancadas 2 (verificado
+   contra la API). El valor de horas cambia según la semana; comprobar que el link
+   `/time_entries?from=<lunes>&to=<domingo>&user_id=<id>` muestre el mismo total.
 4. **Listado de incidencias**: agregar la columna **Fecha fin** (Opciones → Columnas) y
    comprobar rojo vencida, naranja ≤7 días, amarillo ≤30 días. Una fecha a +30 días no
    debe tener color ni barra. La barra roja izquierda debe aparecer **solo** en vencidas
@@ -56,7 +71,7 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
    el deploy no tomó la regla con `#header`). El buscador de proyectos y los campos
    autocompletar deben mostrar una sola lupa (sin mosaico).
 7. **Mi cuenta**: al final de la sección *Sidebar position* debe verse
-   `Modern Theme MF v1.3.1` en chico. Ya **no** debe aparecer en el pie del sidebar.
+   `Modern Theme MF v1.4.0` en chico. Ya **no** debe aparecer en el pie del sidebar.
 8. **Listado de incidencias**: en las columnas **Asignado** y **Autor** debe aparecer
    un círculo con iniciales antes del nombre. El color tiene que coincidir con el
    avatar del menú de cuenta (misma clase `avatar-color-<id % 16>` de Redmine).
@@ -83,15 +98,15 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 ### Versionado
 
 - La versión visible está en `javascripts/theme.js`, bloque `LOCAL CUSTOMISATIONS —
-  sidebar width` (`var VERSION = '1.3.1'`).
+  sidebar width` (`var VERSION = '1.4.0'`).
 - Al publicar cambios: subir `VERSION`, commit, `git tag -a vX.Y.Z` y push del tag.
 - Se muestra al final del fieldset `#rm-layout` de **Mi cuenta** (sidebar position /
   width), como `Modern Theme MF vX.Y.Z`.
 
 ### Backlog acordado / ideas
 
-- Mi página: toggles por usuario, dona o mini-gráficos, horas de la semana, umbral de
-  estancadas configurable.
+- Mi página: toggles por usuario, dona o mini-gráficos, umbral de estancadas configurable.
+  (Horas de la semana ya está implementado en `v1.4.0`.)
 - Colores de vencimiento en `/issues` global y en los listados de Mi página; banda de
   60/90 días.
 - Home: cache por sesión, selector de período (7/30/90 días) y tarjeta de usuarios activos
@@ -271,6 +286,9 @@ El theme se elige en **Administración → Configuración → Mostrar → Tema �
 
 ## Dónde tocar cada cosa
 
+- **Textos de los bloques locales**: tabla `RM_I18N` antes del bloque del Vistazo.
+  Inglés es el default; español se usa si `<html lang>` empieza con `es`. Al agregar una
+  clave, agregarla en `en` y `es` (si falta, cae a inglés).
 - **Colores de todo**: tokens en `application.css` §1, o `schemes.css` para esquemas.
   No agregar colores fijos en `custom.css`.
 - **Hero/KPIs/dona/chips**: markup y fetch en el bloque final de `theme.js`; estilos en la
@@ -313,11 +331,14 @@ El theme se elige en **Administración → Configuración → Mostrar → Tema �
   *Tarjetas del listado* en el panel *Personalizar* del Vistazo.
 - **Mi vistazo** (Mi página): bloque final de `theme.js` (`My page`). Inserta una fila de
   KPI arriba de los bloques de `/my/page` con datos del usuario logueado: asignadas
-  abiertas, vencidas, vencen en 7 días, reportadas abiertas, cerradas en 7 días y
-  estancadas +7 días. Resuelve el id del usuario desde el menú (`.flyout-menu__avatar
-  a[href^="/users/"]`, fallback `a.user`) y lo usa en los links (`f[]` + `op[]=` +
-  `v[]`) y en `/issues.json?assigned_to_id=<id>`; si no lo encuentra cae a `me`. No
-  usar `op[assigned_to_id]=me`: el operador va vacío (`=`) y `me` es el valor.
+  abiertas, vencidas, vencen en 7 días, reportadas abiertas, cerradas en 7 días,
+  estancadas +7 días y horas de la semana actual (lunes a domingo). Resuelve el id del
+  usuario desde el menú (`.flyout-menu__avatar a[href^="/users/"]`, fallback `a.user`) y
+  lo usa en los links (`f[]` + `op[]=` + `v[]`) y en `/issues.json?assigned_to_id=<id>`;
+  si no lo encuentra cae a `me`. No usar `op[assigned_to_id]=me`: el operador va vacío
+  (`=`) y `me` es el valor. Las horas salen de
+  `/time_entries.csv?from=<lunes>&to=<domingo>&user_id=<id>&c[]=hours` con la sesión, no
+  de la API JSON.
 - **Calendario**: sección *Calendar* al final de `custom.css`. El core pinta
   `ul.cal .calbody.this-month` con `--oc-white` y el resto con `--oc-gray-1`, valores
   fijos que no cambian en dark. Además, el CSS de RedmineUP se carga después del theme
