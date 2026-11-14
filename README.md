@@ -137,8 +137,9 @@ map, token translations and how to update from upstream.
   the logged-in user.
 - **Home dashboard** — a permission-aware overview above the welcome text: users
   (admin only), visible projects and issues, new/closed/updated in the last 7 days,
-  logged hours, average closing time, open issues by tracker and recent activity. It
-  reads Redmine's HTML pages with the current session, so administrators get the global
+  logged hours, average closing time, open issues by tracker and recent activity. The
+  users card shows active users (last login in 7 days) and new users. It reads
+  Redmine's HTML pages with the current session, so administrators get the global
   totals, members get their visible projects/issues and anonymous visitors get public
   data. No API key, backend or external requests.
 - **Calendar** — the issue calendar grid uses theme surfaces and borders instead of

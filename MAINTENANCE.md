@@ -5,25 +5,30 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 ## Estado actual (2026-11-14)
 
 - Repo: `matbott/redmine-modern-theme-mf-v7`, rama `main`.
-- Último commit funcional: **dashboard de Inicio** y tag **`v1.3.0`**.
-- Estado del repo: `main` limpio y pusheado, tags `v1.2.4`, `v1.2.5` y `v1.3.0` en origin.
+- Último commit funcional: **dashboard de Inicio** y tag **`v1.3.1`**.
+- Estado del repo: `main` limpio y pusheado, tags `v1.2.4`, `v1.2.5`, `v1.3.0` y `v1.3.1` en origin.
 - Server: Redmine **7.0.3**, container `redmine-redmine-1`, theme instalado en
   `/usr/src/redmine/themes/redmine-modern-theme-mf-v7`.
-- **Pendiente inmediato**: deployar `v1.3.0` en el server con el bloque de *Deploy* y
+- **Pendiente inmediato**: deployar `v1.3.1` en el server con el bloque de *Deploy* y
   hacer `Ctrl+F5`. Validar el dashboard de Inicio como admin, usuario común y anónimo.
 - El theme anterior `redmine-modern-theme-mf` sigue instalado y se puede volver a él
   desde Administración → Configuración → Mostrar → Tema.
 
 ### Última sesión (2026-11-14)
 
-- **Inicio — dashboard general (v1.3.0)**: bloque `#rh-home` sobre el texto de bienvenida,
+- **Inicio — dashboard general (v1.3.1)**: bloque `#rh-home` sobre el texto de bienvenida,
   con hero + 5 KPIs principales + 5 métricas rápidas + “Abiertas por tipo” y “Actividad
   reciente”. Incluye usuarios (solo admin), proyectos, incidencias, nuevas/cerradas/
   actualizadas en 7 días, horas registradas, cierre promedio y actividad reciente.
+  La tarjeta de usuarios muestra también los usuarios nuevos de los últimos 7 días.
 - Los conteos se leen de las **páginas HTML** de Redmine con la sesión actual, no de la
   API JSON: en este server la API JSON no autentica por cookie y devolvía solo datos
   públicos. Así el admin ve los totales globales, un usuario común ve sus proyectos e
   incidencias visibles y el anónimo ve solo lo público.
+- **Usuarios activos**: se cuentan con el filtro propio de Redmine
+  (`last_login_on >= hace 7 días`), no parseando fechas del CSV. La tarjeta muestra
+  además cuántos usuarios se crearon en esos 7 días. “Activo” = con último acceso, no
+  alguien que solo fue creado o que abrió incidencias.
 - Validado con un proyecto privado temporal: admin 4 proyectos / 93 incidencias, usuario
   miembro 4 / 93, anónimo 3 / 92. El proyecto de prueba se eliminó al terminar.
 - Validado en claro/oscuro, español/inglés y móvil (390 px), sin errores de JS.
@@ -31,7 +36,7 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 
 ### Verificación pendiente (para mañana)
 
-1. **Inicio — dashboard (v1.3.0)**: como admin deben verse Usuarios 4 / 3 activos,
+1. **Inicio — dashboard (v1.3.1)**: como admin deben verse Usuarios 4 / 3 activos / 2 nuevos,
    Proyectos 3 (3 abiertos · 0 cerrados), Incidencias 92 (77 abiertas · 15 cerradas),
    Nuevas 45, Cerradas 14, Actualizadas 88, Horas 18,5 h y Cierre promedio 34,3 d.
    Como usuario común la tarjeta de Usuarios se oculta y el chip debe decir
@@ -51,7 +56,7 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
    el deploy no tomó la regla con `#header`). El buscador de proyectos y los campos
    autocompletar deben mostrar una sola lupa (sin mosaico).
 7. **Mi cuenta**: al final de la sección *Sidebar position* debe verse
-   `Modern Theme MF v1.3.0` en chico. Ya **no** debe aparecer en el pie del sidebar.
+   `Modern Theme MF v1.3.1` en chico. Ya **no** debe aparecer en el pie del sidebar.
 8. **Listado de incidencias**: en las columnas **Asignado** y **Autor** debe aparecer
    un círculo con iniciales antes del nombre. El color tiene que coincidir con el
    avatar del menú de cuenta (misma clase `avatar-color-<id % 16>` de Redmine).
@@ -78,7 +83,7 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 ### Versionado
 
 - La versión visible está en `javascripts/theme.js`, bloque `LOCAL CUSTOMISATIONS —
-  sidebar width` (`var VERSION = '1.3.0'`).
+  sidebar width` (`var VERSION = '1.3.1'`).
 - Al publicar cambios: subir `VERSION`, commit, `git tag -a vX.Y.Z` y push del tag.
 - Se muestra al final del fieldset `#rm-layout` de **Mi cuenta** (sidebar position /
   width), como `Modern Theme MF vX.Y.Z`.

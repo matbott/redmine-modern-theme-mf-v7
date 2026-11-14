@@ -1583,7 +1583,7 @@
   var root = document.documentElement;
   var KEY = 'rm-sidebar-width';
   var MIN = 180, MAX = 360;
-  var VERSION = '1.3.0';
+  var VERSION = '1.3.1';
 
   function storedWidth() {
     try {
@@ -1982,6 +1982,8 @@
       na: '—',
       users: 'Usuarios',
       usersActive: '{n} activos 7d',
+      usersNew: '{n} nuevos 7d',
+      usersHint: 'Usuarios con última conexión en los últimos 7 días. Los usuarios nuevos aún sin acceso no cuentan como activos.',
       projects: 'Proyectos',
       projectsVisible: 'Proyectos visibles',
       projectsPublic: 'Proyectos públicos',
@@ -2023,6 +2025,8 @@
       na: '—',
       users: 'Users',
       usersActive: '{n} active in 7d',
+      usersNew: '{n} new in 7d',
+      usersHint: 'Users with a login in the last 7 days. New users who have not signed in yet do not count as active.',
       projects: 'Projects',
       projectsVisible: 'Visible projects',
       projectsPublic: 'Public projects',
@@ -2147,6 +2151,13 @@
       return '/projects?set_filter=1&f%5B%5D=status&op%5Bstatus%5D=%3D&v%5Bstatus%5D%5B%5D=' + encodeURIComponent(status);
     }
 
+    function userQuery(field) {
+      var base = '/users?status=1';
+      if (!field) return base;
+      return base + '&set_filter=1&f%5B%5D=' + field + '&op%5B' + field + '%5D=%3E%3D' +
+        '&v%5B' + field + '%5D%5B%5D=' + encodeURIComponent(weekAgo);
+    }
+
     var jsonCache = {};
     function json(url) {
       if (jsonCache[url]) return jsonCache[url];
@@ -2177,15 +2188,23 @@
       return p;
     }
 
-    function issueCount(doc) {
+    function pageCount(doc, rowsSelector) {
       var items = doc.querySelector('.pagination .items');
       if (items) {
         var m = (items.textContent || '').match(/(\d+)\s*[-–]\s*(\d+)\s*\/\s*(\d+)/);
         if (m) return parseInt(m[3], 10);
       }
-      var rows = doc.querySelectorAll('table.issues tbody tr');
+      var rows = doc.querySelectorAll(rowsSelector || 'table.list tbody tr');
       if (rows.length) return rows.length;
       return 0;
+    }
+
+    function issueCount(doc) {
+      return pageCount(doc, 'table.issues tbody tr');
+    }
+
+    function userCount(doc) {
+      return pageCount(doc, 'table.users tbody tr');
     }
 
     function projectCount(doc) {
@@ -2395,20 +2414,21 @@
     document.getElementById('rh-quick').innerHTML = quick.map(function (c) { return cardHtml(c, true); }).join('');
 
     if (isAdmin) {
-      csv('/users.csv?status=1&c%5B%5D=login&c%5B%5D=last_login_on')
-        .then(function (source) {
-          var rows = csvRows(source).slice(1).filter(function (r) {
-            return r.length > 1 && r[0];
-          });
-          var active = rows.filter(function (r) {
-            return r[1] && r[1].slice(0, 10) >= weekAgo;
-          }).length;
-          setValue('users', num(rows.length), fmt(T.usersActive, { n: num(active) }));
-        })
-        .catch(function (e) {
-          console.warn('Home dashboard [users]:', e.message || e);
-          hideCard('users');
-        });
+      Promise.all([
+        html(userQuery(null)).then(userCount),
+        html(userQuery('last_login_on')).then(userCount),
+        html(userQuery('created_on')).then(userCount)
+      ]).then(function (v) {
+        if (v[0] == null) { hideCard('users'); return; }
+        var sub = fmt(T.usersActive, { n: num(v[1] || 0) });
+        if (v[2] > 0) sub += ' · ' + fmt(T.usersNew, { n: num(v[2]) });
+        setValue('users', num(v[0]), sub);
+        var card = document.getElementById('rh-card-users');
+        if (card) card.title = T.usersHint;
+      }).catch(function (e) {
+        console.warn('Home dashboard [users]:', e.message || e);
+        hideCard('users');
+      });
     }
 
     var projectsP = Promise.all([
