@@ -136,6 +136,9 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 
 - Mi página: toggles por usuario, dona o mini-gráficos, umbral de estancadas configurable.
   (Horas de la semana ya está implementado en `v1.4.0`.)
+- Home, panel de tiempo dedicado: tarjetas por usuario con horas, usando los últimos 5–6
+  usuarios según las últimas horas cargadas; si un proyecto tiene 20 usuarios, no se
+  esperan 20 tarjetas, solo los últimos que sumaron horas.
 - Colores de vencimiento en `/issues` global y en los listados de Mi página; banda de
   60/90 días.
 - Home: cache por sesión, selector de período (7/30/90 días) y tarjeta de usuarios activos
