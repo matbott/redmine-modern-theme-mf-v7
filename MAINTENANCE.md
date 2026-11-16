@@ -5,21 +5,22 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 ## Estado actual (2026-11-16)
 
 - Repo: `matbott/redmine-modern-theme-mf-v7`, rama `main`.
-- Último commit funcional: **top 10 + selector barras/dona en “Abiertas por tipo”**
-  (`v1.5.0`).
+- Último commit funcional: **paneles de Inicio 50/50** (`v1.5.1`).
 - Estado del repo: `main` limpio, tags `v1.2.4`, `v1.2.5`, `v1.3.0`, `v1.3.1`,
-  `v1.4.0` y `v1.5.0` en origin.
+  `v1.4.0`, `v1.5.0` y `v1.5.1` en origin.
 - Server: Redmine **7.0.3**, container `redmine-redmine-1`, theme instalado en
   `/usr/src/redmine/themes/redmine-modern-theme-mf-v7`.
-- **Pendiente inmediato**: deployar `v1.5.0` en el server con el bloque de *Deploy* y
-  hacer `Ctrl+F5`. Validar que “Abiertas por tipo” muestre los 10 tipos con más abiertas
-  en una instancia con 44 trackers, el pie `+N tipos · M abiertas` y el selector
-  Barras/Dona.
+- **Pendiente inmediato**: deployar `v1.5.1` en el server con el bloque de *Deploy* y
+  hacer `Ctrl+F5`. Validar “Abiertas por tipo” (top 10, pie y selector Barras/Dona) y que
+  los paneles de Inicio queden 50/50.
 - El theme anterior `redmine-modern-theme-mf` sigue instalado y se puede volver a él
   desde Administración → Configuración → Mostrar → Tema.
 
 ### Última sesión (2026-11-16)
 
+- **Inicio — paneles 50/50 (v1.5.1)**: `.rh-grid` pasó de `1.15fr / .85fr` a
+  `repeat(2, minmax(0, 1fr))`, así “Abiertas por tipo” y “Actividad reciente” ocupan el
+  mismo ancho. En móvil sigue apilado en una columna.
 - **Inicio — “Abiertas por tipo” (v1.5.0)**: el bloque ya no toma solo los primeros 10
   trackers de `/trackers.json` ni pide un conteo por tracker. Lee el listado global
   agrupado por tipo (`/issues?...&group_by=tracker&sort=tracker:asc&per_page=100`) y
@@ -91,7 +92,7 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
    el deploy no tomó la regla con `#header`). El buscador de proyectos y los campos
    autocompletar deben mostrar una sola lupa (sin mosaico).
 7. **Mi cuenta**: al final de la sección *Sidebar position* debe verse
-   `Modern Theme MF v1.5.0` en chico. Ya **no** debe aparecer en el pie del sidebar.
+   `Modern Theme MF v1.5.1` en chico. Ya **no** debe aparecer en el pie del sidebar.
 8. **Listado de incidencias**: en las columnas **Asignado** y **Autor** debe aparecer
    un círculo con iniciales antes del nombre. El color tiene que coincidir con el
    avatar del menú de cuenta (misma clase `avatar-color-<id % 16>` de Redmine).
@@ -118,7 +119,7 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 ### Versionado
 
 - La versión visible está en `javascripts/theme.js`, bloque `LOCAL CUSTOMISATIONS —
-  sidebar width` (`var VERSION = '1.5.0'`).
+  sidebar width` (`var VERSION = '1.5.1'`).
 - Al publicar cambios: subir `VERSION`, commit, `git tag -a vX.Y.Z` y push del tag.
 - Se muestra al final del fieldset `#rm-layout` de **Mi cuenta** (sidebar position /
   width), como `Modern Theme MF vX.Y.Z`.
