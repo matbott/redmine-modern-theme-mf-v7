@@ -1158,6 +1158,10 @@ a.rh-kpi:focus-visible {
 .rh-kpi--quick .rh-ico { inline-size: 30px; block-size: 30px; }
 .rh-kpi--quick b { font-size: 1.2rem; }
 
+.rh-grid {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px; align-items: start;
+}
 .rh-panel {
   min-inline-size: 0; padding: 16px 18px;
   border: 1px solid var(--rm-border); border-radius: var(--rm-r-md);
@@ -1173,6 +1177,26 @@ a.rh-kpi:focus-visible {
   text-decoration: none;
 }
 .rh-panel-head a:hover { color: var(--rm-link-strong); text-decoration: underline; }
+
+.rh-donut-wrap {
+  margin-block-start: 2px;
+  --rh-c1: var(--rm-accent);
+  --rh-c2: var(--rm-green);
+  --rh-c3: var(--rm-blue);
+  --rh-c4: var(--rm-yellow);
+  --rh-c5: var(--rm-purple);
+}
+.rh-donut-wrap .vz-legend li { font-size: .78rem; }
+.rh-donut-wrap .vz-legend li.is-other .vz-leg-name { color: var(--rm-muted); }
+
+.rh-tracker-foot {
+  margin-block-start: 10px;
+  font-size: .72rem; line-height: 1.5; color: var(--rm-muted);
+}
+.rh-tracker-foot span { margin-inline-end: 8px; }
+.rh-tracker-foot a { color: inherit; text-decoration: none; }
+.rh-tracker-foot a:hover,
+.rh-tracker-foot a:focus-visible { color: var(--rm-link); text-decoration: underline; }
 
 .rh-activity { list-style: none; margin: 0; padding: 0; }
 .rh-activity li {
@@ -1198,6 +1222,7 @@ a.rh-kpi:focus-visible {
 .rh-home .rh-panel { animation: vz-in .35s ease both; }
 
 @media (max-width: 900px) {
+  .rh-grid { grid-template-columns: 1fr; }
   .rh-hero { flex-direction: column; align-items: flex-start; }
   .rh-hero-side { justify-content: flex-start; }
 }

@@ -1778,7 +1778,7 @@ var RM_I18N = (function () {
   var root = document.documentElement;
   var KEY = 'rm-sidebar-width';
   var MIN = 180, MAX = 360;
-  var VERSION = '1.6.0';
+  var VERSION = '1.7.0';
 
   function storedWidth() {
     try {
@@ -2230,10 +2230,18 @@ var RM_I18N = (function () {
       hours7Sub: 'tiempo dedicado',
       avgClose: 'Cierre promedio',
       avgCloseSub: 'últimas 30 cerradas',
+      byTracker: 'Abiertas por tipo',
+      others: 'Otros',
+      openCaption: 'abiertas',
+      chartAria: '{n} incidencias abiertas por tipo',
+      trackerLimit: 'Calculado sobre las primeras {limit} de {total} abiertas.',
+      viewAll: 'Ver todas',
+      viewAllOpen: 'Ver todas las abiertas',
       recent: 'Actividad reciente',
       allRecent: 'Ver todas',
       noData: 'Sin datos',
-      noActivity: 'Sin actividad reciente.'
+      noActivity: 'Sin actividad reciente.',
+      noTrackers: 'Sin datos por tipo.'
     },
     en: {
       title: 'Overview',
@@ -2270,10 +2278,18 @@ var RM_I18N = (function () {
       hours7Sub: 'time spent',
       avgClose: 'Average close',
       avgCloseSub: 'last 30 closed',
+      byTracker: 'Open by type',
+      others: 'Others',
+      openCaption: 'open',
+      chartAria: '{n} open issues by type',
+      trackerLimit: 'Based on the first {limit} of {total} open issues.',
+      viewAll: 'View all',
+      viewAllOpen: 'View all open issues',
       recent: 'Recent activity',
       allRecent: 'View all',
       noData: 'No data',
-      noActivity: 'No recent activity.'
+      noActivity: 'No recent activity.',
+      noTrackers: 'No type data.'
     }
   };
 
@@ -2565,11 +2581,20 @@ var RM_I18N = (function () {
       '</section>' +
       '<div class="rh-kpis" id="rh-kpis"></div>' +
       '<div class="rh-quick" id="rh-quick"></div>' +
-      '<section class="rh-panel">' +
-        '<div class="rh-panel-head"><h3>' + esc(T.recent) + '</h3>' +
-          '<a href="' + esc(issueQuery([['status_id', '*']]) + '&sort=updated_on:desc') + '">' + esc(T.allRecent) + '</a></div>' +
-        '<ul class="rh-activity" id="rh-activity"><li class="rh-empty">' + esc(T.loading) + '</li></ul>' +
-      '</section>';
+      '<div class="rh-grid">' +
+        '<section class="rh-panel">' +
+          '<div class="rh-panel-head"><h3>' + esc(T.byTracker) + '</h3></div>' +
+          '<div class="rh-donut-wrap" id="rh-trackers">' +
+            '<div class="rh-empty">' + esc(T.loading) + '</div>' +
+          '</div>' +
+          '<div class="rh-tracker-foot" id="rh-tracker-foot" hidden></div>' +
+        '</section>' +
+        '<section class="rh-panel">' +
+          '<div class="rh-panel-head"><h3>' + esc(T.recent) + '</h3>' +
+            '<a href="' + esc(issueQuery([['status_id', '*']]) + '&sort=updated_on:desc') + '">' + esc(T.allRecent) + '</a></div>' +
+          '<ul class="rh-activity" id="rh-activity"><li class="rh-empty">' + esc(T.loading) + '</li></ul>' +
+        '</section>' +
+      '</div>';
 
     var h2 = content.querySelector(':scope > h2');
     if (h2 && h2.parentNode === content) {
@@ -2683,6 +2708,136 @@ var RM_I18N = (function () {
         console.warn('Home dashboard [avg close]:', e.message || e);
         hideCard('avg-close');
       });
+
+    (function loadTrackers() {
+      var box = document.getElementById('rh-trackers');
+      var foot = document.getElementById('rh-tracker-foot');
+      if (!box) return;
+
+      var LIMIT = 1000;
+      var PER_PAGE = 100;
+
+      function sum(list) {
+        return list.reduce(function (s, it) { return s + it.value; }, 0);
+      }
+
+      function footHtml(total) {
+        if (!foot) return;
+        var href = issueQuery([['status_id', 'o']]) + '&group_by=tracker';
+        foot.hidden = false;
+        if (total > LIMIT) {
+          foot.innerHTML = '<span>' + esc(fmt(T.trackerLimit, {
+            limit: num(LIMIT), total: num(total)
+          })) + '</span> <a href="' + esc(href) + '">' + esc(T.viewAll) + '</a>';
+        } else {
+          foot.innerHTML = '<a href="' + esc(href) + '">' + esc(T.viewAllOpen) + '</a>';
+        }
+      }
+
+      function parseGroups(doc) {
+        var out = {};
+        Array.prototype.forEach.call(doc.querySelectorAll('table.issues tbody tr.group'), function (tr) {
+          var nameEl = tr.querySelector('span.name') || tr.querySelector('.group-name');
+          var countEl = tr.querySelector('span.badge-count') || tr.querySelector('.count');
+          if (!nameEl) return;
+          var name = nameEl.textContent.trim();
+          var n = countEl ? parseInt(countEl.textContent.replace(/[^\d]/g, ''), 10) : 0;
+          if (name && isFinite(n)) out[name] = n;
+        });
+        return out;
+      }
+
+      function renderDonut(rows) {
+        var top = rows.slice(0, 5);
+        var rest = rows.slice(5);
+        var slices = top.slice();
+        if (rest.length) slices.push({ label: T.others, value: sum(rest), other: true });
+        var total = sum(slices);
+        if (!total) {
+          box.className = 'rh-donut-wrap';
+          box.innerHTML = '<div class="rh-empty">' + esc(T.noTrackers) + '</div>';
+          return;
+        }
+        var off = 0;
+        var segs = slices.map(function (it, i) {
+          var pct = it.value * 100 / total;
+          var color = it.other ? 'var(--rm-muted)' : 'var(--rh-c' + (i + 1) + ')';
+          var seg = '<circle class="vz-donut-seg" cx="60" cy="60" r="46" fill="none" stroke-width="14"' +
+            ' pathLength="100" stroke="' + color + '"' +
+            ' stroke-dasharray="' + pct + ' ' + (100 - pct) + '"' +
+            ' stroke-dashoffset="' + (-off) + '" transform="rotate(-90 60 60)">' +
+            '<title>' + esc(it.label) + ': ' + num(it.value) + '</title></circle>';
+          off += pct;
+          return seg;
+        }).join('');
+        var legend = slices.map(function (it, i) {
+          var pct = Math.round(it.value * 100 / total);
+          var color = it.other ? 'var(--rm-muted)' : 'var(--rh-c' + (i + 1) + ')';
+          return '<li' + (it.other ? ' class="is-other"' : '') + '>' +
+            '<span class="vz-dot" style="background:' + color + '"></span>' +
+            '<span class="vz-leg-name">' + esc(it.label) + '</span>' +
+            '<span class="vz-leg-val">' + num(it.value) + '</span>' +
+            '<span class="vz-leg-pct">' + pct + '%</span></li>';
+        }).join('');
+        box.className = 'vz-donut-wrap rh-donut-wrap';
+        box.innerHTML =
+          '<svg class="vz-donut rh-donut" viewBox="0 0 120 120" role="img" aria-label="' + esc(fmt(T.chartAria, { n: num(total) })) + '">' +
+            '<circle class="vz-donut-track" cx="60" cy="60" r="46" fill="none" stroke-width="14"/>' +
+            segs +
+            '<text class="vz-donut-total" x="60" y="58" text-anchor="middle">' + num(total) + '</text>' +
+            '<text class="vz-donut-cap" x="60" y="72" text-anchor="middle">' + esc(T.openCaption) + '</text>' +
+          '</svg>' +
+          '<ul class="vz-legend">' + legend + '</ul>';
+      }
+
+      safeIssueCount([['status_id', 'o']]).then(function (total) {
+        if (total == null) {
+          box.innerHTML = '<div class="rh-empty">' + esc(T.noData) + '</div>';
+          return;
+        }
+        footHtml(total);
+        if (!total) {
+          box.innerHTML = '<div class="rh-empty">' + esc(T.noTrackers) + '</div>';
+          return;
+        }
+        var scan = Math.min(total, LIMIT);
+        var pages = Math.max(1, Math.ceil(scan / PER_PAGE));
+        var base = issueQuery([['status_id', 'o']]) +
+          '&group_by=tracker&sort=tracker%3Aasc&per_page=' + PER_PAGE + '&c%5B%5D=id';
+
+        function fetchPage(page, map) {
+          if (page > pages) return Promise.resolve(map);
+          return html(base + '&page=' + page).then(function (doc) {
+            var pageMap = parseGroups(doc);
+            Object.keys(pageMap).forEach(function (name) { map[name] = pageMap[name]; });
+            return fetchPage(page + 1, map);
+          });
+        }
+
+        fetchPage(1, {}).then(function (map) {
+          var rows = Object.keys(map).map(function (name) {
+            return { label: name, value: map[name] };
+          }).filter(function (r) { return r.value > 0; });
+          rows.sort(function (a, b) {
+            return b.value - a.value || a.label.localeCompare(b.label, lang);
+          });
+          if (!rows.length) {
+            box.className = 'rh-donut-wrap';
+            box.innerHTML = '<div class="rh-empty">' + esc(T.noTrackers) + '</div>';
+            return;
+          }
+          renderDonut(rows);
+        }).catch(function (e) {
+          console.warn('Home dashboard [trackers]:', e.message || e);
+          box.className = 'rh-donut-wrap';
+          box.innerHTML = '<div class="rh-empty">' + esc(T.noData) + '</div>';
+        });
+      }).catch(function (e) {
+        console.warn('Home dashboard [trackers total]:', e.message || e);
+        box.className = 'rh-donut-wrap';
+        box.innerHTML = '<div class="rh-empty">' + esc(T.noData) + '</div>';
+      });
+    })();
 
     (function loadActivity() {
       var box = document.getElementById('rh-activity');

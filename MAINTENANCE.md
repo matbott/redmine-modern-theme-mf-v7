@@ -5,27 +5,28 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 ## Estado actual (2026-11-16)
 
 - Repo: `matbott/redmine-modern-theme-mf-v7`, rama `main`.
-- Último commit funcional: **panel “Abiertas por tipo” eliminado** (`v1.6.0`).
+- Último commit funcional: **panel “Abiertas por tipo” restaurado con dona top 5 y límite
+  de 1.000 abiertas** (`v1.7.0`).
 - Estado del repo: `main` limpio, tags `v1.2.4`, `v1.2.5`, `v1.3.0`, `v1.3.1`,
-  `v1.4.0`, `v1.5.0`, `v1.5.1` y `v1.6.0` en origin.
+  `v1.4.0`, `v1.5.0`, `v1.5.1`, `v1.6.0` y `v1.7.0` en origin.
 - Server: Redmine **7.0.3**, container `redmine-redmine-1`, theme instalado en
   `/usr/src/redmine/themes/redmine-modern-theme-mf-v7`.
-- **Pendiente inmediato**: deployar `v1.6.0` en el server con el bloque de *Deploy* y
-  hacer `Ctrl+F5`. Validar que Inicio ya no muestre “Abiertas por tipo” y que
-  “Actividad reciente” ocupe todo el ancho.
+- **Pendiente inmediato**: deployar `v1.7.0` en el server con el bloque de *Deploy* y
+  hacer `Ctrl+F5`. Validar que Inicio muestre la torta top 5 con “Otros”, el aviso del
+  límite de 1.000 abiertas y que los paneles queden 50/50.
 - El theme anterior `redmine-modern-theme-mf` sigue instalado y se puede volver a él
   desde Administración → Configuración → Mostrar → Tema.
 
 ### Última sesión (2026-11-16)
 
-- **Inicio — panel “Abiertas por tipo” eliminado (v1.6.0)**: se quitó el panel completo,
-  el selector Barras/Dona, el pie de tipos restantes, las traducciones y los estilos
-  asociados. También se eliminó el recorrido de todas las páginas del listado agrupado
-  (`group_by=tracker`), que provocaba carga excesiva en una instancia grande.
-  “Actividad reciente” queda a todo el ancho debajo de las tarjetas KPI.
-- **Plugin de estadísticas (diferido)**: si se quiere recuperar el desglose por tipo, debe
-  hacerse con un plugin de Redmine que devuelva un JSON agregado y cacheado, no leyendo
-  páginas del listado. Es un cambio mayor y no está implementado.
+- **Inicio — panel “Abiertas por tipo” restaurado con límite (v1.7.0)**: se volvió a mostrar,
+  pero como **torta con top 5 y “Otros”**. El loader escanea listado agrupado secuencialmente
+  con máximo de **1.000 abiertas** y, si hay más, aclara “Calculado sobre las primeras 1.000 de
+  {total} abiertas” con link **Ver todas**.
+- **Plugin de estadísticas (diferido)**: si se quiere recuperar el desglose sin límite cliente,
+  debe hacerse con un plugin de Redmine con `GROUP BY tracker_id` y cache. Ver el bloque
+  equivalente en `docs/DEVELOPMENT.md` de Lumen.
+
 - **Inicio — paneles 50/50 (v1.5.1)**: `.rh-grid` pasó de `1.15fr / .85fr` a
   `repeat(2, minmax(0, 1fr))`, así “Abiertas por tipo” y “Actividad reciente” ocupan el
   mismo ancho. En móvil sigue apilado en una columna.
@@ -79,10 +80,10 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
    Nuevas 45, Cerradas 14, Actualizadas 88, Horas 18,5 h y Cierre promedio 34,3 d.
    Como usuario común la tarjeta de Usuarios se oculta y el chip debe decir
    “Según tus permisos”. Como anónimo debe decir “Resumen público” y no mostrar horas.
-2. **Inicio — panel por tipo eliminado (v1.6.0)**: no debe existir el panel
-   “Abiertas por tipo”, el selector Barras/Dona ni el pie de tipos restantes.
-   “Actividad reciente” debe ocupar todo el ancho debajo de las tarjetas KPI.
-   En la pestaña Network no debe aparecer ninguna petición con `group_by=tracker`.
+2. **Inicio — panel por tipo restaurado (v1.7.0)**: debe existir el panel con una torta
+   top 5 y **Otros**, el pie con aviso/link y el escaneo acotado a 1.000 abiertas.
+   Los paneles de Inicio deben quedar 50/50; en móvil se apilan.
+   En la pestaña Network no debe superar las 10 páginas del listado agrupado.
 3. **Mi página** (`/my/page`): que las 7 tarjetas cuenten y que cada link abra el
    listado con resultados (usan el id del usuario, no `me`). La última es **Horas esta
    semana** (lunes a domingo) y debe mostrar el total del usuario, no el de todos. Con
@@ -99,7 +100,7 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
    el deploy no tomó la regla con `#header`). El buscador de proyectos y los campos
    autocompletar deben mostrar una sola lupa (sin mosaico).
 7. **Mi cuenta**: al final de la sección *Sidebar position* debe verse
-   `Modern Theme MF v1.6.0` en chico. Ya **no** debe aparecer en el pie del sidebar.
+   `Modern Theme MF v1.7.0` en chico. Ya **no** debe aparecer en el pie del sidebar.
 8. **Listado de incidencias**: en las columnas **Asignado** y **Autor** debe aparecer
    un círculo con iniciales antes del nombre. El color tiene que coincidir con el
    avatar del menú de cuenta (misma clase `avatar-color-<id % 16>` de Redmine).
@@ -126,7 +127,7 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 ### Versionado
 
 - La versión visible está en `javascripts/theme.js`, bloque `LOCAL CUSTOMISATIONS —
-  sidebar width` (`var VERSION = '1.6.0'`).
+  sidebar width` (`var VERSION = '1.7.0'`).
 - Al publicar cambios: subir `VERSION`, commit, `git tag -a vX.Y.Z` y push del tag.
 - Se muestra al final del fieldset `#rm-layout` de **Mi cuenta** (sidebar position /
   width), como `Modern Theme MF vX.Y.Z`.

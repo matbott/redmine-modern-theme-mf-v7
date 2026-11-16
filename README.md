@@ -142,12 +142,14 @@ Spanish table selected automatically when Redmine's `<html lang>` starts with `e
 - **Home dashboard** — a permission-aware overview above the welcome text: users
   (admin only), visible projects and issues, new/closed/updated in the last 7 days,
   logged hours, average closing time and recent activity. The users card shows active
-  users (last login in 7 days) and new users. Recent activity uses the full width below
-  the KPI cards. It reads Redmine's HTML pages with the current session, so
-  administrators get the global totals, members get their visible projects/issues and
-  anonymous visitors get public data. No API key, backend or external requests.
-  Per-tracker breakdowns were removed in `v1.6.0`; restoring them requires an optional
-  server-side stats plugin.
+  users (last login in 7 days) and new users. Home **Open by type** is back as a donut:
+  **top 5 trackers by open count**, with **Others** containing the rest. It scans a grouped
+  issue list sequentially and is capped at **1,000 open issues**. When there are more, it
+  notes that the figures are based on the first 1,000 and links to the full grouped list.
+  Recent activity shares the row 50/50 below the KPI cards with this chart. It reads
+  Redmine's HTML pages with the current session, so administrators get the global totals,
+  members get their visible projects/issues and anonymous visitors get public data. No API
+  key, backend or external requests.
 - **Calendar** — the issue calendar grid uses theme surfaces and borders instead of
   core's static white/grey open-colors, so it follows dark mode and schemes.
 - **Initials avatars** — in issue lists, the **Assigned to** and **Author** columns get a
