@@ -1778,7 +1778,7 @@ var RM_I18N = (function () {
   var root = document.documentElement;
   var KEY = 'rm-sidebar-width';
   var MIN = 180, MAX = 360;
-  var VERSION = '1.4.0';
+  var VERSION = '1.5.0';
 
   function storedWidth() {
     try {
@@ -2186,10 +2186,10 @@ var RM_I18N = (function () {
    projects, issues, seven-day activity, logged time, average
    close time, open issues by tracker and recent activity.
 
-   Every count comes from the JSON API and therefore respects the
-   current user's project/issue visibility. The users card is only
-   rendered for administrators; time and average-close cards hide
-   themselves if the endpoint is not available.
+   Every count comes from Redmine's HTML pages and CSV exports with the
+   current session, so it respects the user's project/issue visibility.
+   The users card is only rendered for administrators; time and
+   average-close cards hide themselves if the endpoint is not available.
    ============================================================ */
 (function () {
   'use strict';
@@ -2231,6 +2231,14 @@ var RM_I18N = (function () {
       avgClose: 'Cierre promedio',
       avgCloseSub: 'últimas 30 cerradas',
       byTracker: 'Abiertas por tipo',
+      chartBars: 'Barras',
+      chartDonut: 'Dona',
+      chartView: 'Vista del gráfico',
+      others: 'Otros',
+      moreTypes: '+ {types} tipos · {open} abiertas',
+      moreType: '+ {types} tipo · {open} abiertas',
+      openCaption: 'abiertas',
+      chartAria: '{n} incidencias abiertas por tipo',
       recent: 'Actividad reciente',
       allOpen: 'Ver abiertas',
       allRecent: 'Ver todas',
@@ -2274,6 +2282,14 @@ var RM_I18N = (function () {
       avgClose: 'Average close',
       avgCloseSub: 'last 30 closed',
       byTracker: 'Open by type',
+      chartBars: 'Bars',
+      chartDonut: 'Donut',
+      chartView: 'Chart view',
+      others: 'Others',
+      moreTypes: '+ {types} types · {open} open',
+      moreType: '+ {types} type · {open} open',
+      openCaption: 'open',
+      chartAria: '{n} open issues by type',
       recent: 'Recent activity',
       allOpen: 'View open',
       allRecent: 'View all',
@@ -2597,9 +2613,14 @@ var RM_I18N = (function () {
         '<section class="rh-panel">' +
           '<div class="rh-panel-head"><h3>' + esc(T.byTracker) + '</h3>' +
             '<a href="' + esc(issueQuery([['status_id', 'o']])) + '">' + esc(T.allOpen) + '</a></div>' +
+          '<div class="vz-chart-switch" id="rh-tracker-switch" role="tablist" aria-label="' + esc(T.chartView) + '">' +
+            '<button type="button" class="vz-chart-tab is-active" data-mode="bars" role="tab" aria-selected="true" aria-controls="rh-trackers">' + esc(T.chartBars) + '</button>' +
+            '<button type="button" class="vz-chart-tab" data-mode="donut" role="tab" aria-selected="false" aria-controls="rh-trackers">' + esc(T.chartDonut) + '</button>' +
+          '</div>' +
           '<div class="rh-bars" id="rh-trackers">' +
             '<div class="vz-sk"></div><div class="vz-sk w80"></div><div class="vz-sk w60"></div>' +
           '</div>' +
+          '<div class="rh-tracker-foot" id="rh-tracker-foot" hidden></div>' +
         '</section>' +
         '<section class="rh-panel">' +
           '<div class="rh-panel-head"><h3>' + esc(T.recent) + '</h3>' +
@@ -2723,39 +2744,195 @@ var RM_I18N = (function () {
 
     (function loadTrackers() {
       var box = document.getElementById('rh-trackers');
+      var foot = document.getElementById('rh-tracker-foot');
+      var switchEl = document.getElementById('rh-tracker-switch');
       if (!box) return;
-      json(apiUrl('/trackers.json', { limit: 100 }))
+
+      var items = null;
+      var mode = 'bars';
+      try {
+        var saved = window.localStorage.getItem('rm-home-trackers-view');
+        if (saved === 'donut' || saved === 'bars') mode = saved;
+      } catch (e) {}
+
+      function setSwitch() {
+        if (!switchEl) return;
+        Array.prototype.forEach.call(switchEl.querySelectorAll('[data-mode]'), function (btn) {
+          var on = btn.getAttribute('data-mode') === mode;
+          btn.classList.toggle('is-active', on);
+          btn.setAttribute('aria-selected', on ? 'true' : 'false');
+        });
+      }
+
+      function storeMode() {
+        try { window.localStorage.setItem('rm-home-trackers-view', mode); } catch (e) {}
+      }
+
+      function sum(list) {
+        return list.reduce(function (s, it) { return s + it.value; }, 0);
+      }
+
+      function footHtml(rest) {
+        if (!foot) return;
+        if (!rest.length) {
+          foot.hidden = true;
+          foot.innerHTML = '';
+          return;
+        }
+        var key = rest.length === 1 ? T.moreType : T.moreTypes;
+        var text = fmt(key, { types: num(rest.length), open: num(sum(rest)) });
+        var href = issueQuery([['status_id', 'o']]) + '&group_by=tracker';
+        foot.hidden = false;
+        foot.innerHTML = '<a href="' + esc(href) + '">' + esc(text) + '</a>';
+      }
+
+      function renderBars(list) {
+        var top = list.slice(0, 10);
+        var rest = list.slice(10);
+        var max = top[0] ? top[0].value : 1;
+        box.className = 'rh-bars';
+        box.innerHTML = top.map(function (r) {
+          var p = Math.max(4, Math.round(r.value / max * 100));
+          var href = r.id != null
+            ? issueQuery([['status_id', 'o'], ['tracker_id', '=', String(r.id)]])
+            : issueQuery([['status_id', 'o']]);
+          return '<a class="rh-bar-row" href="' + esc(href) + '">' +
+            '<span class="rh-bar-label">' + esc(r.label) + '</span>' +
+            '<span class="rh-bar-num">' + num(r.value) + '</span>' +
+            '<span class="rh-bar-track"><span class="rh-bar-fill" style="--rh-pct:' + p + '%"></span></span>' +
+          '</a>';
+        }).join('');
+        footHtml(rest);
+      }
+
+      function renderDonut(list) {
+        var top = list.slice(0, 8);
+        var rest = list.slice(8);
+        var slices = top.slice();
+        if (rest.length) slices.push({ label: T.others, value: sum(rest), other: true });
+        var total = sum(slices);
+        if (!total) {
+          box.className = 'rh-bars';
+          box.innerHTML = '<div class="rh-empty">' + esc(T.noTrackers) + '</div>';
+          footHtml([]);
+          return;
+        }
+        var off = 0;
+        var segs = slices.map(function (it, i) {
+          var pct = it.value * 100 / total;
+          var color = it.other ? 'var(--rh-c9)' : 'var(--rh-c' + (i + 1) + ')';
+          var seg = '<circle class="vz-donut-seg" cx="60" cy="60" r="46" fill="none" stroke-width="14"' +
+            ' pathLength="100" stroke="' + color + '"' +
+            ' stroke-dasharray="' + pct + ' ' + (100 - pct) + '"' +
+            ' stroke-dashoffset="' + (-off) + '" transform="rotate(-90 60 60)">' +
+            '<title>' + esc(it.label) + ': ' + num(it.value) + '</title></circle>';
+          off += pct;
+          return seg;
+        }).join('');
+        var legend = slices.map(function (it, i) {
+          var pct = Math.round(it.value * 100 / total);
+          var color = it.other ? 'var(--rh-c9)' : 'var(--rh-c' + (i + 1) + ')';
+          return '<li' + (it.other ? ' class="is-other"' : '') + '>' +
+            '<span class="vz-dot" style="background:' + color + '"></span>' +
+            '<span class="vz-leg-name">' + esc(it.label) + '</span>' +
+            '<span class="vz-leg-val">' + num(it.value) + '</span>' +
+            '<span class="vz-leg-pct">' + pct + '%</span></li>';
+        }).join('');
+        box.className = 'vz-donut-wrap rh-donut-wrap';
+        box.innerHTML =
+          '<svg class="vz-donut rh-donut" viewBox="0 0 120 120" role="img" aria-label="' + esc(fmt(T.chartAria, { n: num(total) })) + '">' +
+            '<circle class="vz-donut-track" cx="60" cy="60" r="46" fill="none" stroke-width="14"/>' +
+            segs +
+            '<text class="vz-donut-total" x="60" y="58" text-anchor="middle">' + num(total) + '</text>' +
+            '<text class="vz-donut-cap" x="60" y="72" text-anchor="middle">' + esc(T.openCaption) + '</text>' +
+          '</svg>' +
+          '<ul class="vz-legend">' + legend + '</ul>';
+        footHtml(rest);
+      }
+
+      function render() {
+        setSwitch();
+        if (!items) return;
+        if (mode === 'donut') renderDonut(items); else renderBars(items);
+      }
+
+      if (switchEl) {
+        switchEl.addEventListener('click', function (e) {
+          var btn = e.target.closest ? e.target.closest('[data-mode]') : null;
+          if (!btn || !switchEl.contains(btn)) return;
+          var next = btn.getAttribute('data-mode');
+          if (next !== 'bars' && next !== 'donut') return;
+          mode = next;
+          storeMode();
+          render();
+        });
+      }
+      setSwitch();
+
+      function parseGroups(doc) {
+        var out = {};
+        Array.prototype.forEach.call(doc.querySelectorAll('table.issues tbody tr.group'), function (tr) {
+          var nameEl = tr.querySelector('span.name') || tr.querySelector('.group-name');
+          var countEl = tr.querySelector('span.badge-count') || tr.querySelector('.count');
+          if (!nameEl) return;
+          var name = nameEl.textContent.trim();
+          var n = countEl ? parseInt(countEl.textContent.replace(/[^\d]/g, ''), 10) : 0;
+          if (name && isFinite(n)) out[name] = n;
+        });
+        return out;
+      }
+
+      var base = issueQuery([['status_id', 'o']]) +
+        '&group_by=tracker&sort=tracker%3Aasc&per_page=100&c%5B%5D=id';
+
+      var groupsP = html(base + '&page=1')
+        .then(function (doc) {
+          var map = parseGroups(doc);
+          var total = pageCount(doc, 'table.issues tbody tr[id^="issue-"]');
+          var perPage = doc.querySelectorAll('table.issues tbody tr[id^="issue-"]').length || 100;
+          var pages = Math.max(1, Math.ceil(total / Math.max(1, perPage)));
+          var tasks = [];
+          for (var p = 2; p <= pages; p++) {
+            (function (page) {
+              tasks.push(html(base + '&page=' + page).then(function (pageDoc) {
+                var pageMap = parseGroups(pageDoc);
+                Object.keys(pageMap).forEach(function (name) { map[name] = pageMap[name]; });
+              }));
+            })(p);
+          }
+          return Promise.all(tasks).then(function () { return map; });
+        });
+
+      var idsP = json(apiUrl('/trackers.json', { limit: 100 }))
         .then(function (d) {
-          var trackers = (d.trackers || []).slice(0, 10);
-          if (!trackers.length) {
+          var ids = {};
+          (d.trackers || []).forEach(function (tr) { ids[tr.name] = tr.id; });
+          return ids;
+        })
+        .catch(function () { return {}; });
+
+      Promise.all([groupsP, idsP])
+        .then(function (result) {
+          var map = result[0];
+          var ids = result[1];
+          var rows = Object.keys(map).map(function (name) {
+            return { id: ids[name], label: name, value: map[name] };
+          }).filter(function (r) { return r.value > 0; });
+          rows.sort(function (a, b) {
+            return b.value - a.value || a.label.localeCompare(b.label, lang);
+          });
+          if (!rows.length) {
             box.innerHTML = '<div class="rh-empty">' + esc(T.noTrackers) + '</div>';
+            footHtml([]);
             return;
           }
-          Promise.all(trackers.map(function (tr) {
-            return safeIssueCount([['status_id', 'o'], ['tracker_id', '=', String(tr.id)]])
-              .then(function (n) { return { tr: tr, n: n }; });
-          })).then(function (rows) {
-            rows = rows.filter(function (r) { return r.n != null && r.n > 0; });
-            rows.sort(function (a, b) { return b.n - a.n; });
-            if (!rows.length) {
-              box.innerHTML = '<div class="rh-empty">' + esc(T.noTrackers) + '</div>';
-              return;
-            }
-            var max = rows[0].n || 1;
-            box.innerHTML = rows.map(function (r) {
-              var p = Math.max(4, Math.round(r.n / max * 100));
-              var href = issueQuery([['status_id', 'o'], ['tracker_id', '=', String(r.tr.id)]]);
-              return '<a class="rh-bar-row" href="' + esc(href) + '">' +
-                '<span class="rh-bar-label">' + esc(r.tr.name) + '</span>' +
-                '<span class="rh-bar-num">' + num(r.n) + '</span>' +
-                '<span class="rh-bar-track"><span class="rh-bar-fill" style="--rh-pct:' + p + '%"></span></span>' +
-              '</a>';
-            }).join('');
-          });
+          items = rows;
+          render();
         })
         .catch(function (e) {
           console.warn('Home dashboard [trackers]:', e.message || e);
           box.innerHTML = '<div class="rh-empty">' + esc(T.noData) + '</div>';
+          footHtml([]);
         });
     })();
 

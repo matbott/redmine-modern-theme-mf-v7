@@ -1066,10 +1066,11 @@ html #rm-toast-container {
 
 /* ── Home — general dashboard ─────────────────────────────────
    theme.js injects #rh-home on controller-welcome/action-index.
-   Counts come from the JSON API and respect the current user's
-   permissions: administrators get the global view, members only
-   see their visible projects/issues, anonymous users get public
-   data. The users card is admin-only and hides itself on 403. */
+   Counts come from Redmine's HTML pages and CSV exports with the
+   current session and respect the user's permissions: administrators
+   get the global view, members only see their visible projects/issues,
+   anonymous users get public data. The users card is admin-only and
+   hides itself on 403. */
 body.controller-welcome.action-index #content > h2 { display: none; }
 
 .rh-home { margin: 0 0 24px; }
@@ -1203,6 +1204,33 @@ a.rh-kpi:focus-visible {
     var(--rm-accent) 0%,
     color-mix(in srgb, var(--rm-accent) 65%, var(--rm-blue)) 100%);
 }
+
+.rh-tracker-foot {
+  margin-block-start: 10px;
+  font-size: .72rem; line-height: 1.5; color: var(--rm-muted);
+}
+.rh-tracker-foot a {
+  color: inherit; text-decoration: none;
+}
+.rh-tracker-foot a:hover,
+.rh-tracker-foot a:focus-visible {
+  color: var(--rm-link); text-decoration: underline;
+}
+
+.rh-donut-wrap {
+  margin-block-start: 2px;
+  --rh-c1: var(--rm-accent);
+  --rh-c2: var(--rm-green);
+  --rh-c3: var(--rm-blue);
+  --rh-c4: var(--rm-yellow);
+  --rh-c5: var(--rm-purple);
+  --rh-c6: var(--rm-red);
+  --rh-c7: color-mix(in srgb, var(--rm-accent) 45%, var(--rm-green));
+  --rh-c8: color-mix(in srgb, var(--rm-blue) 55%, var(--rm-purple));
+  --rh-c9: var(--rm-muted);
+}
+.rh-donut-wrap .vz-legend li { font-size: .78rem; }
+.rh-donut-wrap .vz-legend li.is-other .vz-leg-name { color: var(--rm-muted); }
 
 .rh-activity { list-style: none; margin: 0; padding: 0; }
 .rh-activity li {

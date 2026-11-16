@@ -2,21 +2,38 @@
 
 Notas para retomar el trabajo sin tener que reconstruir el contexto.
 
-## Estado actual (2026-11-14)
+## Estado actual (2026-11-16)
 
 - Repo: `matbott/redmine-modern-theme-mf-v7`, rama `main`.
-- Último commit funcional: **horas de la semana en Mi página + i18n EN/ES** (`v1.4.0`).
-- Estado del repo: `main` limpio, tags `v1.2.4`, `v1.2.5`, `v1.3.0`, `v1.3.1` y
-  `v1.4.0` en origin.
+- Último commit funcional: **top 10 + selector barras/dona en “Abiertas por tipo”**
+  (`v1.5.0`).
+- Estado del repo: `main` limpio, tags `v1.2.4`, `v1.2.5`, `v1.3.0`, `v1.3.1`,
+  `v1.4.0` y `v1.5.0` en origin.
 - Server: Redmine **7.0.3**, container `redmine-redmine-1`, theme instalado en
   `/usr/src/redmine/themes/redmine-modern-theme-mf-v7`.
-- **Pendiente inmediato**: deployar `v1.4.0` en el server con el bloque de *Deploy* y
-  hacer `Ctrl+F5`. Validar el dashboard de Inicio y la tarjeta de horas de Mi página.
+- **Pendiente inmediato**: deployar `v1.5.0` en el server con el bloque de *Deploy* y
+  hacer `Ctrl+F5`. Validar que “Abiertas por tipo” muestre los 10 tipos con más abiertas
+  en una instancia con 44 trackers, el pie `+N tipos · M abiertas` y el selector
+  Barras/Dona.
 - El theme anterior `redmine-modern-theme-mf` sigue instalado y se puede volver a él
   desde Administración → Configuración → Mostrar → Tema.
 
-### Última sesión (2026-11-14)
+### Última sesión (2026-11-16)
 
+- **Inicio — “Abiertas por tipo” (v1.5.0)**: el bloque ya no toma solo los primeros 10
+  trackers de `/trackers.json` ni pide un conteo por tracker. Lee el listado global
+  agrupado por tipo (`/issues?...&group_by=tracker&sort=tracker:asc&per_page=100`) y
+  recorre sus páginas; los totales por grupo salen de la cabecera `span.badge-count`, que
+  Redmine calcula sobre todos los resultados, no solo la página. `/trackers.json` queda
+  solo para mapear nombre → id y construir el link de cada barra.
+- La vista muestra el **top 10 por abiertas, de mayor a menor**, y un pie con
+  `+ N tipos · M abiertas` para el resto (link al listado agrupado). El selector
+  **Barras / Dona** se recuerda en `localStorage['rm-home-trackers-view']`; la dona usa
+  top 8 + “Otros” y reutiliza la paleta y el layout de la dona del Vistazo.
+- Validado por inyección con 44 trackers simulados (990 abiertas): barras top 10
+  (44→35), pie `+34 tipos · 595 abiertas`; dona 8 + Otros, centro 990, pie
+  `+36 tipos · 666 abiertas`; EN/ES, ida y vuelta del selector, persistencia y móvil
+  390 px, sin errores de JS. Falta confirmar contra el server real.
 - **Mi página — horas de la semana (v1.4.0)**: séptima tarjeta en `#vz-my`, con las horas
   registradas por el usuario logueado en la semana actual (lunes a domingo). Lee
   `/time_entries.csv?from=<lunes>&to=<domingo>&user_id=<id>&c[]=hours` con la sesión, así
@@ -53,8 +70,11 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
    Nuevas 45, Cerradas 14, Actualizadas 88, Horas 18,5 h y Cierre promedio 34,3 d.
    Como usuario común la tarjeta de Usuarios se oculta y el chip debe decir
    “Según tus permisos”. Como anónimo debe decir “Resumen público” y no mostrar horas.
-2. **Inicio — links**: cada tarjeta y cada barra de “Abiertas por tipo” debe abrir el
-   listado filtrado con resultados; “Ver todas” de actividad debe ordenar por actualización.
+2. **Inicio — “Abiertas por tipo” (v1.5.0)**: con 44 trackers deben verse exactamente
+   10 barras ordenadas de mayor a menor, el pie `+34 tipos · N abiertas` y el selector
+   Barras/Dona. La dona debe mostrar 8 tipos + “Otros”, el total en el centro y el pie
+   `+36 tipos · M abiertas`. Al cambiar de vista y recargar debe conservarse la elegida.
+   Cada barra debe abrir el listado filtrado por ese tipo; el pie, el listado agrupado.
 3. **Mi página** (`/my/page`): que las 7 tarjetas cuenten y que cada link abra el
    listado con resultados (usan el id del usuario, no `me`). La última es **Horas esta
    semana** (lunes a domingo) y debe mostrar el total del usuario, no el de todos. Con
@@ -71,7 +91,7 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
    el deploy no tomó la regla con `#header`). El buscador de proyectos y los campos
    autocompletar deben mostrar una sola lupa (sin mosaico).
 7. **Mi cuenta**: al final de la sección *Sidebar position* debe verse
-   `Modern Theme MF v1.4.0` en chico. Ya **no** debe aparecer en el pie del sidebar.
+   `Modern Theme MF v1.5.0` en chico. Ya **no** debe aparecer en el pie del sidebar.
 8. **Listado de incidencias**: en las columnas **Asignado** y **Autor** debe aparecer
    un círculo con iniciales antes del nombre. El color tiene que coincidir con el
    avatar del menú de cuenta (misma clase `avatar-color-<id % 16>` de Redmine).
@@ -98,7 +118,7 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 ### Versionado
 
 - La versión visible está en `javascripts/theme.js`, bloque `LOCAL CUSTOMISATIONS —
-  sidebar width` (`var VERSION = '1.4.0'`).
+  sidebar width` (`var VERSION = '1.5.0'`).
 - Al publicar cambios: subir `VERSION`, commit, `git tag -a vX.Y.Z` y push del tag.
 - Se muestra al final del fieldset `#rm-layout` de **Mi cuenta** (sidebar position /
   width), como `Modern Theme MF vX.Y.Z`.
