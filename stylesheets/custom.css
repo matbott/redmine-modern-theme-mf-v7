@@ -538,6 +538,13 @@ table.issue-report td.vz-prog { white-space: nowrap; }
    where the plugin uses it), so a plugin's own inline colour coding still wins.
    Checked against redmine.inctime.com, 2026-10-29. */
 
+/* RedmineUP CMS — embedded iframe pages.
+   The CMS plugin adds a header-height top padding to #content when the page contains an
+   iframe. On this theme that offset is not needed and leaves a blank strip above embedded
+   dashboards (for example Grafana). Clear only the top offset; keep the plugin's other
+   spacing. The extra html prefix raises specificity above the plugin's !important rule. */
+html body:has(#content iframe) #content { padding-top: 0 !important; }
+
 /* RedmineUP Agile — cards #ffffdd, planning columns #f6f7f8/#eee, WIP limits.
    Colour-coded cards (.bk-*) keep their meaning as a left stripe. */
 html.dark-mode .issue-card { background-color: var(--rm-surface-2); border-color: var(--rm-border); color: var(--rm-fg); }
