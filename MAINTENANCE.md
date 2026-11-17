@@ -148,6 +148,9 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 - Home, panel de tiempo dedicado: tarjetas por usuario con horas, usando los últimos 5–6
   usuarios según las últimas horas cargadas; si un proyecto tiene 20 usuarios, no se
   esperan 20 tarjetas, solo los últimos que sumaron horas.
+- Plugin RedmineUP **Ayuda y soporte** (*Help & Support* / Questions): revisar el borde
+  claro que no aplica con el theme. Acotar el fix a la página del plugin y usar los tokens
+  del theme cuando sea posible.
 - Colores de vencimiento en `/issues` global y en los listados de Mi página; banda de
   60/90 días.
 - Home: cache por sesión, selector de período (7/30/90 días) y tarjeta de usuarios activos
