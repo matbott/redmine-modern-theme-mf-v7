@@ -5,21 +5,26 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 ## Estado actual (2026-11-20)
 
 - Repo: `matbott/redmine-modern-theme-mf-v7`, rama `main`.
-- Último commit funcional: **RedmineUP Help & Support — form panel border + taskboard / board — fondo contenedor `#content` + Issues / admin settings — no horizontal scroll + versión 1.7.5**
-  (`v1.7.5`).
+- Último commit funcional: **Taskboard / board — móvil (v1.7.6) + taskboard / board — fondo
+  contenedor `#content` + Issues / admin settings — no horizontal scroll + RedmineUP Help &
+  Support — form panel border**
+  (`v1.7.6`).
 - Estado del repo: `main` limpio, tags `v1.2.4`, `v1.2.5`, `v1.3.0`, `v1.3.1`,
-  `v1.4.0`, `v1.5.0`, `v1.5.1`, `v1.6.0`, `v1.7.0`, `v1.7.1`, `v1.7.2`, `v1.7.3`, `v1.7.4` y
-  `v1.7.5` en origin.
+  `v1.4.0`, `v1.5.0`, `v1.5.1`, `v1.6.0`, `v1.7.0`, `v1.7.1`, `v1.7.2`, `v1.7.3`, `v1.7.4`, `v1.7.5` y
+  `v1.7.6` en origin.
 - Server: Redmine **7.0.3**, container `redmine-redmine-1`, theme instalado en
   `/usr/src/redmine/themes/redmine-modern-theme-mf-v7`.
-- **Pendiente inmediato**: deployar `v1.7.5` en el server con el bloque de *Deploy* y
-  hacer `Ctrl+F5`. Validar el taskboard / board con fondo token en `#content`; que las
-  páginas CMS con iframe no tengan la franja vacía arriba; el scroll horizontal en
-  `/issues` y `/admin/settings/configuration`; y el borde del panel de RedmineUP Help &
-  Support. Cuando se valide, aplicar los fixes al theme **Lumen**.
+- **Pendiente inmediato**: deployar `v1.7.6` en el server con el bloque de *Deploy* y
+  hacer `Ctrl+F5`. Validar el taskboard / board con fondo token en `#content`; el taskboard
+  en móvil con columnas apiladas; que las páginas CMS con iframe no tengan la franja vacía
+  arriba; el scroll horizontal en `/issues` y `/admin/settings/configuration`; y el borde del
+  panel de RedmineUP Help & Support. Cuando se valide, aplicar los fixes al theme **Lumen**.
 
 ### Última sesión (2026-11-20)
 
+- **Taskboard / board — móvil (v1.7.6)**: el taskboard agrupa sus columnas en una fila
+  horizontal; en móvil se apilan en una sola columna y las cards pasan a una columna con el
+  grid del taskboard. Se agregó el media query en `custom.css`.
 - **Taskboard / board — fondo contenedor `#content` (v1.7.3)**: el fix de v1.7.2 no resolvió
   el fondo blanco; el F12 mostró el CSS del plugin con
   `html > body #content { padding: 0 !important; background-color: #ffffff; }`. Se agregó el
@@ -132,7 +137,7 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
    el deploy no tomó la regla con `#header`). El buscador de proyectos y los campos
    autocompletar deben mostrar una sola lupa (sin mosaico).
 7. **Mi cuenta**: al final de la sección *Sidebar position* debe verse
-   `Modern Theme MF v1.7.5` en chico. Ya **no** debe aparecer en el pie del sidebar.
+   `Modern Theme MF v1.7.6` en chico. Ya **no** debe aparecer en el pie del sidebar.
 8. **Listado de incidencias**: en las columnas **Asignado** y **Autor** debe aparecer
    un círculo con iniciales antes del nombre. El color tiene que coincidir con el
    avatar del menú de cuenta (misma clase `avatar-color-<id % 16>` de Redmine).
@@ -162,7 +167,7 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 ### Versionado
 
 - La versión visible está en `javascripts/theme.js`, bloque `LOCAL CUSTOMISATIONS —
-  sidebar width` (`var VERSION = '1.7.5'`).
+  sidebar width` (`var VERSION = '1.7.6'`).
 - Al publicar cambios: subir `VERSION`, commit, `git tag -a vX.Y.Z` y push del tag.
 - Se muestra al final del fieldset `#rm-layout` de **Mi cuenta** (sidebar position /
   width), como `Modern Theme MF vX.Y.Z`.
@@ -177,8 +182,9 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 - Plugin RedmineUP **Ayuda y soporte** (*Help & Support* / Questions): fix implementado en
   `v1.7.5` (borde con `var(--rm-border)` en la página del plugin), pendiente deploy/validate.
 - Taskboard / board: queda blanco el fondo y, si está vacío, el panel se ve con fondo blanco
-  detrás. Fix implementado en `v1.7.3` / `v1.7.4` / `v1.7.5` (contenedor `#content` con token),
-  pendiente deploy/validate.
+  detrás. Fix implementado en `v1.7.3` (contenedor `#content` con token), pendiente deploy/validate.
+- Taskboard / board en móvil: se implementó en `v1.7.6` (columnas apiladas y cards en una
+  columna), pendiente deploy/validate.
 - CMS: el campo de páginas queda con icono repetido de mundo.
 - Listados de `/issues` y `/admin/settings/configuration`: fix implementado en `v1.7.4` /
   `v1.7.5` (`overflow-x: hidden`), pendiente deploy/validate.
@@ -195,7 +201,6 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
   tokens del theme y definir altura por dashboard. Ver la sección de ideas al final.
 - Navegación: Ctrl+K, proyectos favoritos, chips de filtros rápidos, cabecera sticky,
   barra de acciones al seleccionar filas, detalle de incidencia con barra sticky.
-- Revisar taskboard en móvil.
 
 ## Origen
 
@@ -457,6 +462,5 @@ un documento aparte, así que el CSS del theme no puede tocar su fondo. Plan:
 
 ## Notas sueltas
 
-- Revisar el taskboard en móvil (el theme nuevo tiene su propio responsive).
 - Si se agregan más plugins, sumar un bloque por plugin con su comentario.
 - El hero podría mostrar más datos (próximamente).

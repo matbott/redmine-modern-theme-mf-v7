@@ -1011,6 +1011,25 @@ html.dark-mode .rdb-taskboard-card[style] {
 .rdb-compact-header .rdb-property { color: var(--rm-muted) !important; }
 html.dark-mode .rdb-compact { background: var(--rm-surface) !important; }
 
+/* ── Taskboard / board — mobile ────────────────────────────
+   El taskboard arma sus columnas en una fila horizontal; en móvil se
+   apilan en una sola columna para que la board respete el viewport y las
+   cards del taskboard no se hagan demasiado estrechas. */
+@media (max-width: 900px) {
+  #rdb,
+  #rdb-wrapper,
+  #rdb-board,
+  #rdb-taskboard,
+  .agile-board {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .rdb-grid-card {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 /* ── Pins toolbar (plugin) — token-based dark styling ── */
 .pins-toolbar {
   margin-bottom: 1.5em;

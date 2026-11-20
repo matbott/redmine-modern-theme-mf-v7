@@ -163,7 +163,8 @@ Spanish table selected automatically when Redmine's `<html lang>` starts with `e
 - **Plugin compatibility** — RedmineUP Agile, Redmineflux Testcase, Vault, Pins, View
   Customize code blocks.
 - **Taskboard / board** (`#rdb*`, `.rdb-*`) — cards, headers, footers, dropdowns and the
-  compact list on the theme tokens; answers the plugin's inline colours where needed.
+  compact list on the theme tokens; taskboard columns stack on mobile; answers the plugin's
+  inline colours where needed.
 
 ## Author
 
