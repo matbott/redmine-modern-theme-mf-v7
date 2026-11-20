@@ -545,6 +545,15 @@ table.issue-report td.vz-prog { white-space: nowrap; }
    spacing. The extra html prefix raises specificity above the plugin's !important rule. */
 html body:has(#content iframe) #content { padding-top: 0 !important; }
 
+/* RedmineUP Help & Support — form panel border
+   The plugin's light border does not follow the theme; use the theme token. */
+body.controller-help #content .box,
+body.controller-help #content fieldset,
+body[class*="controller-help"] #content .box,
+body[class*="controller-help"] #content fieldset {
+  border: 1px solid var(--rm-border) !important;
+}
+
 /* RedmineUP Agile — cards #ffffdd, planning columns #f6f7f8/#eee, WIP limits.
    Colour-coded cards (.bk-*) keep their meaning as a left stripe. */
 html.dark-mode .issue-card { background-color: var(--rm-surface-2); border-color: var(--rm-border); color: var(--rm-fg); }

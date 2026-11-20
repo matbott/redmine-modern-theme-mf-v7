@@ -5,18 +5,18 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 ## Estado actual (2026-11-20)
 
 - Repo: `matbott/redmine-modern-theme-mf-v7`, rama `main`.
-- Último commit funcional: **taskboard / board — fondo contenedor `#content` + Issues / admin settings — no horizontal scroll + versión 1.7.4**
-  (`v1.7.4`).
+- Último commit funcional: **RedmineUP Help & Support — form panel border + taskboard / board — fondo contenedor `#content` + Issues / admin settings — no horizontal scroll + versión 1.7.5**
+  (`v1.7.5`).
 - Estado del repo: `main` limpio, tags `v1.2.4`, `v1.2.5`, `v1.3.0`, `v1.3.1`,
-  `v1.4.0`, `v1.5.0`, `v1.5.1`, `v1.6.0`, `v1.7.0`, `v1.7.1`, `v1.7.2`, `v1.7.3` y
-  `v1.7.4` en origin.
+  `v1.4.0`, `v1.5.0`, `v1.5.1`, `v1.6.0`, `v1.7.0`, `v1.7.1`, `v1.7.2`, `v1.7.3`, `v1.7.4` y
+  `v1.7.5` en origin.
 - Server: Redmine **7.0.3**, container `redmine-redmine-1`, theme instalado en
   `/usr/src/redmine/themes/redmine-modern-theme-mf-v7`.
-- **Pendiente inmediato**: deployar `v1.7.4` en el server con el bloque de *Deploy* y
+- **Pendiente inmediato**: deployar `v1.7.5` en el server con el bloque de *Deploy* y
   hacer `Ctrl+F5`. Validar el taskboard / board con fondo token en `#content`; que las
-  páginas CMS con iframe no tengan la franja vacía arriba; y revisar el scroll horizontal
-  en `/issues` y `/admin/settings/configuration`. Cuando se valide, aplicar los fixes al
-  theme **Lumen**.
+  páginas CMS con iframe no tengan la franja vacía arriba; el scroll horizontal en
+  `/issues` y `/admin/settings/configuration`; y el borde del panel de RedmineUP Help &
+  Support. Cuando se valide, aplicar los fixes al theme **Lumen**.
 
 ### Última sesión (2026-11-20)
 
@@ -25,6 +25,9 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
   `html > body #content { padding: 0 !important; background-color: #ffffff; }`. Se agregó el
   override en `custom.css` con fondo token:
   `html > body #content { background-color: var(--rm-bg) !important; }`.
+- **RedmineUP Help & Support — form panel border (v1.7.5)**: el plugin usa un borde claro
+  que no aplica con el theme. Se agregó un override acotado a la página del plugin con
+  `border: 1px solid var(--rm-border) !important`.
 - **Issues / admin settings — no horizontal scroll (v1.7.4)**: Redmine pone `overflow-x: auto`
   en `#content`, lo que genera scroll horizontal cuando el contenido se amplía
   (`/issues` y `/admin/settings/configuration`). Se agregó el override con
@@ -129,7 +132,7 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
    el deploy no tomó la regla con `#header`). El buscador de proyectos y los campos
    autocompletar deben mostrar una sola lupa (sin mosaico).
 7. **Mi cuenta**: al final de la sección *Sidebar position* debe verse
-   `Modern Theme MF v1.7.4` en chico. Ya **no** debe aparecer en el pie del sidebar.
+   `Modern Theme MF v1.7.5` en chico. Ya **no** debe aparecer en el pie del sidebar.
 8. **Listado de incidencias**: en las columnas **Asignado** y **Autor** debe aparecer
    un círculo con iniciales antes del nombre. El color tiene que coincidir con el
    avatar del menú de cuenta (misma clase `avatar-color-<id % 16>` de Redmine).
@@ -159,7 +162,7 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 ### Versionado
 
 - La versión visible está en `javascripts/theme.js`, bloque `LOCAL CUSTOMISATIONS —
-  sidebar width` (`var VERSION = '1.7.4'`).
+  sidebar width` (`var VERSION = '1.7.5'`).
 - Al publicar cambios: subir `VERSION`, commit, `git tag -a vX.Y.Z` y push del tag.
 - Se muestra al final del fieldset `#rm-layout` de **Mi cuenta** (sidebar position /
   width), como `Modern Theme MF vX.Y.Z`.
@@ -171,15 +174,14 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 - Home, panel de tiempo dedicado: tarjetas por usuario con horas, usando los últimos 5–6
   usuarios según las últimas horas cargadas; si un proyecto tiene 20 usuarios, no se
   esperan 20 tarjetas, solo los últimos que sumaron horas.
-- Plugin RedmineUP **Ayuda y soporte** (*Help & Support* / Questions): revisar el borde
-  claro que no aplica con el theme. Acotar el fix a la página del plugin y usar los tokens
-  del theme cuando sea posible.
+- Plugin RedmineUP **Ayuda y soporte** (*Help & Support* / Questions): fix implementado en
+  `v1.7.5` (borde con `var(--rm-border)` en la página del plugin), pendiente deploy/validate.
 - Taskboard / board: queda blanco el fondo y, si está vacío, el panel se ve con fondo blanco
-  detrás. Fix implementado en `v1.7.3` / `v1.7.4` (contenedor `#content` con token), pendiente
-  deploy/validate.
+  detrás. Fix implementado en `v1.7.3` / `v1.7.4` / `v1.7.5` (contenedor `#content` con token),
+  pendiente deploy/validate.
 - CMS: el campo de páginas queda con icono repetido de mundo.
-- Listados de `/issues` y `/admin/settings/configuration`: fix implementado en `v1.7.4`
-  (`overflow-x: hidden`), pendiente deploy/validate.
+- Listados de `/issues` y `/admin/settings/configuration`: fix implementado en `v1.7.4` /
+  `v1.7.5` (`overflow-x: hidden`), pendiente deploy/validate.
 - Vistazo: ocultar los custom fields de mensajes y fechas.
 - Colores de vencimiento en `/issues` global y en los listados de Mi página; banda de
   60/90 días.
