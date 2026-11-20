@@ -2,23 +2,25 @@
 
 Notas para retomar el trabajo sin tener que reconstruir el contexto.
 
-## Estado actual (2026-11-17)
+## Estado actual (2026-11-20)
 
 - Repo: `matbott/redmine-modern-theme-mf-v7`, rama `main`.
-- Último commit funcional: **fix de iframe del CMS de RedmineUP + versión 1.7.1**
-  (`v1.7.1`).
+- Último commit funcional: **taskboard / board — fondo con tokens + versión 1.7.2**
+  (`v1.7.2`).
 - Estado del repo: `main` limpio, tags `v1.2.4`, `v1.2.5`, `v1.3.0`, `v1.3.1`,
-  `v1.4.0`, `v1.5.0`, `v1.5.1`, `v1.6.0`, `v1.7.0` y `v1.7.1` en origin.
+  `v1.4.0`, `v1.5.0`, `v1.5.1`, `v1.6.0`, `v1.7.0`, `v1.7.1` y `v1.7.2` en origin.
 - Server: Redmine **7.0.3**, container `redmine-redmine-1`, theme instalado en
   `/usr/src/redmine/themes/redmine-modern-theme-mf-v7`.
-- **Pendiente inmediato**: deployar `v1.7.1` en el server con el bloque de *Deploy* y
-  hacer `Ctrl+F5`. Validar Inicio (torta top 5 con “Otros”, aviso del límite de 1.000 y
-  paneles 50/50) y que las páginas CMS con iframe no tengan la franja vacía arriba.
+- **Pendiente inmediato**: deployar `v1.7.2` en el server con el bloque de *Deploy* y
+  hacer `Ctrl+F5`. Validar el taskboard / board con fondo token y que las páginas CMS con
+  iframe no tengan la franja vacía arriba.
 - El theme anterior `redmine-modern-theme-mf` sigue instalado y se puede volver a él
   desde Administración → Configuración → Mostrar → Tema.
 
-### Última sesión (2026-11-17)
+### Última sesión (2026-11-20)
 
+- **Taskboard / board — fondo con tokens (v1.7.2)**: `custom.css` aplica el fondo token
+  (`--rm-surface` / `--rm-bg`) al board y sus filas/tablas, cubriendo el estado vacío.
 - **RedmineUP CMS — iframes (v1.7.1)**: `custom.css` limpia el `padding-top` que el CMS
   aplica a `#content` cuando la página contiene un iframe, para que los dashboards de
   Grafana no queden con una franja vacía arriba. Aplica a todas las páginas con iframe y
@@ -106,7 +108,7 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
    el deploy no tomó la regla con `#header`). El buscador de proyectos y los campos
    autocompletar deben mostrar una sola lupa (sin mosaico).
 7. **Mi cuenta**: al final de la sección *Sidebar position* debe verse
-   `Modern Theme MF v1.7.1` en chico. Ya **no** debe aparecer en el pie del sidebar.
+   `Modern Theme MF v1.7.2` en chico. Ya **no** debe aparecer en el pie del sidebar.
 8. **Listado de incidencias**: en las columnas **Asignado** y **Autor** debe aparecer
    un círculo con iniciales antes del nombre. El color tiene que coincidir con el
    avatar del menú de cuenta (misma clase `avatar-color-<id % 16>` de Redmine).
@@ -136,7 +138,7 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 ### Versionado
 
 - La versión visible está en `javascripts/theme.js`, bloque `LOCAL CUSTOMISATIONS —
-  sidebar width` (`var VERSION = '1.7.1'`).
+  sidebar width` (`var VERSION = '1.7.2'`).
 - Al publicar cambios: subir `VERSION`, commit, `git tag -a vX.Y.Z` y push del tag.
 - Se muestra al final del fieldset `#rm-layout` de **Mi cuenta** (sidebar position /
   width), como `Modern Theme MF vX.Y.Z`.
@@ -151,6 +153,11 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 - Plugin RedmineUP **Ayuda y soporte** (*Help & Support* / Questions): revisar el borde
   claro que no aplica con el theme. Acotar el fix a la página del plugin y usar los tokens
   del theme cuando sea posible.
+- Taskboard / board: queda blanco el fondo y, si está vacío, el panel se ve con fondo blanco
+  detrás. Pasar el fondo a tokens del theme y cubrir el estado vacío.
+- CMS: el campo de páginas queda con icono repetido de mundo.
+- Listados de `/issues` y `/admin/settings/configuration`: revisar scroll horizontal.
+- Vistazo: ocultar los custom fields de mensajes y fechas.
 - Colores de vencimiento en `/issues` global y en los listados de Mi página; banda de
   60/90 días.
 - Home: cache por sesión, selector de período (7/30/90 días) y tarjeta de usuarios activos

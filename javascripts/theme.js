@@ -1778,7 +1778,7 @@ var RM_I18N = (function () {
   var root = document.documentElement;
   var KEY = 'rm-sidebar-width';
   var MIN = 180, MAX = 360;
-  var VERSION = '1.7.1';
+  var VERSION = '1.7.2';
 
   function storedWidth() {
     try {

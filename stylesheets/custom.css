@@ -652,6 +652,24 @@ table.view_customize.box td pre {
   background: var(--rm-surface) !important;
 }
 
+/* ── Taskboard / board — themed background ──
+   The board and its table rows must use the theme tokens, not a plain white
+   fallback; this covers the empty-board case too. */
+.agile-board,
+.agile-board table.list.issues-board,
+.agile-board table.list.issues-board tbody,
+.agile-board table.list.issues-board tbody tr,
+.agile-board table.list.issues-board tbody td {
+  background: var(--rm-surface) !important;
+}
+html.dark-mode .agile-board,
+html.dark-mode .agile-board table.list.issues-board,
+html.dark-mode .agile-board table.list.issues-board tbody,
+html.dark-mode .agile-board table.list.issues-board tbody tr,
+html.dark-mode .agile-board table.list.issues-board tbody td {
+  background: var(--rm-bg) !important;
+}
+
 /* ── Submenús / dropdowns que abren los cards ── */
 #rdb-board .drdn-content,
 #rdb-taskboard .drdn-content,
