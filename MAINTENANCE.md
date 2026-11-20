@@ -5,15 +5,30 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 ## Estado actual (2026-11-20)
 
 - Repo: `matbott/redmine-modern-theme-mf-v7`, rama `main`.
-- Último commit funcional: **taskboard / board — fondo con tokens + versión 1.7.2**
-  (`v1.7.2`).
+- Último commit funcional: **taskboard / board — fondo contenedor `#content` + versión 1.7.3**
+  (`v1.7.3`).
 - Estado del repo: `main` limpio, tags `v1.2.4`, `v1.2.5`, `v1.3.0`, `v1.3.1`,
-  `v1.4.0`, `v1.5.0`, `v1.5.1`, `v1.6.0`, `v1.7.0`, `v1.7.1` y `v1.7.2` en origin.
+  `v1.4.0`, `v1.5.0`, `v1.5.1`, `v1.6.0`, `v1.7.0`, `v1.7.1`, `v1.7.2` y `v1.7.3` en origin.
 - Server: Redmine **7.0.3**, container `redmine-redmine-1`, theme instalado en
   `/usr/src/redmine/themes/redmine-modern-theme-mf-v7`.
-- **Pendiente inmediato**: deployar `v1.7.2` en el server con el bloque de *Deploy* y
-  hacer `Ctrl+F5`. Validar el taskboard / board con fondo token y que las páginas CMS con
-  iframe no tengan la franja vacía arriba.
+- **Pendiente inmediato**: deployar `v1.7.3` en el server con el bloque de *Deploy* y
+  hacer `Ctrl+F5`. Validar el taskboard / board con fondo token en `#content` y que las
+  páginas CMS con iframe no tengan la franja vacía arriba. Cuando se valide, aplicar el fix
+  al theme **Lumen**.
+
+### Última sesión (2026-11-20)
+
+- **Taskboard / board — fondo contenedor `#content` (v1.7.3)**: el fix de v1.7.2 no resolvió
+  el fondo blanco; el F12 mostró el CSS del plugin con
+  `html > body #content { padding: 0 !important; background-color: #ffffff; }`. Se agregó el
+  override en `custom.css` con fondo token:
+  `html > body #content { background-color: var(--rm-bg) !important; }`.
+- **RedmineUP CMS — iframes (v1.7.1)**: `custom.css` limpia el `padding-top` que el CMS
+  aplica a `#content` cuando la página contiene un iframe, para que los dashboards de
+  Grafana no queden con una franja vacía arriba. Aplica a todas las páginas con iframe y
+  conserva el resto del espaciado del plugin. Selector
+  `html body:has(#content iframe) #content` con `!important` y prefijo `html` para ganarle
+  al CSS del plugin.
 - El theme anterior `redmine-modern-theme-mf` sigue instalado y se puede volver a él
   desde Administración → Configuración → Mostrar → Tema.
 
@@ -108,7 +123,7 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
    el deploy no tomó la regla con `#header`). El buscador de proyectos y los campos
    autocompletar deben mostrar una sola lupa (sin mosaico).
 7. **Mi cuenta**: al final de la sección *Sidebar position* debe verse
-   `Modern Theme MF v1.7.2` en chico. Ya **no** debe aparecer en el pie del sidebar.
+   `Modern Theme MF v1.7.3` en chico. Ya **no** debe aparecer en el pie del sidebar.
 8. **Listado de incidencias**: en las columnas **Asignado** y **Autor** debe aparecer
    un círculo con iniciales antes del nombre. El color tiene que coincidir con el
    avatar del menú de cuenta (misma clase `avatar-color-<id % 16>` de Redmine).
@@ -138,7 +153,7 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 ### Versionado
 
 - La versión visible está en `javascripts/theme.js`, bloque `LOCAL CUSTOMISATIONS —
-  sidebar width` (`var VERSION = '1.7.2'`).
+  sidebar width` (`var VERSION = '1.7.3'`).
 - Al publicar cambios: subir `VERSION`, commit, `git tag -a vX.Y.Z` y push del tag.
 - Se muestra al final del fieldset `#rm-layout` de **Mi cuenta** (sidebar position /
   width), como `Modern Theme MF vX.Y.Z`.

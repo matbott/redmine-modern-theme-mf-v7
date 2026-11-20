@@ -670,6 +670,12 @@ html.dark-mode .agile-board table.list.issues-board tbody td {
   background: var(--rm-bg) !important;
 }
 
+/* ── Taskboard / board — fondo del contenedor del board ──
+   El plugin pinta `#content` con fondo blanco; la board debe seguir al token. */
+html > body #content {
+  background-color: var(--rm-bg) !important;
+}
+
 /* ── Submenús / dropdowns que abren los cards ── */
 #rdb-board .drdn-content,
 #rdb-taskboard .drdn-content,
