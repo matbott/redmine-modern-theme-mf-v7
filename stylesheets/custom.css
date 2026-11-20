@@ -633,6 +633,15 @@ table.view_customize.box td pre {
   color: var(--rm-fg) !important;
 }
 
+/* ── Issues / admin settings: no horizontal scroll ──
+   Redmine's #content defaults to overflow-x: auto, which turns wider content
+   (issue lists, admin settings) into a sideways scrollbar. Clip it; the page
+   keeps its normal vertical scrolling. */
+body.controller-issues #content,
+body.controller-admin #content {
+  overflow-x: hidden;
+}
+
 /* ── Taskboard / board plugin (rdb-*) ──────────────────────
    #rdb, #rdb-wrapper, #rdb-board, #rdb-taskboard.
    The plugin paints inline colours from JS, so the rules below
