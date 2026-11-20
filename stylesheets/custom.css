@@ -354,6 +354,14 @@ table.issue-report td.vz-prog { white-space: nowrap; }
 .vz-prog-in .vz-bar { flex: none; width: 64px; }
 .vz-prog-in a, .vz-prog-in > span:last-child { min-width: 34px; text-align: right; }
 
+/* RedmineUP Vistazo — custom fields de mensajes y fechas.
+   Los campos personalizados de soporte (mensaje) y de fecha no forman parte del
+   panel Vistazo; se ocultan en el issue details para no ensanchar el layout. */
+body.controller-issues .issue.details .attribute[class*="text_cf"],
+body.controller-issues .issue.details .attribute[class*="date_cf"] {
+  display: none !important;
+}
+
 /* Barra de progreso (compartida) */
 .vz-bar {
   height: 6px; border-radius: 99px; overflow: hidden;

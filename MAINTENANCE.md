@@ -5,23 +5,26 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 ## Estado actual (2026-11-20)
 
 - Repo: `matbott/redmine-modern-theme-mf-v7`, rama `main`.
-- Último commit funcional: **Taskboard / board — móvil (v1.7.6) + taskboard / board — fondo
-  contenedor `#content` + Issues / admin settings — no horizontal scroll + RedmineUP Help &
-  Support — form panel border**
-  (`v1.7.6`).
+- Último commit funcional: **RedmineUP Vistazo — custom fields de mensajes y fechas (v1.7.7) +
+  taskboard / board — fondo contenedor `#content` + Issues / admin settings — no horizontal
+  scroll + RedmineUP Help & Support — form panel border + taskboard / board — móvil (v1.7.6)**
+  (`v1.7.7`).
 - Estado del repo: `main` limpio, tags `v1.2.4`, `v1.2.5`, `v1.3.0`, `v1.3.1`,
   `v1.4.0`, `v1.5.0`, `v1.5.1`, `v1.6.0`, `v1.7.0`, `v1.7.1`, `v1.7.2`, `v1.7.3`, `v1.7.4`, `v1.7.5` y
-  `v1.7.6` en origin.
+  `v1.7.6` y `v1.7.7` en origin.
 - Server: Redmine **7.0.3**, container `redmine-redmine-1`, theme instalado en
   `/usr/src/redmine/themes/redmine-modern-theme-mf-v7`.
-- **Pendiente inmediato**: deployar `v1.7.6` en el server con el bloque de *Deploy* y
+- **Pendiente inmediato**: deployar `v1.7.7` en el server con el bloque de *Deploy* y
   hacer `Ctrl+F5`. Validar el taskboard / board con fondo token en `#content`; el taskboard
   en móvil con columnas apiladas; que las páginas CMS con iframe no tengan la franja vacía
-  arriba; el scroll horizontal en `/issues` y `/admin/settings/configuration`; y el borde del
-  panel de RedmineUP Help & Support. Cuando se valide, aplicar los fixes al theme **Lumen**.
+  arriba; el scroll horizontal en `/issues` y `/admin/settings/configuration`; el borde del
+  panel de RedmineUP Help & Support; y los custom fields de mensajes y fechas del Vistazo.
+  Cuando se valide, aplicar los fixes al theme **Lumen**.
 
 ### Última sesión (2026-11-20)
 
+- **RedmineUP Vistazo — custom fields de mensajes y fechas (v1.7.7)**: se agregó un override en
+  `custom.css` para ocultar los custom fields de formato `text_cf` y `date_cf` en el issue details.
 - **Taskboard / board — móvil (v1.7.6)**: el taskboard agrupa sus columnas en una fila
   horizontal; en móvil se apilan en una sola columna y las cards pasan a una columna con el
   grid del taskboard. Se agregó el media query en `custom.css`.
