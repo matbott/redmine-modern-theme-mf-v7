@@ -49,16 +49,8 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 - El theme anterior `redmine-modern-theme-mf` sigue instalado y se puede volver a él
   desde Administración → Configuración → Mostrar → Tema.
 
-### Última sesión (2026-11-20)
-
 - **Taskboard / board — fondo con tokens (v1.7.2)**: `custom.css` aplica el fondo token
   (`--rm-surface` / `--rm-bg`) al board y sus filas/tablas, cubriendo el estado vacío.
-- **RedmineUP CMS — iframes (v1.7.1)**: `custom.css` limpia el `padding-top` que el CMS
-  aplica a `#content` cuando la página contiene un iframe, para que los dashboards de
-  Grafana no queden con una franja vacía arriba. Aplica a todas las páginas con iframe y
-  conserva el resto del espaciado del plugin. Selector
-  `html body:has(#content iframe) #content` con `!important` y prefijo `html` para ganarle
-  al CSS del plugin.
 - **Inicio — panel “Abiertas por tipo” restaurado con límite (v1.7.0)**: se volvió a mostrar,
   pero como **torta con top 5 y “Otros”**. El loader escanea listado agrupado secuencialmente
   con máximo de **1.000 abiertas** y, si hay más, aclara “Calculado sobre las primeras 1.000 de
@@ -140,7 +132,7 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
    el deploy no tomó la regla con `#header`). El buscador de proyectos y los campos
    autocompletar deben mostrar una sola lupa (sin mosaico).
 7. **Mi cuenta**: al final de la sección *Sidebar position* debe verse
-   `Modern Theme MF v1.7.6` en chico. Ya **no** debe aparecer en el pie del sidebar.
+   `Modern Theme MF v1.7.7` en chico. Ya **no** debe aparecer en el pie del sidebar.
 8. **Listado de incidencias**: en las columnas **Asignado** y **Autor** debe aparecer
    un círculo con iniciales antes del nombre. El color tiene que coincidir con el
    avatar del menú de cuenta (misma clase `avatar-color-<id % 16>` de Redmine).
@@ -170,40 +162,56 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 ### Versionado
 
 - La versión visible está en `javascripts/theme.js`, bloque `LOCAL CUSTOMISATIONS —
-  sidebar width` (`var VERSION = '1.7.6'`).
+  sidebar width` (`var VERSION = '1.7.7'`).
 - Al publicar cambios: subir `VERSION`, commit, `git tag -a vX.Y.Z` y push del tag.
 - Se muestra al final del fieldset `#rm-layout` de **Mi cuenta** (sidebar position /
   width), como `Modern Theme MF vX.Y.Z`.
 
 ### Backlog acordado / ideas
 
+Los fixes de `v1.7.1` a `v1.7.7` ya están en el código y commiteados: salen del backlog y
+solo quedan a la espera del deploy/validación descrito en *Pendiente inmediato*.
+
+#### Pendiente de fix
+
+- **CMS — icono de mundo repetido** en el campo de páginas. Sin fix; no hay ninguna regla
+  del theme que lo toque.
+- **Vistazo (v1.7.7) — selector por validar**: la regla oculta `.attribute[class*="text_cf"]`
+  y `.attribute[class*="date_cf"]` en el issue details. Confirmar con F12 que el plugin
+  realmente agrega esas clases al `.attribute`; si usa otro patrón, la regla no aplica.
+- **Help & Support (v1.7.5) — selector por validar**: la regla apunta a `body.controller-help`
+  y a `body[class*="controller-help"]`. Si el controller del plugin es otro (`questions`,
+  `helpdesk`…), la regla nunca matchea. Confirmar el `body` real con F12.
+- **`overflow-x: hidden` (v1.7.4) — alcance demasiado amplio**: aplica a todo
+  `body.controller-admin`, no solo a `/admin/settings/configuration`, y a todo `/issues`.
+  En pantallas angostas recorta el contenido en vez de permitir swipe. Conviene acotar el
+  selector de admin a `action-settings` y revisar si `/issues` lo necesita.
+- **`html > body #content` (v1.7.3) — alcance demasiado amplio**: pinta el fondo de
+  `#content` en *todas* las páginas con `!important`, pisando el `background: transparent`
+  de `application.css`. En dark mode agrega una capa opaca sobre el `body` y puede romper
+  los `color-mix` con transparencia. Debería quedar acotado al taskboard.
+
+#### Mejoras acordadas
+
 - Mi página: toggles por usuario, dona o mini-gráficos, umbral de estancadas configurable.
   (Horas de la semana ya está implementado en `v1.4.0`.)
 - Home, panel de tiempo dedicado: tarjetas por usuario con horas, usando los últimos 5–6
   usuarios según las últimas horas cargadas; si un proyecto tiene 20 usuarios, no se
   esperan 20 tarjetas, solo los últimos que sumaron horas.
-- Plugin RedmineUP **Ayuda y soporte** (*Help & Support* / Questions): fix implementado en
-  `v1.7.5` (borde con `var(--rm-border)` en la página del plugin), pendiente deploy/validate.
-- Taskboard / board: queda blanco el fondo y, si está vacío, el panel se ve con fondo blanco
-  detrás. Fix implementado en `v1.7.3` (contenedor `#content` con token), pendiente deploy/validate.
-- Taskboard / board en móvil: se implementó en `v1.7.6` (columnas apiladas y cards en una
-  columna), pendiente deploy/validate.
-- CMS: el campo de páginas queda con icono repetido de mundo.
-- Listados de `/issues` y `/admin/settings/configuration`: fix implementado en `v1.7.4` /
-  `v1.7.5` (`overflow-x: hidden`), pendiente deploy/validate.
-- Vistazo: ocultar los custom fields de mensajes y fechas.
 - Colores de vencimiento en `/issues` global y en los listados de Mi página; banda de
-  60/90 días.
+  60/90 días (hoy el amarillo corta en ≤30 días y solo corre en listados de proyecto).
 - Home: cache por sesión, selector de período (7/30/90 días) y tarjeta de usuarios activos
   con último acceso.
-- Plugin de estadísticas (cambio mayor, diferido): endpoint con permisos y cache para
-  conteos agregados de Inicio, Vistazo y listados. Debe usar `Issue.visible` y
-  `GROUP BY tracker_id`, nunca recorrer páginas del listado. Ver el bloque equivalente en
-  `docs/DEVELOPMENT.md` de Lumen.
-- Grafana: sincronizar `theme=dark|light` y `kiosk` en los iframes, envolverlos con
-  tokens del theme y definir altura por dashboard. Ver la sección de ideas al final.
 - Navegación: Ctrl+K, proyectos favoritos, chips de filtros rápidos, cabecera sticky,
   barra de acciones al seleccionar filas, detalle de incidencia con barra sticky.
+
+#### Diferido (cambio mayor)
+
+- Plugin de estadísticas: endpoint con permisos y cache para conteos agregados de Inicio,
+  Vistazo y listados. Debe usar `Issue.visible` y `GROUP BY tracker_id`, nunca recorrer
+  páginas del listado. Ver el bloque equivalente en `docs/DEVELOPMENT.md` de Lumen.
+- Grafana: sincronizar `theme=dark|light` y `kiosk` en los iframes, envolverlos con
+  tokens del theme y definir altura por dashboard. Ver la sección de ideas al final.
 
 ## Origen
 
