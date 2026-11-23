@@ -1184,7 +1184,13 @@ var RM_I18N = (function () {
       filters.forEach(function (f) {
         parts.push('f%5B%5D=' + encodeURIComponent(f[0]));
         parts.push('op%5B' + encodeURIComponent(f[0]) + '%5D=' + encodeURIComponent(f[1]));
-        if (f[2] != null) parts.push('v%5B' + encodeURIComponent(f[0]) + '%5D%5B%5D=' + encodeURIComponent(f[2]));
+        if (f[2] != null) {
+          // Un filtro de rango ("><") lleva dos valores: dos entradas v[] separadas.
+          // Si se serializa el array entero, Redmine lo rechaza por fecha invalida.
+          (Array.isArray(f[2]) ? f[2] : [f[2]]).forEach(function (v) {
+            parts.push('v%5B' + encodeURIComponent(f[0]) + '%5D%5B%5D=' + encodeURIComponent(v));
+          });
+        }
       });
       return proj + '/issues?' + parts.join('&');
     };
@@ -1193,6 +1199,48 @@ var RM_I18N = (function () {
       if (!$chip.length) return;
       $chip.find('b').text(value == null ? '\u2014' : value);
       $chip.toggleClass('is-zero', value === 0);
+    };
+
+    /* Totales desde el listado HTML, no desde /issues.json.
+       La API REST de Redmine no autentica por cookie: responder 401 con
+       WWW-Authenticate dispara el popup de usuario/contrasena del navegador y
+       rompe los graficos. Estas paginas (mismo filtro que el link de cada chip)
+       si usan la sesion. El total sale de ".pagination .items" -> "(1-25/342)".
+       Costo: una request por indicador, igual que antes, con HTML en vez de 1 fila. */
+    var vzCountCache = {};
+    var vzCountPending = {};
+    var vzTotal = function (doc) {
+      var items = doc.querySelector('.pagination .items');
+      if (items) {
+        var m = (items.textContent || '').match(/(\d+)\s*[-\u2013]\s*(\d+)\s*\/\s*(\d+)/);
+        if (m) return parseInt(m[3], 10);
+      }
+      // Pagina unica: sin ".items", se cuentan las filas (menos el pie vacio).
+      var rows = doc.querySelectorAll('table.issues tbody tr');
+      var n = 0;
+      Array.prototype.forEach.call(rows, function (tr) { if (!tr.classList.contains('nodata')) n++; });
+      return n;
+    };
+    // Devuelve una promesa con el total; cachea por URL (el listado no cambia en la sesion).
+    var vzCount = function (url) {
+      if (vzCountCache[url] != null) return Promise.resolve(vzCountCache[url]);
+      if (vzCountPending[url]) return vzCountPending[url];
+      var p = fetch(url, { headers: { 'Accept': 'text/html' }, credentials: 'same-origin' })
+        .then(function (r) {
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          var fp = '';
+          try { fp = new URL(r.url, location.href).pathname; } catch (e) { fp = ''; }
+          if (/^\/login(?:\/|$)/.test(fp)) throw new Error('Auth required');
+          return r.text();
+        })
+        .then(function (txt) {
+          var n = vzTotal(new DOMParser().parseFromString(txt, 'text/html'));
+          vzCountCache[url] = n;
+          return n;
+        })
+        .catch(function (e) { delete vzCountPending[url]; throw e; });
+      vzCountPending[url] = p;
+      return p;
     };
 
     // Per-project, per-browser Vistazo settings (panel in block 8).
@@ -1344,12 +1392,6 @@ var RM_I18N = (function () {
       var today = new Date(); today.setHours(0, 0, 0, 0);
       var DAY = 86400000;
 
-      var get = function (qs) {
-        return fetch('/issues.json?project_id=' + encodeURIComponent(ident) + '&' + qs,
-                     { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
-          .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
-      };
-
       var row = function (item) {
         var i = item.issue;
         var who = i.assigned_to ? i.assigned_to.name : RM_I18N.t('unassigned');
@@ -1380,34 +1422,91 @@ var RM_I18N = (function () {
 
       $box.html('<h3>' + T_ATTN + '</h3>' + sk);
 
+      /* Los tres listados se leen del HTML (misma sesión, sin popup de credenciales).
+         Cada uno trae el total y hasta 4 filas; el orden lo define el propio listado. */
+      var attnUrl = function (filters, sort, perPage) {
+        return queryUrl(filters) + '&sort=' + encodeURIComponent(sort) + '&per_page=' + perPage;
+      };
+      var listUrl = {
+        late: attnUrl([['status_id', 'o'], ['due_date', '<=', daysAgo(1)]], 'due_date', 4),
+        soon: attnUrl([['status_id', 'o'], ['due_date', '><', [daysAgo(0), daysAgo(-7)]]], 'due_date', 4),
+        stalled: attnUrl([['status_id', 'o'], ['updated_on', '<=', daysAgo(vzConf.stalledDays)]], 'updated_on:asc', 4)
+      };
+      // Clases que Redmine pone por defecto en las celdas de fecha; si no están, se
+      // piden explícitamente con c[]= para que existan siempre.
+      var attnFetch = function (url) {
+        return fetch(url + '&c%5B%5D=due_date&c%5B%5D=updated_on&c%5B%5D=subject&c%5B%5D=assigned_to&c%5B%5D=priority',
+                     { headers: { 'Accept': 'text/html' }, credentials: 'same-origin' })
+          .then(function (r) {
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            var fp = '';
+            try { fp = new URL(r.url, location.href).pathname; } catch (e) { fp = ''; }
+            if (/^\/login(?:\/|$)/.test(fp)) throw new Error('Auth required');
+            return r.text();
+          })
+          .then(function (txt) { return new DOMParser().parseFromString(txt, 'text/html'); });
+      };
+
+      var cellText = function (tr, cls) {
+        var td = tr.querySelector('td.' + cls);
+        return td ? (td.textContent || '').trim() : '';
+      };
+      var isoFromText = function (t) {
+        var m = (t || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+        return m ? m[1] + '-' + m[2] + '-' + m[3] : '';
+      };
+      // Convierte las filas del listado al mismo formato que consumía la API.
+      var toItems = function (doc, withUpdated) {
+        var out = [];
+        Array.prototype.forEach.call(doc.querySelectorAll('table.issues tbody tr'), function (tr) {
+          if (tr.classList.contains('nodata')) return;
+          var link = tr.querySelector('td.subject a[href^="/issues/"]');
+          if (!link) return;
+          var id = (link.getAttribute('href') || '').match(/^\/issues\/(\d+)/);
+          var cell = tr.querySelector('td.subject');
+          var subj = cell ? (cell.textContent || '').replace(/^\s*#?\d+\s*/, '').trim() : '';
+          var who = cellText(tr, 'assigned_to');
+          var prio = cellText(tr, 'priority');
+          var item = { id: id ? id[1] : '', subject: subj, due_date: isoFromText(cellText(tr, 'due_date')) };
+          if (who) item.assigned_to = { name: who };
+          if (prio) item.priority = { name: prio };
+          if (withUpdated) item.updated_on = isoFromText(cellText(tr, 'updated_on'));
+          out.push(item);
+        });
+        return out;
+      };
+
       Promise.all([
-        get('status_id=o&due_date=%3C%3D' + daysAgo(1) + '&sort=due_date&limit=4'),
-        get('status_id=o&due_date=%3E%3C' + daysAgo(0) + '%7C' + daysAgo(-7) + '&sort=due_date&limit=4'),
-        vzConf.attnStalled
-          ? get('status_id=o&updated_on=%3C%3D' + daysAgo(vzConf.stalledDays) + '&sort=updated_on:asc&limit=4')
-          : Promise.resolve(null)
+        attnFetch(listUrl.late),
+        attnFetch(listUrl.soon),
+        vzConf.attnStalled ? attnFetch(listUrl.stalled) : Promise.resolve(null)
       ])
-        .then(function (res) {
+        .then(function (docs) {
           if (token !== vzAttnToken) return;
-          var late = (res[0].issues || []).map(function (i) {
+          var lateItems = toItems(docs[0]);
+          var soonItems = toItems(docs[1]);
+          var stalledItems = docs[2] ? toItems(docs[2], true) : [];
+          var total = function (doc) { return doc ? vzTotal(doc) : 0; };
+
+          var late = lateItems.map(function (i) {
             return { issue: i, days: dueDays(i), cls: 'is-late' };
           });
-          var soon = (res[1].issues || []).map(function (i) {
+          var soon = soonItems.map(function (i) {
             return { issue: i, days: dueDays(i), cls: 'is-soon' };
           });
-          var stalled = res[2] ? (res[2].issues || []).map(function (i) {
+          var stalled = stalledItems.map(function (i) {
             return { issue: i, since: staleDays(i), cls: 'is-stalled' };
-          }) : [];
+          });
 
           $box.html(
-            section('vz-attn-late', RM_I18N.t('lateTitle', { n: res[0].total_count || 0 }), late, RM_I18N.t('nothingLate')) +
-            section('vz-attn-soon', RM_I18N.t('soonTitle', { n: res[1].total_count || 0 }), soon, RM_I18N.t('nothingSoon')) +
-            section('vz-attn-stalled', RM_I18N.t('stalledTitle', { days: vzConf.stalledDays, n: res[2] ? (res[2].total_count || 0) : 0 }), stalled, RM_I18N.t('nothingStalled'))
+            section('vz-attn-late', RM_I18N.t('lateTitle', { n: total(docs[0]) }), late, RM_I18N.t('nothingLate')) +
+            section('vz-attn-soon', RM_I18N.t('soonTitle', { n: total(docs[1]) }), soon, RM_I18N.t('nothingSoon')) +
+            section('vz-attn-stalled', RM_I18N.t('stalledTitle', { days: vzConf.stalledDays, n: total(docs[2]) }), stalled, RM_I18N.t('nothingStalled'))
           );
           vzApply();
         })
         .catch(function (e) {
-          console.error('Vistazo moderno [issues.json]:', e);
+          console.error('Vistazo moderno [attention list]:', e);
           $box.html('<h3>' + T_ATTN + '</h3><p class="vz-empty">' + RM_I18N.t('loadFailed') + '</p>');
         });
     };
@@ -1598,20 +1697,15 @@ var RM_I18N = (function () {
 
       var ops = [
         { id: 'unassigned', label: RM_I18N.t('unassignedChip'),
-          href: queryUrl([['status_id', 'o'], ['assigned_to_id', '!*']]),
-          count: 'status_id=o&assigned_to_id=%21*' },
+          href: queryUrl([['status_id', 'o'], ['assigned_to_id', '!*']]) },
         { id: 'overdue', label: RM_I18N.t('overdueChip'), danger: true,
-          href: queryUrl([['status_id', 'o'], ['due_date', '<=', daysAgo(1)]]),
-          count: 'status_id=o&due_date=%3C%3D' + daysAgo(1) },
+          href: queryUrl([['status_id', 'o'], ['due_date', '<=', daysAgo(1)]]) },
         { id: 'nodue', label: RM_I18N.t('noDueChip'),
-          href: queryUrl([['status_id', 'o'], ['due_date', '!*']]),
-          count: 'status_id=o&due_date=%21*' },
+          href: queryUrl([['status_id', 'o'], ['due_date', '!*']]) },
         { id: 'new', label: RM_I18N.t('newChip'),
-          href: queryUrl([['created_on', '>=', weekAgo]]),
-          count: 'created_on=%3E=' + weekAgo },
+          href: queryUrl([['created_on', '>=', weekAgo]]) },
         { id: 'closed', label: RM_I18N.t('closedChip'),
-          href: queryUrl([['status_id', 'c'], ['updated_on', '>=', weekAgo]]),
-          count: 'status_id=c&updated_on=%3E=' + weekAgo },
+          href: queryUrl([['status_id', 'c'], ['updated_on', '>=', weekAgo]]) },
         { id: 'mttr', label: RM_I18N.t('avgCloseChip'), href: proj + '/issues/report', avg: true }
       ];
 
@@ -1625,27 +1719,41 @@ var RM_I18N = (function () {
       if (!$kpis.length) return;
       $kpis.after(chips);
 
-      function count(qs) {
-        return fetch('/issues.json?project_id=' + encodeURIComponent(ident) + '&limit=1&' + qs,
-                     { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
-          .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-          .then(function (d) { return typeof d.total_count === 'number' ? d.total_count : null; });
+      function count(url) {
+        // per_page=1: el total sale del paginador, no hace falta traer 25 filas.
+        return vzCount(url + (url.indexOf('?') < 0 ? '?' : '&') + 'per_page=1')
+          .then(function (n) { return typeof n === 'number' ? n : null; });
       }
 
       ops.forEach(function (op) {
         if (op.avg) return;
-        count(op.count)
+        count(op.href)
           .then(function (n) { setOpValue(op.id, n); })
           .catch(function (e) { console.error('Vistazo moderno [' + op.id + ']:', e); setOpValue(op.id, null); });
       });
 
-      // Tiempo medio de cierre sobre las últimas 30 cerradas.
-      fetch('/issues.json?project_id=' + encodeURIComponent(ident) + '&status_id=c&limit=30&sort=closed_on:desc',
-            { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
-        .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-        .then(function (d) {
-          var days = (d.issues || []).filter(function (i) { return i.closed_on; }).map(function (i) {
-            return (new Date(i.closed_on) - new Date(i.created_on)) / 864e5;
+      // Tiempo medio de cierre sobre las últimas 30 cerradas, leído del listado HTML
+      // (columnas closed_on y created_on pedidas con c[]=), sin pasar por la API.
+      var mttrUrl = proj + '/issues?set_filter=1&f%5B%5D=status_id&op%5Bstatus_id%5D=%3D' +
+        '&v%5Bstatus_id%5D%5B%5D=c&sort=closed_on%3Adesc&per_page=30&c%5B%5D=closed_on&c%5B%5D=created_on';
+      fetch(mttrUrl, { headers: { 'Accept': 'text/html' }, credentials: 'same-origin' })
+        .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+        .then(function (txt) {
+          var doc = new DOMParser().parseFromString(txt, 'text/html');
+          var parseDate = function (cell) {
+            if (!cell) return null;
+            var t = (cell.textContent || '').trim();
+            if (!t) return null;
+            var m = t.match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}))?/);
+            if (m) return new Date(+m[1], +m[2] - 1, +m[3], +(m[4] || 0), +(m[5] || 0));
+            var d = new Date(t);
+            return isNaN(d) ? null : d;
+          };
+          var days = [];
+          Array.prototype.forEach.call(doc.querySelectorAll('table.issues tbody tr'), function (tr) {
+            var c = parseDate(tr.querySelector('td.closed_on'));
+            var o = parseDate(tr.querySelector('td.created_on'));
+            if (c && o) days.push((c - o) / 864e5);
           });
 
           if (!days.length) { setOpValue('mttr', null); return; }
@@ -1667,14 +1775,13 @@ var RM_I18N = (function () {
       var stalledFor = null;
       function loadStalled() {
         var date = daysAgo(vzConf.stalledDays);
-        $('#vz-op-stalled').attr('href', queryUrl([['status_id', 'o'], ['updated_on', '<=', date]]));
+        var url = queryUrl([['status_id', 'o'], ['updated_on', '<=', date]]);
+        $('#vz-op-stalled').attr('href', url);
         if (stalledFor === date) return;
         stalledFor = date;
         setOpValue('stalled', null);
-        fetch('/issues.json?project_id=' + encodeURIComponent(ident) + '&limit=1&status_id=o&updated_on=%3C=' + date,
-              { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
-          .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-          .then(function (d) { setOpValue('stalled', d.total_count); })
+        vzCount(url)
+          .then(function (n) { setOpValue('stalled', n); })
           .catch(function (e) { console.error('Vistazo moderno [stalled]:', e); stalledFor = null; setOpValue('stalled', null); });
       }
 
@@ -1778,7 +1885,7 @@ var RM_I18N = (function () {
   var root = document.documentElement;
   var KEY = 'rm-sidebar-width';
   var MIN = 180, MAX = 360;
-  var VERSION = '1.7.8';
+  var VERSION = '1.8.0';
 
   function storedWidth() {
     try {
@@ -1991,8 +2098,8 @@ var RM_I18N = (function () {
 /* ============================================================
    LOCAL CUSTOMISATIONS — My page ("Mi vistazo")
    KPI strip with the logged-in user's workload, above the
-   configurable My page blocks. Counts come from /issues.json
-   with the "me" value, so it follows the current user.
+   configurable My page blocks. Counts come from the HTML issue
+   list with the user's id, so it follows the current user.
    ============================================================ */
 (function () {
   function start() {
@@ -2036,12 +2143,30 @@ var RM_I18N = (function () {
       });
       return '/issues?' + parts.join('&');
     };
-    var api = function (filters) {
-      var parts = ['limit=1'];
-      filters.forEach(function (f) {
-        parts.push(encodeURIComponent(f[0]) + '=' + encodeURIComponent(f[1]));
-      });
-      return '/issues.json?' + parts.join('&');
+    /* Total desde el listado HTML: la API REST no usa la cookie sesión y su 401
+       disparaba el popup de credenciales. "/issues?<filtros>" sí respeta la sesión;
+       el total sale de ".pagination .items" -> "(1-25/342)". */
+    var total = function (url) {
+      return fetch(url, { headers: { 'Accept': 'text/html' }, credentials: 'same-origin' })
+        .then(function (r) {
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          var fp = '';
+          try { fp = new URL(r.url, location.href).pathname; } catch (e) { fp = ''; }
+          if (/^\/login(?:\/|$)/.test(fp)) throw new Error('Auth required');
+          return r.text();
+        })
+        .then(function (txt) {
+          var doc = new DOMParser().parseFromString(txt, 'text/html');
+          var items = doc.querySelector('.pagination .items');
+          if (items) {
+            var m = (items.textContent || '').match(/(\d+)\s*[-\u2013]\s*(\d+)\s*\/\s*(\d+)/);
+            if (m) return parseInt(m[3], 10);
+          }
+          var rows = doc.querySelectorAll('table.issues tbody tr');
+          var n = 0;
+          Array.prototype.forEach.call(rows, function (tr) { if (!tr.classList.contains('nodata')) n++; });
+          return n;
+        });
     };
 
     var svg = function (p) {
@@ -2059,23 +2184,17 @@ var RM_I18N = (function () {
 
     var cards = [
       { id: 'assigned', label: RM_I18N.t('myAssigned'), icon: 'open',
-        href: query([['assigned_to_id', '=', uid], ['status_id', 'o']]),
-        api: api([['assigned_to_id', uid], ['status_id', 'o']]) },
+        href: query([['assigned_to_id', '=', uid], ['status_id', 'o']]) },
       { id: 'late', label: RM_I18N.t('myLate'), icon: 'alert', cls: 'is-late',
-        href: query([['assigned_to_id', '=', uid], ['status_id', 'o'], ['due_date', '<=', yesterday]]),
-        api: api([['assigned_to_id', uid], ['status_id', 'o'], ['due_date', '<=' + yesterday]]) },
+        href: query([['assigned_to_id', '=', uid], ['status_id', 'o'], ['due_date', '<=', yesterday]]) },
       { id: 'week', label: RM_I18N.t('myWeek'), icon: 'clock', cls: 'is-soon',
-        href: query([['assigned_to_id', '=', uid], ['status_id', 'o'], ['due_date', '><', [today, weekAhead]]]),
-        api: api([['assigned_to_id', uid], ['status_id', 'o'], ['due_date', '><' + today + '|' + weekAhead]]) },
+        href: query([['assigned_to_id', '=', uid], ['status_id', 'o'], ['due_date', '><', [today, weekAhead]]]) },
       { id: 'reported', label: RM_I18N.t('myReported'), icon: 'user',
-        href: query([['author_id', '=', uid], ['status_id', 'o']]),
-        api: api([['author_id', uid], ['status_id', 'o']]) },
+        href: query([['author_id', '=', uid], ['status_id', 'o']]) },
       { id: 'closed', label: RM_I18N.t('myClosed'), icon: 'closed', cls: 'is-ok',
-        href: query([['assigned_to_id', '=', uid], ['status_id', 'c'], ['updated_on', '>=', weekAgo]]),
-        api: api([['assigned_to_id', uid], ['status_id', 'c'], ['updated_on', '>=' + weekAgo]]) },
+        href: query([['assigned_to_id', '=', uid], ['status_id', 'c'], ['updated_on', '>=', weekAgo]]) },
       { id: 'stalled', label: RM_I18N.t('myStalled'), icon: 'pause', cls: 'is-stalled',
-        href: query([['assigned_to_id', '=', uid], ['status_id', 'o'], ['updated_on', '<=', daysAgo(7)]]),
-        api: api([['assigned_to_id', uid], ['status_id', 'o'], ['updated_on', '<=' + daysAgo(7)]]) },
+        href: query([['assigned_to_id', '=', uid], ['status_id', 'o'], ['updated_on', '<=', daysAgo(7)]]) },
       { id: 'hours', label: RM_I18N.t('myHoursWeek'), icon: 'timer',
         href: '/time_entries?from=' + weekStart + '&to=' + weekEnd + '&user_id=' + encodeURIComponent(uid),
         csv: '/time_entries.csv?from=' + weekStart + '&to=' + weekEnd + '&user_id=' + encodeURIComponent(uid) + '&c%5B%5D=hours' }
@@ -2118,9 +2237,8 @@ var RM_I18N = (function () {
           });
         return;
       }
-      fetch(c.api, { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
-        .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-        .then(function (d) { $('#vz-my-' + c.id).text(typeof d.total_count === 'number' ? d.total_count : '\u2014'); })
+      total(c.href)
+        .then(function (n) { $('#vz-my-' + c.id).text(typeof n === 'number' ? n : '\u2014'); })
         .catch(function (e) { console.error('Vistazo moderno [my ' + c.id + ']:', e); });
     });
   }

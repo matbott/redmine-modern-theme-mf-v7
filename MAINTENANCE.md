@@ -5,23 +5,49 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 ## Estado actual (2026-11-23)
 
 - Repo: `matbott/redmine-modern-theme-mf-v7`, rama `main`.
-- Último commit funcional: **Alcance acotado de `overflow-x` y del fondo de `#content` +
-  custom fields nativos del Vistazo (v1.7.8)**, sobre los fixes de v1.7.7 (Vistazo +
-  taskboard / board + Issues / admin settings + Help & Support + taskboard móvil).
-  (`v1.7.8`).
+- Último commit funcional: **Vistazo y Mi página sin API JSON (v1.8.0)** — los totales de
+  chips, panel de atención, MTTR, estancadas y tarjetas de Mi página se leen de las páginas
+  HTML con la sesión, y se corrigió el filtro de rango `><` en `queryUrl`.
+  (v1.7.8: Help & Support con el controller real + alcances acotados.)
 - Estado del repo: `main` limpio, tags `v1.2.4`, `v1.2.5`, `v1.3.0`, `v1.3.1`,
   `v1.4.0`, `v1.5.0`, `v1.5.1`, `v1.6.0`, `v1.7.0`, `v1.7.1`, `v1.7.2`, `v1.7.3`, `v1.7.4`, `v1.7.5`,
-  `v1.7.6`, `v1.7.7` y `v1.7.8` en origin.
+  `v1.7.6`, `v1.7.7`, `v1.7.8` y `v1.8.0` en origin.
 - Server: Redmine **7.0.3**, container `redmine-redmine-1`, theme instalado en
   `/usr/src/redmine/themes/redmine-modern-theme-mf-v7`.
-- **Pendiente inmediato**: deployar `v1.7.8` en el server con el bloque de *Deploy* y
-  hacer `Ctrl+F5`. Validar el taskboard / board con fondo token en `#content`; el taskboard
-  en móvil con columnas apiladas; que las páginas CMS con iframe no tengan la franja vacía
-  arriba; el scroll horizontal en `/issues` y `/admin/settings/configuration`; el borde del
-  panel de RedmineUP Help & Support; y los custom fields de mensajes y fechas del Vistazo.
-  Además, que el detalle de incidencia, el overview de proyecto, el calendario y el resto
-  del admin **sí** tengan scroll lateral cuando el contenido no entra (v1.7.8 acotó
-  `overflow-x` y el fondo de `#content`). Cuando se valide, aplicar los fixes al theme **Lumen**.
+- **Pendiente inmediato**: deployar `v1.8.0` con el bloque de *Deploy* y `Ctrl+F5`.
+  Validar: que **ya no aparezca el popup de usuario/contraseña** en el Vistazo ni en Mi
+  página; que los chips, el panel de atención, el MTTR y las tarjetas de Mi página muestren
+  los mismos números que antes de la API; y medir cuánto demoran las 6 requests de chips
+  + 3 del panel (HTML en vez de 1 fila). Si demora mucho, ver *Notas de performance*.
+  Recordar los pendientes de v1.7.7 y v1.7.8 (taskboard, CMS iframe, scroll horizontal,
+  Help & Support, custom fields del Vistazo) y portar a **Lumen** al validar.
+
+### Última sesión (2026-11-23, v1.8.0)
+
+- **Causa del popup de credenciales**: la API REST de Redmine (`/issues.json`) **no
+  autentica por cookie**. Responde `401` con `WWW-Authenticate` y el navegador abre el
+  diálogo usuario/contraseña; ningún `fetch` puede suprimirlo. `credentials: 'same-origin'`
+  no alcanza porque el problema es del servidor, no del cliente.
+- **Solución aplicada**: todas las llamadas `.json` del Vistazo y de Mi página pasaron a
+  leer el **listado HTML** (misma sesión que la página), que ya funcionaba para la dona y
+  las tarjetas de tipo. El total sale de `.pagination .items` → `(1-25/342)`, con fallback a
+  contar filas y descartar `tr.nodata` cuando hay una sola página.
+- **Bloques cambiados** (`javascripts/theme.js`):
+  - `vzCount` / `vzTotal` nuevos: helper con cache y deduplicación de requests por URL.
+  - Chips de operación: `count(qs)` → `count(url)` usando el mismo `queryUrl` del link.
+  - MTTR: lee `td.closed_on` y `td.created_on` del listado pidiendo `c[]=closed_on&c[]=created_on`.
+  - Panel de atención: tres listados HTML, `toItems()` reconstruye el shape que consumía la API.
+  - Chip de estancadas: `vzCount(url)`.
+  - Mi página: `total(url)` en lugar de `api(...)`; se quitó el helper `api()`.
+- **Bug preexistente corregido**: `queryUrl` serializaba un filtro de rango (`><`) como un
+  solo valor (`2026-11-23%2C2026-11-30`), que Redmine rechaza por fecha inválida — afectaba
+  también el link "Por vencer" de Mi página desde v1.4.0. Ahora emite dos `v[]`. Los arrays
+  también los soporta `query()` en el bloque de Mi página.
+- **Verificado en Chromium** con HTML de muestra: total `(1-4/342)` → 342; página única sin
+  paginador → cuenta filas; tabla vacía → 0; separador en guion unicode → ok; MTTR con fechas
+  con y sin hora; rango `><` produce dos `v[]` que pasan la validación de Redmine.
+- **Costo asumido**: una request por indicador (igual que antes) pero con HTML completo en
+  vez de una fila. El Vistazo pasa de ~6 requests JSON livianas a ~6 HTML; Mi página de 6 a 6.
 
 ### Última sesión (2026-11-23)
 
@@ -149,7 +175,7 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
    el deploy no tomó la regla con `#header`). El buscador de proyectos y los campos
    autocompletar deben mostrar una sola lupa (sin mosaico).
 7. **Mi cuenta**: al final de la sección *Sidebar position* debe verse
-   `Modern Theme MF v1.7.8` en chico. Ya **no** debe aparecer en el pie del sidebar.
+   `Modern Theme MF v1.8.0` en chico. Ya **no** debe aparecer en el pie del sidebar.
 8. **Listado de incidencias**: en las columnas **Asignado** y **Autor** debe aparecer
    un círculo con iniciales antes del nombre. El color tiene que coincidir con el
    avatar del menú de cuenta (misma clase `avatar-color-<id % 16>` de Redmine).
@@ -179,14 +205,14 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 ### Versionado
 
 - La versión visible está en `javascripts/theme.js`, bloque `LOCAL CUSTOMISATIONS —
-  sidebar width` (`var VERSION = '1.7.8'`).
+  sidebar width` (`var VERSION = '1.8.0'`).
 - Al publicar cambios: subir `VERSION`, commit, `git tag -a vX.Y.Z` y push del tag.
 - Se muestra al final del fieldset `#rm-layout` de **Mi cuenta** (sidebar position /
   width), como `Modern Theme MF vX.Y.Z`.
 
 ### Backlog acordado / ideas
 
-Los fixes de `v1.7.1` a `v1.7.8` ya están en el código y commiteados: salen del backlog y
+Los fixes de `v1.7.1` a `v1.8.0` ya están en el código y commiteados: salen del backlog y
 solo quedan a la espera del deploy/validación descrito en *Pendiente inmediato*.
 
 #### Pendiente de deploy / validar en el server
@@ -258,6 +284,28 @@ solo quedan a la espera del deploy/validación descrito en *Pendiente inmediato*
   páginas del listado. Ver el bloque equivalente en `docs/DEVELOPMENT.md` de Lumen.
 - Grafana: sincronizar `theme=dark|light` y `kiosk` en los iframes, envolverlos con
   tokens del theme y definir altura por dashboard. Ver la sección de ideas al final.
+
+## Notas de performance (v1.8.0)
+
+Los totales salen de páginas HTML completas. Cada `.pagination .items` exige que Redmine
+haga el `COUNT`, así que el costo por indicador es parecido al de la API, pero el payload
+es más grande. Dónde duele:
+
+- **Chips de operación**: 5 requests en paralelo (unassigned, overdue, nodue, new, closed)
+  + 1 del MTTR + 1 de estancadas. `vzCount` cachea y deduplica por URL, así que reabrir el
+  Vistazo en la misma sesión no repite requests ya hechas.
+- **Panel de atención**: 3 requests (vencidas, por vencer, estancadas) con `per_page=4`.
+  Usa el mismo endpoint que los chips pero con otro filtro; no comparte cache.
+- **Mi página**: 6 requests, uno por tarjeta.
+
+Si en el server resulta lento:
+
+1. Los chips ya piden `per_page=1` (el total sale del paginador; no se traen 25 filas).
+2. Servir el panel de atención desde una sola request agrupada y leer los `badge-count`
+   de cada grupo, como ya se hace en Inicio con `group_by=tracker`.
+3. Cachear los conteos por sesión con una marca de tiempo (hoy `vzCount` cachea por carga
+   de página; al reabrir el Vistazo se vuelve a pedir).
+4. Última opción: clave de API en un plugin, nunca en el JS del theme (el theme es público).
 
 ## Origen
 
