@@ -2,26 +2,43 @@
 
 Notas para retomar el trabajo sin tener que reconstruir el contexto.
 
-## Estado actual (2026-11-20)
+## Estado actual (2026-11-23)
 
 - Repo: `matbott/redmine-modern-theme-mf-v7`, rama `main`.
-- Último commit funcional: **RedmineUP Vistazo — custom fields de mensajes y fechas (v1.7.7) +
-  taskboard / board — fondo contenedor `#content` + Issues / admin settings — no horizontal
-  scroll + RedmineUP Help & Support — form panel border + taskboard / board — móvil (v1.7.6)**
-  (`v1.7.7`).
+- Último commit funcional: **Alcance acotado de `overflow-x` y del fondo de `#content` +
+  custom fields nativos del Vistazo (v1.7.8)**, sobre los fixes de v1.7.7 (Vistazo +
+  taskboard / board + Issues / admin settings + Help & Support + taskboard móvil).
+  (`v1.7.8`).
 - Estado del repo: `main` limpio, tags `v1.2.4`, `v1.2.5`, `v1.3.0`, `v1.3.1`,
-  `v1.4.0`, `v1.5.0`, `v1.5.1`, `v1.6.0`, `v1.7.0`, `v1.7.1`, `v1.7.2`, `v1.7.3`, `v1.7.4`, `v1.7.5` y
-  `v1.7.6` y `v1.7.7` en origin.
+  `v1.4.0`, `v1.5.0`, `v1.5.1`, `v1.6.0`, `v1.7.0`, `v1.7.1`, `v1.7.2`, `v1.7.3`, `v1.7.4`, `v1.7.5`,
+  `v1.7.6`, `v1.7.7` y `v1.7.8` en origin.
 - Server: Redmine **7.0.3**, container `redmine-redmine-1`, theme instalado en
   `/usr/src/redmine/themes/redmine-modern-theme-mf-v7`.
-- **Pendiente inmediato**: deployar `v1.7.7` en el server con el bloque de *Deploy* y
+- **Pendiente inmediato**: deployar `v1.7.8` en el server con el bloque de *Deploy* y
   hacer `Ctrl+F5`. Validar el taskboard / board con fondo token en `#content`; el taskboard
   en móvil con columnas apiladas; que las páginas CMS con iframe no tengan la franja vacía
   arriba; el scroll horizontal en `/issues` y `/admin/settings/configuration`; el borde del
   panel de RedmineUP Help & Support; y los custom fields de mensajes y fechas del Vistazo.
-  Cuando se valide, aplicar los fixes al theme **Lumen**.
+  Además, que el detalle de incidencia, el overview de proyecto, el calendario y el resto
+  del admin **sí** tengan scroll lateral cuando el contenido no entra (v1.7.8 acotó
+  `overflow-x` y el fondo de `#content`). Cuando se valide, aplicar los fixes al theme **Lumen**.
 
-### Última sesión (2026-11-20)
+### Última sesión (2026-11-23)
+
+- **Alcance de `overflow-x` (v1.7.8)**: pasó de `body.controller-issues` / `body.controller-admin`
+  (todas sus actions) a `body.controller-issues.action-index` y `body.controller-admin.action-settings`.
+- **Alcance del fondo de `#content` (v1.7.8)**: `html > body #content` (todas las páginas)
+  quedó en `html > body:has(#rdb-board) #content` y `:has(#rdb-taskboard)`.
+- **Custom fields del Vistazo (v1.7.8)**: se sumaron los selectores nativos
+  `.attribute:has(> .label[for*="text_cf"])` y `[for*="date_cf"]`, que cubren el `.attribute`
+  que arma Redmine cuando el plugin lista el campo en el issue details.
+- Verificado en Chromium headless sobre un fixture con `custom.css` completo: `:has` oculta
+  los tres campos de prueba y deja visible `.attribute` normal; `overflow-x` da `hidden` solo
+  en `issues/index` y `admin/settings`; el fondo de `#content` solo se fuerza con `#rdb*` en el
+  DOM. No se validó en el server porque esta máquina no tiene Docker ni acceso al
+  contenedor `redmine-redmine-1`; el navegador del usuario (Chrome actual) soporta `:has`.
+
+#### Sesión 2026-11-20
 
 - **RedmineUP Vistazo — custom fields de mensajes y fechas (v1.7.7)**: se agregó un override en
   `custom.css` para ocultar los custom fields de formato `text_cf` y `date_cf` en el issue details.
@@ -132,7 +149,7 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
    el deploy no tomó la regla con `#header`). El buscador de proyectos y los campos
    autocompletar deben mostrar una sola lupa (sin mosaico).
 7. **Mi cuenta**: al final de la sección *Sidebar position* debe verse
-   `Modern Theme MF v1.7.7` en chico. Ya **no** debe aparecer en el pie del sidebar.
+   `Modern Theme MF v1.7.8` en chico. Ya **no** debe aparecer en el pie del sidebar.
 8. **Listado de incidencias**: en las columnas **Asignado** y **Autor** debe aparecer
    un círculo con iniciales antes del nombre. El color tiene que coincidir con el
    avatar del menú de cuenta (misma clase `avatar-color-<id % 16>` de Redmine).
@@ -162,34 +179,63 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 ### Versionado
 
 - La versión visible está en `javascripts/theme.js`, bloque `LOCAL CUSTOMISATIONS —
-  sidebar width` (`var VERSION = '1.7.7'`).
+  sidebar width` (`var VERSION = '1.7.8'`).
 - Al publicar cambios: subir `VERSION`, commit, `git tag -a vX.Y.Z` y push del tag.
 - Se muestra al final del fieldset `#rm-layout` de **Mi cuenta** (sidebar position /
   width), como `Modern Theme MF vX.Y.Z`.
 
 ### Backlog acordado / ideas
 
-Los fixes de `v1.7.1` a `v1.7.7` ya están en el código y commiteados: salen del backlog y
+Los fixes de `v1.7.1` a `v1.7.8` ya están en el código y commiteados: salen del backlog y
 solo quedan a la espera del deploy/validación descrito en *Pendiente inmediato*.
+
+#### Pendiente de deploy / validar en el server
+
+- **`v1.7.7`** (deploy + `Ctrl+F5`): taskboard con fondo token en `#content`, taskboard en móvil
+  con columnas apiladas, CMS con iframe sin franja arriba, `/issues` y
+  `/admin/settings/configuration` sin scroll horizontal, borde del panel Help & Support, y
+  custom fields de mensajes y fechas del Vistazo. Al validar, portar a **Lumen**.
 
 #### Pendiente de fix
 
-- **CMS — icono de mundo repetido** en el campo de páginas. Sin fix; no hay ninguna regla
-  del theme que lo toque.
-- **Vistazo (v1.7.7) — selector por validar**: la regla oculta `.attribute[class*="text_cf"]`
-  y `.attribute[class*="date_cf"]` en el issue details. Confirmar con F12 que el plugin
-  realmente agrega esas clases al `.attribute`; si usa otro patrón, la regla no aplica.
-- **Help & Support (v1.7.5) — selector por validar**: la regla apunta a `body.controller-help`
-  y a `body[class*="controller-help"]`. Si el controller del plugin es otro (`questions`,
-  `helpdesk`…), la regla nunca matchea. Confirmar el `body` real con F12.
-- **`overflow-x: hidden` (v1.7.4) — alcance demasiado amplio**: aplica a todo
-  `body.controller-admin`, no solo a `/admin/settings/configuration`, y a todo `/issues`.
-  En pantallas angostas recorta el contenido en vez de permitir swipe. Conviene acotar el
-  selector de admin a `action-settings` y revisar si `/issues` lo necesita.
-- **`html > body #content` (v1.7.3) — alcance demasiado amplio**: pinta el fondo de
-  `#content` en *todas* las páginas con `!important`, pisando el `background: transparent`
-  de `application.css`. En dark mode agrega una capa opaca sobre el `body` y puede romper
-  los `color-mix` con transparencia. Debería quedar acotado al taskboard.
+- **Vistazo (v1.7.8) — selector por validar**: además de `.attribute[class*="text_cf"]` /
+  `[class*="date_cf"]`, la regla ahora oculta `.attribute:has(> .label[for*="text_cf"])` y
+  `:has(> .label[for*="date_cf"])`, que es como Redmine arma el `.attribute` nativo
+  (`<p class="attribute"><span class="label">…</span><span class="value">…</span></p>`).
+  Confirmar con F12 cuál de los dos patrones usa el plugin; si es el nativo, la regla por
+  `.label[for*="…_cf"]` es la que oculta, y conviene comparar **solo el id completo**:
+  `text_cf` como subcadena también matchea `attachment_text_cf` u otros campos con ese
+  sufijo. Una vez validado, dejar solo el patrón que aplica.
+
+#### Corregido en v1.7.8 (pendiente de validar en el server)
+
+- **Help & Support — controller equivocado (v1.7.5, corregido)**: `body.controller-help`
+  **nunca matcheó**. El body real es `controller-questions_sections action-index` y los
+  tickets viven en `controller-questions`; el CSS sale de `redmine_questions.css`
+  (`#e0e0e0` en `.section-list .section-tile`, `#f8f8f8` en hover, `#999` descripción) y
+  `helpdesk.css` (`.metrics.box #eee/#c0c0c0`, `#ticket_data_form`, journals, `.comments_container #f5f5f5`).
+  El bloque se reescribió con `body:is([class*="controller-questions"], [class*="controller-helpdesk"])`
+  y tokens `--rm-surface` / `--rm-surface-2` / `--rm-border` / `--rm-muted`; los badges de
+  estado de pregunta (`question-status-badge`, `ticket-status`) conservan su color.
+  Verificado sobre el HTML real del plugin con `custom.css` encima: tiles con fondo,
+  borde, texto y descripción del theme; `controller-issues` y `controller-projects` sin cambios.
+- **CMS / Help & Support — icono de mundo repetido**: el icono es `.icon-web`
+  (`world-d90be913.png`) del plugin Help & Support, no del CMS. La regla
+  `.icon-web:not(:has(svg)) { background-image: none !important; }` quita solo el bitmap
+  duplicado cuando ya hay un SVG. **Falta confirmar en el server** que ese sea el icono
+  repetido que se ve: si el campo de páginas muestra dos glifos que no son `.icon-web`,
+  capturar el `outerHTML` del campo con F12 y ajustar la regla.
+- **`overflow-x: hidden` (v1.7.4) — alcance acotado**: pasó de `body.controller-issues` y
+  `body.controller-admin` (todos sus actions) a `body.controller-issues.action-index` y
+  `body.controller-admin.action-settings`. Ya no clipa el detalle de incidencia, ni el
+  proyecto, ni `/issues/calendar`, ni el resto del admin. Revisar igual en móvil si el
+  listado de incidencias necesita scroll lateral; si lo necesita, quitar
+  `.controller-issues.action-index` y dejar solo la página de settings.
+- **`html > body #content` (v1.7.3) — alcance acotado**: pasó de todas las páginas a
+  `html > body:has(#rdb-board) #content` y `:has(#rdb-taskboard)`. Verificar en light y dark
+  que el taskboard sigue sin fondo blanco y que el resto de las páginas no cambió de fondo
+  (con un scheme activo además del default: `--rm-bg` sí sigue al scheme, a diferencia de
+  `--rm-surface`, que no está mapeado en `schemes.css`).
 
 #### Mejoras acordadas
 

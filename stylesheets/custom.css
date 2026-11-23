@@ -358,7 +358,9 @@ table.issue-report td.vz-prog { white-space: nowrap; }
    Los campos personalizados de soporte (mensaje) y de fecha no forman parte del
    panel Vistazo; se ocultan en el issue details para no ensanchar el layout. */
 body.controller-issues .issue.details .attribute[class*="text_cf"],
-body.controller-issues .issue.details .attribute[class*="date_cf"] {
+body.controller-issues .issue.details .attribute[class*="date_cf"],
+body.controller-issues .issue.details .attribute:has(> .label[for*="text_cf"]),
+body.controller-issues .issue.details .attribute:has(> .label[for*="date_cf"]) {
   display: none !important;
 }
 
@@ -553,14 +555,40 @@ body.controller-issues .issue.details .attribute[class*="date_cf"] {
    spacing. The extra html prefix raises specificity above the plugin's !important rule. */
 html body:has(#content iframe) #content { padding-top: 0 !important; }
 
-/* RedmineUP Help & Support — form panel border
-   The plugin's light border does not follow the theme; use the theme token. */
-body.controller-help #content .box,
-body.controller-help #content fieldset,
-body[class*="controller-help"] #content .box,
-body[class*="controller-help"] #content fieldset {
+/* RedmineUP Help & Support — section tiles and ticket panels
+   Real markup: body `controller-questions_sections action-index`, tiles are
+   `a.section-tile.box` inside `.section-list`. The styles come from TWO sheets loaded after
+   the theme: redmine_questions.css (`#e0e0e0` border, `#f8f8f8` hover) and helpdesk.css
+   (`#eee` / `#c0c0c0` cards). The tile is an `<a>`, so pin colour and background, not only
+   the border. Tokens: --rm-surface matches the theme's own `.box`. */
+body:is([class*="controller-questions"], [class*="controller-helpdesk"]) #content :is(.section-tile, .metrics.box, form#ticket_data_form, .ticket-history .journal, div.email-template) {
+  background-color: var(--rm-surface) !important;
   border: 1px solid var(--rm-border) !important;
+  color: var(--rm-fg) !important;
+  box-shadow: none;
 }
+body:is([class*="controller-questions"], [class*="controller-helpdesk"]) #content :is(.section-tile, .metrics.box, form#ticket_data_form):hover { border-color: var(--rm-border-2) !important; }
+body:is([class*="controller-questions"], [class*="controller-helpdesk"]) #content .section-tile:hover { background-color: var(--rm-surface-2) !important; }
+body:is([class*="controller-questions"], [class*="controller-helpdesk"]) #content :is(.section-tile .description, .questions-filters > ul > li a.selected,
+  div.topic div.question-meta .info, #topics_list div.list-item .last-author, #topics_list div.list-item .last-author a,
+  .question-comments .comment .wiki-content, .comments_container .comment .wiki-content, .question-status-badge.editable) { color: var(--rm-muted) !important; }
+body:is([class*="controller-questions"], [class*="controller-helpdesk"]) #content :is(.comments_container, .question-comments .comment, .add_comments,
+  .chart_table .header, #customer_profile_and_issues .ajax-loading) { background-color: var(--rm-surface-2) !important; }
+body:is([class*="controller-questions"], [class*="controller-helpdesk"]) #content :is(.question-comments .comment, .add_comments:not(:first-child),
+  div.question.answer, .question.solution .liking, #forum_list div.project-forums, #topics_list div.title-bar h4) { border-color: var(--rm-border) !important; }
+/* Question status badges are colour-coded by the plugin (open/closed/answered): keep the fill. */
+
+/* Journal replies on the ticket page use light-mode bubble tints. */
+html.dark-mode body:is([class*="controller-questions"], [class*="controller-helpdesk"]) #content .ticket-history div.journal.incoming,
+html.dark-mode body:is([class*="controller-questions"], [class*="controller-helpdesk"]) #content .ticket-history div.journal.incoming:after { background: var(--rm-surface-2) !important; border-color: var(--rm-border) !important; }
+html.dark-mode body:is([class*="controller-questions"], [class*="controller-helpdesk"]) #content .ticket-history div.journal.outgoing,
+html.dark-mode body:is([class*="controller-questions"], [class*="controller-helpdesk"]) #content .ticket-history div.journal.outgoing:after { background: color-mix(in srgb, var(--rm-accent) 14%, var(--rm-surface)) !important; border-color: var(--rm-border) !important; }
+
+/* RedmineUP Help & Support — repeated world icon in page fields
+   The plugin ships `.icon-web` (world-d90be913.png) with a `:not(:has(svg))` guard; when the
+   theme's icon treatment also draws a glyph the field shows two. Keep one: no icon colour
+   is dropped, only the duplicated bitmap. */
+.icon-web:not(:has(svg)) { background-image: none !important; }
 
 /* RedmineUP Agile — cards #ffffdd, planning columns #f6f7f8/#eee, WIP limits.
    Colour-coded cards (.bk-*) keep their meaning as a left stripe. */
@@ -653,9 +681,12 @@ table.view_customize.box td pre {
 /* ── Issues / admin settings: no horizontal scroll ──
    Redmine's #content defaults to overflow-x: auto, which turns wider content
    (issue lists, admin settings) into a sideways scrollbar. Clip it; the page
-   keeps its normal vertical scrolling. */
-body.controller-issues #content,
-body.controller-admin #content {
+   keeps its normal vertical scrolling. Kept narrow: the redmine_task_weight
+   plugin swaps a large task table for stacked cards from JS, so the rule must
+   not hide content on narrow screens — project issue lists and the settings
+   page are the only ones clipped. */
+body.controller-issues.action-index #content,
+body.controller-admin.action-settings #content {
   overflow-x: hidden;
 }
 
@@ -697,8 +728,12 @@ html.dark-mode .agile-board table.list.issues-board tbody td {
 }
 
 /* ── Taskboard / board — fondo del contenedor del board ──
-   El plugin pinta `#content` con fondo blanco; la board debe seguir al token. */
-html > body #content {
+   El plugin pinta `#content` con fondo blanco. La regla queda acotada a las
+   páginas del taskboard/board (wrapper #rdb*); sin ellas `#content` conserva el
+   `transparent` de application.css y el fondo del body (tokens del scheme) se ve
+   igual, pero sin una capa opaca sobre él en dark mode. */
+html > body:has(#rdb-board) #content,
+html > body:has(#rdb-taskboard) #content {
   background-color: var(--rm-bg) !important;
 }
 
