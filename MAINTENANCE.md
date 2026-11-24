@@ -5,22 +5,70 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 ## Estado actual (2026-11-23)
 
 - Repo: `matbott/redmine-modern-theme-mf-v7`, rama `main`.
-- Último commit funcional: **Vistazo y Mi página sin API JSON (v1.8.0)** — los totales de
-  chips, panel de atención, MTTR, estancadas y tarjetas de Mi página se leen de las páginas
-  HTML con la sesión, y se corrigió el filtro de rango `><` en `queryUrl`.
-  (v1.7.8: Help & Support con el controller real + alcances acotados.)
+- Último trabajo **sin commitear**: validación contra el server real + fix del scroll
+  horizontal de tabs (ver *Validación en vivo 2026-11-23*). Requiere commit, tag y deploy.
 - Estado del repo: `main` limpio, tags `v1.2.4`, `v1.2.5`, `v1.3.0`, `v1.3.1`,
   `v1.4.0`, `v1.5.0`, `v1.5.1`, `v1.6.0`, `v1.7.0`, `v1.7.1`, `v1.7.2`, `v1.7.3`, `v1.7.4`, `v1.7.5`,
   `v1.7.6`, `v1.7.7`, `v1.7.8` y `v1.8.0` en origin.
 - Server: Redmine **7.0.3**, container `redmine-redmine-1`, theme instalado en
   `/usr/src/redmine/themes/redmine-modern-theme-mf-v7`.
-- **Pendiente inmediato**: deployar `v1.8.0` con el bloque de *Deploy* y `Ctrl+F5`.
-  Validar: que **ya no aparezca el popup de usuario/contraseña** en el Vistazo ni en Mi
-  página; que los chips, el panel de atención, el MTTR y las tarjetas de Mi página muestren
-  los mismos números que antes de la API; y medir cuánto demoran las 6 requests de chips
-  + 3 del panel (HTML en vez de 1 fila). Si demora mucho, ver *Notas de performance*.
-  Recordar los pendientes de v1.7.7 y v1.7.8 (taskboard, CMS iframe, scroll horizontal,
-  Help & Support, custom fields del Vistazo) y portar a **Lumen** al validar.
+- **Pendiente inmediato**: deployar `v1.8.0` + el fix de tabs con el bloque de *Deploy* y
+  `Ctrl+F5`. Validar: que **ya no aparezca el popup de usuario/contraseña** en el Vistazo ni
+  en Mi página; que los chips, el panel de atención, el MTTR y las tarjetas de Mi página
+  muestren los mismos números que antes de la API; y **que no haya scroll horizontal** en
+  `/issues`, `/settings/edit` y `/time_entries` (ver *Validación en vivo 2026-11-23*).
+  Portar a **Lumen** al validar.
+  Los pendientes de v1.7.7 / v1.7.8 (taskboard, CMS iframe, scroll horizontal, Help &
+  Support, custom fields del Vistazo) ya fueron **validados contra el server real** — ver
+  esa sección; solo resta el deploy.
+
+### Validación en vivo 2026-11-23 (server real, Redmine 7.0.3)
+
+Validado contra `http://192.168.1.210:8080` logueado como `admin2` (credenciales en el
+vault de Hermes, nunca en el repo). Browser real, `getComputedStyle` + medición de
+`scrollWidth`/`clientWidth` a 1440 / 1024 / 780 / 600 / 420 px.
+
+**Confirmado OK**
+- Versión desplegada: `Modern Theme MF v1.8.0` visible en `/my/account`.
+- Taskboard (`/projects/prueba/rdb`): `#content` toma el fondo del body en light
+  (`#F0F4F8`) y dark (`#161E2A`); el board sigue el token. Sin desborde.
+- Taskboard móvil: a 780 y 420 px pasa a `display:flex` + `flex-direction:column`.
+- CMS iframe (`/projects/prueba/pages/1`): `padding-top: 0`, 1 iframe.
+- Help & Support (`/questions_sections`): tile con `--rm-surface`/`--rm-fg` en light y
+  dark, borde con `--rm-border`. La regla de v1.7.8 **sí aplica**.
+- `#content` transparente en desktop (home / issues / projects), ambos modos.
+
+**Corregido en esta sesión**
+- **Scroll horizontal de tabs (causa raíz).** `redmineup_cms.css` inyecta
+  `#content .tabs ul { width: 10000px }` en *todas* las páginas. Eso es lo que generaba
+  el scroll lateral en `/issues`, `/settings` y `/time_entries` — eran los tabs, no el
+  contenido. Se neutraliza con `#content .tabs ul { width: auto !important }`.
+  Medido en `/settings/edit`: ul 10000px → 1129px, `#content` scrollWidth 10028px →
+  1185px, tabs cortados 2 → 0. Vale a 1440/1024/780/600/420 px.
+  **Se quitó** el `overflow-x: hidden` que ocultaba el síntoma: recortaba los últimos
+  tabs ("Correos entrantes", "Repositorios") sin forma de alcanzarlos.
+- `/time_entries` tenía el mismo bug (10016px → 765px). Ahora arreglado por el mismo fix.
+
+**Descartado (era falso positivo)**
+- Se sospechó que el tile de Help & Support quedaba blanco en dark mode. Es incorrecto:
+  la medición anterior se hizo mientras la página cargaba. Medido en reposo da
+  `bg rgb(30,44,58)` / `color rgb(232,240,248)`. No hay nada que corregir.
+
+**Notas de nomenclatura (para no repetir el error)**
+- Settings es su **propio controller**: `/settings/edit` renderiza
+  `controller-settings action-edit`, **no** `controller-admin`. El selector de v1.7.4
+  (`body.controller-admin.action-settings`) nunca matcheó. La ruta
+  `/admin/settings/configuration` **no existe** en Redmine 7 (404): la correcta es
+  `/settings/edit`.
+- Help & Support es `controller-questions` / `controller-questions_sections`.
+  `/helpdesk` da 404.
+- El taskboard es `controller-rdb_taskboard`, ruta `/projects/<id>/rdb` (menú "Tablero").
+
+**Sin validar todavía**
+- La regla de custom fields (`text_cf` / `date_cf`) es **dormida**: la única instancia
+  tiene un solo campo, `int_cf cf_3` (label "numero"), que la regla no toca — correcto,
+  porque no es de mensaje ni de fecha. No hay datos para probarla. Las fechas nativas
+  (`start-date` / `due-date`) no son `_cf` y quedan intactas a propósito.
 
 ### Última sesión (2026-11-23, v1.8.0)
 
@@ -63,6 +111,12 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
   en `issues/index` y `admin/settings`; el fondo de `#content` solo se fuerza con `#rdb*` en el
   DOM. No se validó en el server porque esta máquina no tiene Docker ni acceso al
   contenedor `redmine-redmine-1`; el navegador del usuario (Chrome actual) soporta `:has`.
+  **Corrección posterior (2026-11-23, validado contra el server):** el fixture era
+  engañoso — `admin/settings` no es el controller real (`/settings/edit` es
+  `controller-settings action-edit`, ver *Validación en vivo 2026-11-23*), y el scroll
+  horizontal no venía del contenido sino de `#content .tabs ul { width: 10000px }` del
+  plugin CMS. El agarre de `overflow-x` sobre `issues/index` se quitó: el fix de tabs lo
+  deja innecesario.
 
 #### Sesión 2026-11-20
 
@@ -81,7 +135,7 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
   `border: 1px solid var(--rm-border) !important`.
 - **Issues / admin settings — no horizontal scroll (v1.7.4)**: Redmine pone `overflow-x: auto`
   en `#content`, lo que genera scroll horizontal cuando el contenido se amplía
-  (`/issues` y `/admin/settings/configuration`). Se agregó el override con
+  (`/issues` y `/settings/edit`). Se agregó el override con
   `overflow-x: hidden` para los controllers afectados.
 - **RedmineUP CMS — iframes (v1.7.1)**: `custom.css` limpia el `padding-top` que el CMS
   aplica a `#content` cuando la página contiene un iframe, para que los dashboards de
@@ -219,7 +273,7 @@ solo quedan a la espera del deploy/validación descrito en *Pendiente inmediato*
 
 - **`v1.7.7`** (deploy + `Ctrl+F5`): taskboard con fondo token en `#content`, taskboard en móvil
   con columnas apiladas, CMS con iframe sin franja arriba, `/issues` y
-  `/admin/settings/configuration` sin scroll horizontal, borde del panel Help & Support, y
+  `/settings/edit` sin scroll horizontal, borde del panel Help & Support, y
   custom fields de mensajes y fechas del Vistazo. Al validar, portar a **Lumen**.
 
 #### Pendiente de fix
@@ -251,12 +305,10 @@ solo quedan a la espera del deploy/validación descrito en *Pendiente inmediato*
   duplicado cuando ya hay un SVG. **Falta confirmar en el server** que ese sea el icono
   repetido que se ve: si el campo de páginas muestra dos glifos que no son `.icon-web`,
   capturar el `outerHTML` del campo con F12 y ajustar la regla.
-- **`overflow-x: hidden` (v1.7.4) — alcance acotado**: pasó de `body.controller-issues` y
-  `body.controller-admin` (todos sus actions) a `body.controller-issues.action-index` y
-  `body.controller-admin.action-settings`. Ya no clipa el detalle de incidencia, ni el
-  proyecto, ni `/issues/calendar`, ni el resto del admin. Revisar igual en móvil si el
-  listado de incidencias necesita scroll lateral; si lo necesita, quitar
-  `.controller-issues.action-index` y dejar solo la página de settings.
+- ~~**`overflow-x: hidden` (v1.7.4) — alcance acotado**~~ → **resuelto 2026-11-23 de otra
+  forma**. El scroll no lo causaba el contenido sino `#content .tabs ul { width: 10000px }`
+  de `redmineup_cms.css`. Se neutraliza esa regla y se retira el `overflow-x: hidden`
+  (ver *Validación en vivo 2026-11-23*). No reintroducir el clip: corta los últimos tabs.
 - **`html > body #content` (v1.7.3) — alcance acotado**: pasó de todas las páginas a
   `html > body:has(#rdb-board) #content` y `:has(#rdb-taskboard)`. Verificar en light y dark
   que el taskboard sigue sin fondo blanco y que el resto de las páginas no cambió de fondo

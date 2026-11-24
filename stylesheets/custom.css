@@ -356,7 +356,18 @@ table.issue-report td.vz-prog { white-space: nowrap; }
 
 /* RedmineUP Vistazo — custom fields de mensajes y fechas.
    Los campos personalizados de soporte (mensaje) y de fecha no forman parte del
-   panel Vistazo; se ocultan en el issue details para no ensanchar el layout. */
+   panel Vistazo; se ocultan en el issue details para no ensanchar el layout.
+
+   Redmine renders every custom field as `.attribute.<type>_cf.cf_<id>`, where
+   `<type>` is the field FORMAT (int_cf, float_cf, list_cf, text_cf, date_cf…).
+   The matching label carries for="issue_custom_field_values_<id>".
+
+   NOTE on this instance (verified 2026-11-22, Redmine 7.0.3): the only custom
+   field configured is `int_cf cf_3` (label "numero"), so the text/date rules
+   below select nothing yet — they are correct but dormant. Date-type core
+   attributes (start-date / due-date) are NOT _cf and are untouched on purpose.
+   If a message/date custom field is added later, these rules start applying
+   with no further change. */
 body.controller-issues .issue.details .attribute[class*="text_cf"],
 body.controller-issues .issue.details .attribute[class*="date_cf"],
 body.controller-issues .issue.details .attribute:has(> .label[for*="text_cf"]),
@@ -678,17 +689,26 @@ table.view_customize.box td pre {
   color: var(--rm-fg) !important;
 }
 
-/* ── Issues / admin settings: no horizontal scroll ──
-   Redmine's #content defaults to overflow-x: auto, which turns wider content
-   (issue lists, admin settings) into a sideways scrollbar. Clip it; the page
-   keeps its normal vertical scrolling. Kept narrow: the redmine_task_weight
-   plugin swaps a large task table for stacked cards from JS, so the rule must
-   not hide content on narrow screens — project issue lists and the settings
-   page are the only ones clipped. */
-body.controller-issues.action-index #content,
-body.controller-admin.action-settings #content {
-  overflow-x: hidden;
-}
+/* ── RedmineUP CMS — runaway tab strip width ──
+   redmineup_cms.css ships `#content .tabs ul { width: 10000px }` unconditionally,
+   so EVERY page with a tab strip reports ~10 000px of scroll width inside #content.
+   That is what produced the sideways scrollbar on /issues and /settings — the tabs,
+   not the content. Hiding the overflow only masks it: on /settings it also clipped
+   the last two tabs ("Correos entrantes", "Repositorios") with no way to reach them.
+
+   Let the strip size itself and the scroll disappears at the source. Measured on
+   /settings/edit (Redmine 7.0.3, 2026-11-22), before -> after: ul 10000px -> 1129px,
+   #content scrollWidth 10028px -> 1185px, tabs cut 2 -> 0. Holds at 1440 / 1024 /
+   780 / 600 / 420px, and the tabs still navigate (click reaches ?tab=repositories). */
+#content .tabs ul { width: auto !important; }
+
+/* ── Settings — controller name ──
+   Settings lives on its own controller in Redmine 7: /settings/edit renders
+   body.class = "controller-settings action-edit", NOT "controller-admin". The
+   v1.7.4 selector (`body.controller-admin.action-settings`) never matched, which
+   is why the reported fix did nothing. No overflow rule is needed here any more:
+   the CMS tab fix above removes the only real overflow. Kept as a note so the
+   selectors are not reintroduced. */
 
 /* ── Taskboard / board plugin (rdb-*) ──────────────────────
    #rdb, #rdb-wrapper, #rdb-board, #rdb-taskboard.
