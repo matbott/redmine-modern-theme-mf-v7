@@ -6,7 +6,7 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
 
 - Repo: `matbott/redmine-modern-theme-mf-v7`, rama `main`.
 - Último trabajo **sin commitear**: select2 del plugin RedmineUP llevado a tokens
-  (v1.8.2). Ver *select2 (tags / multi-select)* abajo.
+  (v1.8.3). Ver *select2 (tags / multi-select)* abajo.
 - Estado del repo: `main` limpio, tags `v1.2.4`, `v1.2.5`, `v1.3.0`, `v1.3.1`,
   `v1.4.0`, `v1.5.0`, `v1.5.1`, `v1.6.0`, `v1.7.0`, `v1.7.1`, `v1.7.2`, `v1.7.3`, `v1.7.4`, `v1.7.5`,
   `v1.7.6`, `v1.7.7`, `v1.7.8` y `v1.8.0` en origin.
@@ -39,6 +39,25 @@ Medido en dark: control `rgb(255,255,255)` → `rgb(30,44,58)`, borde `#ccc` →
 radio `3px` → `8px`, chip `#efefef` → tinte accent; dropdown `#1E2C3A` con la opción
 resaltada sobre el accent. Contraste 12.36:1 (texto sobre surface), 9.39:1 (on-accent sobre
 accent), 17.74:1 en claro — todo AA con margen.
+
+**El bloque lleva `!important` a propósito y no hay que sacarlo.** El bundle de RedmineUP se
+carga *después* de las hojas del theme; con igual especificidad
+(`.select2-container--default .select2-selection--multiple` = 0,2,0 en ambos lados) gana el
+plugin y las reglas quedan inertes. Verificado montando el select2 con el CSS del theme
+primero y el del plugin después:
+
+| | Fondo | Borde | Radio |
+|---|---|---|---|
+| solo plugin | `#fff` | `#ccc` | `3px` |
+| theme **sin** `!important` | `#fff` ❌ | `#ccc` ❌ | `3px` ❌ |
+| theme **con** `!important` | `#1E2C3A` ✅ | `#3A5068` ✅ | `8px` ✅ |
+
+El plugin no usa `!important` en select2, así que gana limpio. Los chips además compiten con
+`.filter .select2-container--default …` (0,4,0) del propio plugin.
+
+Lección para futuros overrides de plugin en este theme: **no asumir que `custom.css` gana
+por ser "del theme"**. El core sí va en capa (`layer(core)`) y pierde, pero los bundles de
+plugin cargan sin capa y después → hace falta `!important` o más especificidad.
 
 Validado montando un select2 real con el `redmineup.css` del server (la instancia de test
 no tiene el plugin de tags; la página `/tags` da 404). **Falta verlo en producción**, donde
