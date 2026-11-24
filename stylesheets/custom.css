@@ -1093,6 +1093,100 @@ html.dark-mode .rdb-compact { background: var(--rm-surface) !important; }
   }
 }
 
+/* ── RedmineUP select2 (tags / multi-select) — theme tokens ──
+   redmineup.css ships the stock select2 default theme with hardcoded light colours
+   (`background-color: white`, `border: 1px solid #ccc`, chips `#efefef`, focus `#5ad`,
+   placeholder `#999`). On this theme those read as a foreign white box in both modes and
+   are unreadable in dark. Pin them to the same tokens the native inputs use, so a select2
+   field is indistinguishable from a plain <select>.
+   Selectors mirror the plugin's own specificity; the theme sheet is unlayered and loads
+   after the plugin bundle, so no !important is needed except where the plugin uses one. */
+
+/* Collapsed control: same surface, border, radius and padding as input/select in
+   application.css (§ Forms). */
+.select2-container--default .select2-selection--single,
+.select2-container--default .select2-selection--multiple {
+  background-color: var(--rm-surface);
+  border: 1px solid var(--rm-border-2);
+  border-radius: var(--rm-r);
+  color: var(--rm-fg);
+}
+
+/* Focus: mirror input:focus (accent border + ring). The plugin hardcodes `#5ad`. */
+.select2-container--default.select2-container--focus .select2-selection--multiple,
+.select2-container--default.select2-container--focus .select2-selection--single,
+.select2-container--default.select2-container--open .select2-selection--multiple,
+.select2-container--default.select2-container--open .select2-selection--single {
+  border-color: var(--rm-accent);
+  box-shadow: 0 0 0 3px var(--rm-ring);
+  outline: none;
+}
+
+/* Disabled / readonly: same muted treatment as input:disabled. */
+.select2-container--default.select2-container--disabled .select2-selection--single,
+.select2-container--default.select2-container--disabled .select2-selection--multiple {
+  background-color: var(--rm-surface-2);
+  color: var(--rm-muted);
+}
+
+/* Text inside the control, placeholder and the clear (×) affordance. */
+.select2-container--default .select2-selection--single .select2-selection__rendered,
+.select2-container--default .select2-selection--multiple .select2-selection__rendered { color: var(--rm-fg); }
+.select2-container--default .select2-selection--single .select2-selection__placeholder,
+.select2-container--default .select2-selection--multiple .select2-selection__placeholder { color: var(--rm-muted); }
+.select2-container--default .select2-selection--single .select2-selection__clear,
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove { color: var(--rm-muted); }
+.select2-container--default .select2-selection--single .select2-selection__clear:hover,
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover { color: var(--rm-fg); }
+
+/* Selected chips: accent-tinted like the theme's own selected states, not #efefef. */
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+  background-color: var(--rm-accent-soft);
+  border: 1px solid var(--rm-border);
+  border-radius: var(--rm-r-sm);
+  color: var(--rm-fg);
+}
+
+/* The search field that sits inside the multiple control must not paint its own box. */
+.select2-container--default .select2-search--inline .select2-search__field {
+  background: transparent;
+  border: 0;
+  color: var(--rm-fg);
+  box-shadow: none;
+  outline: none;
+}
+
+/* Dropdown panel and its options. */
+.select2-dropdown {
+  background-color: var(--rm-surface);
+  border: 1px solid var(--rm-border);
+  border-radius: var(--rm-r-sm);
+  box-shadow: var(--rm-shadow-md);
+  color: var(--rm-fg);
+}
+.select2-container--default .select2-search--dropdown .select2-search__field {
+  background-color: var(--rm-surface);
+  border: 1px solid var(--rm-border-2);
+  border-radius: var(--rm-r-sm);
+  color: var(--rm-fg);
+}
+.select2-container--default .select2-results__option[aria-selected="true"] { background-color: var(--rm-surface-2); color: var(--rm-fg); }
+.select2-container--default .select2-results__option--highlighted[aria-selected],
+.select2-container--default .select2-results__option--highlighted[aria-selected="true"] {
+  background-color: var(--rm-accent);
+  color: var(--rm-on-accent);
+}
+.select2-container--default .select2-results__option[aria-disabled="true"] { color: var(--rm-muted); }
+.select2-container--default .select2-results__group { color: var(--rm-muted); }
+
+/* Arrow glyph is a CSS border triangle; `#888` is unreadable on the dark surface. */
+.select2-container--default .select2-selection--single .select2-selection__arrow b {
+  border-color: var(--rm-muted) transparent transparent transparent;
+}
+.select2-container--default.select2-container--open .select2-selection--single .select2-selection__arrow b {
+  border-color: transparent transparent var(--rm-muted) transparent;
+}
+
 /* ── Pins toolbar (plugin) — token-based dark styling ── */
 .pins-toolbar {
   margin-bottom: 1.5em;

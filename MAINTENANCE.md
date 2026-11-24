@@ -2,11 +2,11 @@
 
 Notas para retomar el trabajo sin tener que reconstruir el contexto.
 
-## Estado actual (2026-11-23)
+## Estado actual (2026-11-24)
 
 - Repo: `matbott/redmine-modern-theme-mf-v7`, rama `main`.
-- Último trabajo **sin commitear**: validación contra el server real + fix del scroll
-  horizontal de tabs (ver *Validación en vivo 2026-11-23*). Requiere commit, tag y deploy.
+- Último trabajo **sin commitear**: select2 del plugin RedmineUP llevado a tokens
+  (v1.8.2). Ver *select2 (tags / multi-select)* abajo.
 - Estado del repo: `main` limpio, tags `v1.2.4`, `v1.2.5`, `v1.3.0`, `v1.3.1`,
   `v1.4.0`, `v1.5.0`, `v1.5.1`, `v1.6.0`, `v1.7.0`, `v1.7.1`, `v1.7.2`, `v1.7.3`, `v1.7.4`, `v1.7.5`,
   `v1.7.6`, `v1.7.7`, `v1.7.8` y `v1.8.0` en origin.
@@ -21,6 +21,28 @@ Notas para retomar el trabajo sin tener que reconstruir el contexto.
   Los pendientes de v1.7.7 / v1.7.8 (taskboard, CMS iframe, scroll horizontal, Help &
   Support, custom fields del Vistazo) ya fueron **validados contra el server real** — ver
   esa sección; solo resta el deploy.
+
+### select2 (tags / multi-select) — v1.8.2
+
+`redmineup.css` incluye el tema por defecto de select2 con colores fijos: `background-color:
+white`, `border: 1px solid #ccc`, chips `#efefef`, focus `#5ad`, placeholder `#999` y flecha
+`#888`. En este theme desentonaba en claro y **en oscuro era ilegible**: el control seguía
+blanco con el texto casi blanco encima.
+
+El bloque `── RedmineUP select2 (tags / multi-select) — theme tokens ──` de `custom.css`
+lleva todo a tokens, de modo que un campo select2 queda igual a un `<select>` nativo
+(mismo `--rm-surface`, `--rm-border-2`, `--rm-r` y anillo de foco). Los chips toman tinte
+`--rm-accent-soft` y el dropdown / opción resaltada usan `--rm-surface`, `--rm-accent` y
+`--rm-on-accent`.
+
+Medido en dark: control `rgb(255,255,255)` → `rgb(30,44,58)`, borde `#ccc` → `#3A5068`,
+radio `3px` → `8px`, chip `#efefef` → tinte accent; dropdown `#1E2C3A` con la opción
+resaltada sobre el accent. Contraste 12.36:1 (texto sobre surface), 9.39:1 (on-accent sobre
+accent), 17.74:1 en claro — todo AA con margen.
+
+Validado montando un select2 real con el `redmineup.css` del server (la instancia de test
+no tiene el plugin de tags; la página `/tags` da 404). **Falta verlo en producción**, donde
+vive el plugin.
 
 ### Validación en vivo 2026-11-23 (server real, Redmine 7.0.3)
 
